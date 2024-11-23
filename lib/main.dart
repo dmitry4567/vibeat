@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:test_routung2/main.gr.dart';
+import 'package:vibeat/main.gr.dart';
 
 void main() {
   runApp(MainApp());
@@ -8,6 +8,8 @@ void main() {
 
 class MainApp extends StatelessWidget {
   final _router = AppRouter();
+
+  MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class AppRouter extends RootStackRouter {
             ),
             AutoRoute(
               path: 'search',
-              page: EmptyShellRoute('search'),
+              page: const EmptyShellRoute('search'),
               children: [
                 AutoRoute(
                   path: '',
@@ -76,7 +78,7 @@ class AppRouter extends RootStackRouter {
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 const curve = Curves.ease;
-                final tween = Tween(begin: Offset(0, 1), end: Offset.zero);
+                final tween = Tween(begin: const Offset(0, 1), end: Offset.zero);
                 final curvedAnimation = CurvedAnimation(
                   parent: animation,
                   curve: curve,
@@ -96,6 +98,8 @@ class AppRouter extends RootStackRouter {
 
 @RoutePage()
 class DashboardPage extends StatelessWidget {
+  const DashboardPage({super.key});
+
   @override
   Widget build(context) {
     return AutoTabsScaffold(
@@ -122,41 +126,43 @@ class DashboardPage extends StatelessWidget {
           items: [
             BottomNavigationBarItem(
               icon: Icon(
-                tabsRouter.activeIndex == 0
-                    ? Icons.home : Icons.home_outlined,
+                tabsRouter.activeIndex == 0 ? Icons.home : Icons.home_outlined,
                 color: tabsRouter.activeIndex == 0
                     ? Colors.white
-                    : Color(0xff666666),
+                    : const Color(0xff666666),
               ),
               label: '',
             ),
             BottomNavigationBarItem(
               icon: Icon(
                 tabsRouter.activeIndex == 0
-                    ? Icons.search : Icons.search_outlined,
+                    ? Icons.search
+                    : Icons.search_outlined,
                 color: tabsRouter.activeIndex == 1
                     ? Colors.white
-                    : Color(0xff666666),
+                    : const Color(0xff666666),
               ),
               label: '',
             ),
             BottomNavigationBarItem(
               icon: Icon(
                 tabsRouter.activeIndex == 2
-                    ? Icons.favorite : Icons.favorite_outline,
+                    ? Icons.favorite
+                    : Icons.favorite_outline,
                 color: tabsRouter.activeIndex == 2
                     ? Colors.white
-                    : Color(0xff666666),
+                    : const Color(0xff666666),
               ),
               label: '',
             ),
             BottomNavigationBarItem(
               icon: Icon(
-               tabsRouter.activeIndex == 3
-                    ? Icons.shopping_cart : Icons.shopping_cart_outlined,
+                tabsRouter.activeIndex == 3
+                    ? Icons.shopping_cart
+                    : Icons.shopping_cart_outlined,
                 color: tabsRouter.activeIndex == 3
                     ? Colors.white
-                    : Color(0xff666666),
+                    : const Color(0xff666666),
               ),
               label: '',
             ),

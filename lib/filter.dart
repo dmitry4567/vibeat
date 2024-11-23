@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:test_routung2/main.gr.dart';
+import 'package:vibeat/main.gr.dart';
 
 @RoutePage()
 class FilterScreen extends StatelessWidget {
@@ -27,7 +27,7 @@ class FilterScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () {
-              context.router.push(const FilterGenreRoute());
+                context.router.push(const FilterGenreRoute());
               },
               child: Container(
                 height: 90,

@@ -9,16 +9,16 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i11;
-import 'package:test_routung2/favorite.dart' as _i3;
-import 'package:test_routung2/filter.dart' as _i5;
-import 'package:test_routung2/filter_genre.dart' as _i4;
-import 'package:test_routung2/home.dart' as _i6;
-import 'package:test_routung2/main.dart' as _i2;
-import 'package:test_routung2/player.dart' as _i7;
-import 'package:test_routung2/profile.dart' as _i8;
-import 'package:test_routung2/result.dart' as _i9;
-import 'package:test_routung2/search.dart' as _i10;
-import 'package:test_routung2/settings.dart' as _i1;
+import 'package:vibeat/favorite.dart' as _i3;
+import 'package:vibeat/filter.dart' as _i5;
+import 'package:vibeat/filter_genre.dart' as _i4;
+import 'package:vibeat/home.dart' as _i6;
+import 'package:vibeat/main.dart' as _i2;
+import 'package:vibeat/player.dart' as _i7;
+import 'package:vibeat/profile.dart' as _i8;
+import 'package:vibeat/result.dart' as _i9;
+import 'package:vibeat/search.dart' as _i10;
+import 'package:vibeat/settings.dart' as _i1;
 
 /// generated route for
 /// [_i1.CartScreen]
