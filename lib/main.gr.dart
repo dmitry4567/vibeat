@@ -9,6 +9,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i11;
+import 'package:flutter/material.dart' as _i12;
 import 'package:vibeat/favorite.dart' as _i3;
 import 'package:vibeat/filter.dart' as _i5;
 import 'package:vibeat/filter_genre.dart' as _i4;
@@ -53,7 +54,7 @@ class DashboardRoute extends _i11.PageRouteInfo<void> {
   static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return _i2.DashboardPage();
+      return const _i2.DashboardPage();
     },
   );
 }
@@ -98,10 +99,13 @@ class FilterGenreRoute extends _i11.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i5.FilterScreen]
-class FilterRoute extends _i11.PageRouteInfo<void> {
-  const FilterRoute({List<_i11.PageRouteInfo>? children})
-      : super(
+class FilterRoute extends _i11.PageRouteInfo<FilterRouteArgs> {
+  FilterRoute({
+    _i12.Key? key,
+    List<_i11.PageRouteInfo>? children,
+  }) : super(
           FilterRoute.name,
+          args: FilterRouteArgs(key: key),
           initialChildren: children,
         );
 
@@ -110,9 +114,22 @@ class FilterRoute extends _i11.PageRouteInfo<void> {
   static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i5.FilterScreen();
+      final args =
+          data.argsAs<FilterRouteArgs>(orElse: () => const FilterRouteArgs());
+      return _i5.FilterScreen(key: args.key);
     },
   );
+}
+
+class FilterRouteArgs {
+  const FilterRouteArgs({this.key});
+
+  final _i12.Key? key;
+
+  @override
+  String toString() {
+    return 'FilterRouteArgs{key: $key}';
+  }
 }
 
 /// generated route for
