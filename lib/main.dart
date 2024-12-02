@@ -1,17 +1,38 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vibeat/main.gr.dart';
+import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 
 void main() {
-  runApp(MainApp());
+  runApp(
+    MultiBlocProvider(providers: [
+      BlocProvider(
+        create: (_) => PlayerBloc(),
+      ),
+    ], child: MainApp()),
+  );
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
+  MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
   final ThemeMode _themeMode = ThemeMode.system;
+
   final _router = AppRouter();
 
-  MainApp({super.key});
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<PlayerBloc>().add(GetRecommendEvent());
+  }
 
   @override
   Widget build(BuildContext context) {

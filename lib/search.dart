@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/main.gr.dart';
+import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 
 @RoutePage()
@@ -51,7 +53,7 @@ class SearchScreen extends StatelessWidget {
                       ),
                       suffixIcon: GestureDetector(
                         onTap: () {
-                          context.pushRoute( FilterRoute());
+                          context.pushRoute(FilterRoute());
                         },
                         child: Icon(
                           Icons.filter_alt_outlined,
@@ -138,101 +140,112 @@ class SearchScreen extends StatelessWidget {
                             borderRadius: const BorderRadius.all(
                               Radius.circular(6),
                             ),
-                            child: Container(
-                              width: width,
-                              margin: const EdgeInsets.only(right: marginRight),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Image.asset(
-                                    fit: BoxFit.fitWidth,
-                                    width: width,
-                                    "assets/images/image1.png",
-                                  ),
-                                  const SizedBox(
-                                    height: 6,
-                                  ),
-                                  const Text(
-                                    "1000 RUB",
-                                    style: AppTextStyles.bodyPrice2,
-                                  ),
-                                  const Text(
-                                    "Detroit type beat sefsef sef",
-                                    style: AppTextStyles.headline1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            const SizedBox(
-                                              width: 12,
-                                              height: 12,
-                                              child: CircleAvatar(
-                                                backgroundImage: NetworkImage(
-                                                  'https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp',
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              width: 4,
-                                            ),
-                                            Expanded(
-                                              child: Container(
-                                                padding: const EdgeInsets.only(
-                                                  right: 5,
-                                                ),
-                                                child: Column(
-                                                  children: [
-                                                    const SizedBox(
-                                                      height: 2,
-                                                    ),
-                                                    Text(
-                                                      "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
-                                                      style: AppTextStyles
-                                                          .bodyText2,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.volume_down_outlined,
-                                            size: 12,
-                                            color:
-                                                AppColors.unselectedItemColor,
-                                          ),
-                                          Column(
+                            child: GestureDetector(
+                              onTap: () {
+                                context
+                                    .read<PlayerBloc>()
+                                    .add(PlayAudioEvent());
+                                context.router.push(const PlayerRoute());
+                              },
+                              child: Container(
+                                width: width,
+                                margin:
+                                    const EdgeInsets.only(right: marginRight),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Image.asset(
+                                      fit: BoxFit.fitWidth,
+                                      width: width,
+                                      "assets/images/image1.png",
+                                    ),
+                                    const SizedBox(
+                                      height: 6,
+                                    ),
+                                    const Text(
+                                      "1000 RUB",
+                                      style: AppTextStyles.bodyPrice2,
+                                    ),
+                                    const Text(
+                                      "Detroit type beat sefsef sef",
+                                      style: AppTextStyles.headline1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Row(
                                             children: [
                                               const SizedBox(
-                                                height: 1,
+                                                width: 12,
+                                                height: 12,
+                                                child: CircleAvatar(
+                                                  backgroundImage: NetworkImage(
+                                                    'https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp',
+                                                  ),
+                                                ),
                                               ),
-                                              Text(
-                                                "100k",
-                                                style: AppTextStyles.bodyText2
-                                                    .copyWith(fontSize: 10),
-                                                overflow: TextOverflow.ellipsis,
+                                              const SizedBox(
+                                                width: 4,
+                                              ),
+                                              Expanded(
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                    right: 5,
+                                                  ),
+                                                  child: Column(
+                                                    children: [
+                                                      const SizedBox(
+                                                        height: 2,
+                                                      ),
+                                                      Text(
+                                                        "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
+                                                        style: AppTextStyles
+                                                            .bodyText2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                               ),
                                             ],
                                           ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.volume_down_outlined,
+                                              size: 12,
+                                              color:
+                                                  AppColors.unselectedItemColor,
+                                            ),
+                                            Column(
+                                              children: [
+                                                const SizedBox(
+                                                  height: 1,
+                                                ),
+                                                Text(
+                                                  "100k",
+                                                  style: AppTextStyles.bodyText2
+                                                      .copyWith(fontSize: 10),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -339,68 +352,71 @@ class SearchScreen extends StatelessWidget {
                   ),
                   itemBuilder: (_, index) => Skeletonizer(
                     enabled: false,
-                    child: Container(
-                      margin: EdgeInsets.only(
-                        right: (index + 1) % 2 != 0 ? 15 : 0,
-                        bottom: 20,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
-                          width: 1,
+                    child: GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right: (index + 1) % 2 != 0 ? 15 : 0,
+                          bottom: 20,
                         ),
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(6),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 1,
+                          ),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(6),
+                          ),
                         ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(6)),
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: Image.asset(
-                                "assets/images/genre${(index + 1)}.png",
-                                fit: BoxFit.fitWidth,
-                              ),
-                            ),
-                            Positioned.fill(
-                              child: Container(
-                                color: Colors.black.withOpacity(0.4),
-                              ),
-                            ),
-                            const Positioned(
-                              top: 9,
-                              left: 9,
-                              child: Text(
-                                "Detroit",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontFamily: "Poppins",
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textPrimary,
-                                  letterSpacing: -0.41,
-                                  height: 0.81,
+                        child: ClipRRect(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(6)),
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: Image.asset(
+                                  "assets/images/genre${(index + 1)}.png",
+                                  fit: BoxFit.fitWidth,
                                 ),
                               ),
-                            ),
-                            const Positioned(
-                              bottom: 9,
-                              right: 9,
-                              child: Text(
-                                "5000 битов",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: "Poppins",
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.textPrimary,
-                                  letterSpacing: -0.41,
-                                  height: 0.54,
+                              Positioned.fill(
+                                child: Container(
+                                  color: Colors.black.withOpacity(0.4),
                                 ),
                               ),
-                            ),
-                          ],
+                              const Positioned(
+                                top: 9,
+                                left: 9,
+                                child: Text(
+                                  "Detroit",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontFamily: "Poppins",
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimary,
+                                    letterSpacing: -0.41,
+                                    height: 0.81,
+                                  ),
+                                ),
+                              ),
+                              const Positioned(
+                                bottom: 9,
+                                right: 9,
+                                child: Text(
+                                  "5000 битов",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: "Poppins",
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColors.textPrimary,
+                                    letterSpacing: -0.41,
+                                    height: 0.54,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

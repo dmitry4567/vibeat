@@ -15,7 +15,7 @@ import 'package:vibeat/filter.dart' as _i5;
 import 'package:vibeat/filter_genre.dart' as _i4;
 import 'package:vibeat/home.dart' as _i6;
 import 'package:vibeat/main.dart' as _i2;
-import 'package:vibeat/player.dart' as _i7;
+import 'package:vibeat/player/player_widget.dart' as _i7;
 import 'package:vibeat/profile.dart' as _i8;
 import 'package:vibeat/result.dart' as _i9;
 import 'package:vibeat/search.dart' as _i10;
