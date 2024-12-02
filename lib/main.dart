@@ -4,8 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vibeat/main.gr.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
+import 'package:vibeat/widgets/custom_error.dart';
 
 void main() {
+  ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+    return CustomError(errorDetails: errorDetails);
+  };
+  
   runApp(
     MultiBlocProvider(providers: [
       BlocProvider(
