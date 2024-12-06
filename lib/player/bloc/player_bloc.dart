@@ -158,28 +158,18 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
 
     on<NextFragmentEvent>((event, emit) async {
-      final fragments = state.fragmentsMusic;
-      final currentTime = state.currentTime ~/ 1000; // Convert to seconds
-      
-      // Find next fragment start time
-      for (int i = 0; i < fragments.length; i++) {
-        if (fragments[i] > currentTime) {
-          await player.seek(Duration(seconds: fragments[i]));
-          break;
-        }
+      if (state.indexFragment < state.fragmentsMusic.length - 1) {
+        final nextIndex = state.indexFragment + 1;
+        await player.seek(Duration(seconds: state.fragmentsMusic[nextIndex]));
+        emit(state.copyWith(indexFragment: nextIndex));
       }
     });
 
     on<PreviousFragmentEvent>((event, emit) async {
-      final fragments = state.fragmentsMusic;
-      final currentTime = state.currentTime ~/ 1000; // Convert to seconds
-      
-      // Find previous fragment start time
-      for (int i = fragments.length - 1; i >= 0; i--) {
-        if (fragments[i] < currentTime) {
-          await player.seek(Duration(seconds: fragments[i]));
-          break;
-        }
+      if (state.indexFragment > 0) {
+        final prevIndex = state.indexFragment - 1;
+        await player.seek(Duration(seconds: state.fragmentsMusic[prevIndex]));
+        emit(state.copyWith(indexFragment: prevIndex));
       }
     });
 
@@ -195,8 +185,48 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       emit(state.copyWith(isRepeat: !state.isRepeat));
     });
 
-    on<UpdateCurrentTime>((event, emit) {
-      emit(state.copyWith(currentTime: event.currentTime));
+    on<ToggleLoopFragmentEvent>((event, emit) {
+      emit(state.copyWith(loopCurrentFragment: !state.loopCurrentFragment));
+    });
+
+    on<UpdateCurrentTime>((event, emit) async {
+      final currentTime = event.currentTime ~/ 1000;
+      int newIndexFragment = state.indexFragment;
+
+      // Если зацикливание выключено, обновляем индекс фрагмента
+      if (!state.loopCurrentFragment) {
+        for (int i = 0; i < state.fragmentsMusic.length; i++) {
+          if (i == state.fragmentsMusic.length - 1) {
+            if (currentTime >= state.fragmentsMusic[i]) {
+              newIndexFragment = i;
+            }
+          } else if (currentTime >= state.fragmentsMusic[i] && 
+                    currentTime < state.fragmentsMusic[i + 1]) {
+            newIndexFragment = i;
+            break;
+          }
+        }
+      }
+
+      // Проверяем необходимость зацикливания
+      if (state.loopCurrentFragment) {
+        final currentFragmentStart = state.fragmentsMusic[state.indexFragment];
+        final currentFragmentEnd = state.indexFragment < state.fragmentsMusic.length - 1
+            ? state.fragmentsMusic[state.indexFragment + 1]
+            : state.endTime;
+
+        // Если вышли за пределы текущего фрагмента
+        if (currentTime >= currentFragmentEnd) {
+          await player.seek(Duration(seconds: currentFragmentStart));
+          emit(state.copyWith(currentTime: currentFragmentStart * 1000));
+          return;
+        }
+      }
+
+      emit(state.copyWith(
+        currentTime: event.currentTime,
+        indexFragment: newIndexFragment,
+      ));
     });
 
     on<UpdateDragProgressEvent>((event, emit) {

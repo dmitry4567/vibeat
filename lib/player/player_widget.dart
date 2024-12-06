@@ -744,10 +744,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                   width: 10,
                                 ),
                                 InkWell(
-                                  onTap: () {},
+                                  onTap: () {
+                                    context.read<PlayerBloc>().add(
+                                          ToggleLoopFragmentEvent(),
+                                        );
+                                  },
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: isRepeat
+                                      color: state.loopCurrentFragment
                                           ? Colors.white
                                           : Colors.white.withOpacity(0.4),
                                       borderRadius: const BorderRadius.all(
@@ -756,8 +760,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                     width: 64,
                                     height: 47,
                                     child: Icon(
-                                      Icons.repeat,
-                                      color: isRepeat
+                                      Icons.repeat_one,
+                                      color: state.loopCurrentFragment
                                           ? Colors.black.withOpacity(0.5)
                                           : const Color.fromARGB(
                                               255, 255, 255, 255),

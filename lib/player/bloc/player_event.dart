@@ -23,6 +23,8 @@ class PreviousFragmentEvent extends PlayerEvent {}
 
 class ToggleRepeatEvent extends PlayerEvent {}
 
+class ToggleLoopFragmentEvent extends PlayerEvent {}
+
 class UpdateCurrentTime extends PlayerEvent {
   final int currentTime;
 
