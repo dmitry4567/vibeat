@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/player/widgets/player_control_widget.dart';
 import 'package:vibeat/utils/utils.dart';
 
 import '../utils/theme.dart';
-import 'widgets/conditionalMarquee.dart';
 
 @RoutePage()
 class PlayerScreen extends StatefulWidget {
@@ -582,195 +582,265 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 const SizedBox(height: 20),
                 PlayerControlWidget(pageController: _pageController),
                 const SizedBox(height: 18),
-                Container(
-                  margin: const EdgeInsets.only(left: 18, right: 18),
-                  width: double.infinity,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.4),
-                      width: 0.5,
+                BlocBuilder<PlayerBloc, PlayerState>(builder: (context, state) {
+                  return Container(
+                    margin: const EdgeInsets.only(top: 18, left: 18, right: 18),
+                    width: double.infinity,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.4),
+                        width: 0.5,
+                      ),
+                      color: Colors.white.withOpacity(0.1),
                     ),
-                    color: Colors.white.withOpacity(0.1),
-                  ),
-                  child: Stack(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 5, left: 12),
-                              child: Text(
-                                currentFragmentName,
-                                style: AppTextStyles.bodyPrice1.copyWith(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                  height: 1.375,
+                    child: Stack(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 5, left: 12),
+                                child: BlocBuilder<PlayerBloc, PlayerState>(
+                                  builder: (context, state) {
+                                    return Text(
+                                      state.fragmentsNames[state.indexFragment],
+                                      style: AppTextStyles.bodyPrice1.copyWith(
+                                        fontSize: 12,
+                                        color: Colors.white,
+                                        height: 1.375,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.only(
-                                top: 5, left: 10, right: 10),
-                            child: !isLoading
-                                ? af.AudioFileWaveforms(
-                                    size: Size(
-                                        MediaQuery.of(context).size.width, 54),
-                                    playerController: controller,
-                                    animationCurve: Curves.linearToEaseOut,
-                                    enableSeekGesture: true,
-                                    waveformType: af.WaveformType.fitWidth,
-                                    waveformData: const [],
-                                    playerWaveStyle: af.PlayerWaveStyle(
+                            Container(
+                              padding: const EdgeInsets.only(top: 5),
+                              child: Container(
+                                height: 54,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                child: GestureDetector(
+                                  onTapDown: (details) {
+                                    final RenderBox box =
+                                        context.findRenderObject() as RenderBox;
+                                    final Offset localPosition = box
+                                        .globalToLocal(details.globalPosition);
+                                    final double percent =
+                                        localPosition.dx / box.size.width;
+                                    final duration = context
+                                        .read<PlayerBloc>()
+                                        .player
+                                        .duration;
+                                    if (duration != null) {
+                                      final position =
+                                          duration.inMilliseconds * percent;
+                                      context.read<PlayerBloc>().player.seek(
+                                            Duration(
+                                                milliseconds: position.round()),
+                                          );
+                                    }
+                                  },
+                                  onHorizontalDragUpdate: (details) {
+                                    final RenderBox box =
+                                        context.findRenderObject() as RenderBox;
+                                    final Offset localPosition = box
+                                        .globalToLocal(details.globalPosition);
+                                    final double percent =
+                                        (localPosition.dx / box.size.width)
+                                            .clamp(0.0, 1.0);
+
+                                    context.read<PlayerBloc>().add(
+                                          UpdateDragProgressEvent(percent),
+                                        );
+                                  },
+                                  onHorizontalDragEnd: (details) {
+                                    final duration = context
+                                        .read<PlayerBloc>()
+                                        .player
+                                        .duration;
+                                    final progress = context
+                                        .read<PlayerBloc>()
+                                        .state
+                                        .dragProgress;
+                                    if (duration != null && progress != null) {
+                                      final position =
+                                          duration.inMilliseconds * progress;
+                                      context.read<PlayerBloc>().player.seek(
+                                            Duration(
+                                                milliseconds: position.round()),
+                                          );
+                                    }
+                                    context.read<PlayerBloc>().add(
+                                          UpdateDragProgressEvent(null),
+                                        );
+                                  },
+                                  child: CustomPaint(
+                                    painter: WaveformPainter(
+                                      waveformData: state.waveformData,
+                                      progress: state.progress,
                                       fixedWaveColor:
                                           Colors.white.withOpacity(0.4),
+                                      liveWaveColor: Colors.white,
+                                      spacing: 4,
                                       scaleFactor: 54,
                                       waveCap: StrokeCap.round,
-                                      liveWaveColor: Colors.white,
-                                      spacing: 6,
                                     ),
-                                  )
-                                : const Center(
-                                    child: SizedBox(
-                                      width: 54,
-                                      height: 54,
-                                      // child: CircularProgressIndicator(
-                                      // color: Colors.white,
-                                      // ),
-                                    ),
+                                    size: Size(
+                                        MediaQuery.of(context).size.width - 32,
+                                        100),
                                   ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: 5, left: 12, right: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "${(timePlayer ~/ 60).toString().padLeft(2, '0')}:${(timePlayer % 60).toString().padLeft(2, '0')}",
-                                  style: AppTextStyles.timePlayer,
                                 ),
-                                Text(
-                                  "${(endTimePlayer ~/ 60).toString().padLeft(2, '0')}:${(endTimePlayer % 60).toString().padLeft(2, '0')}",
-                                  style: AppTextStyles.timePlayer,
-                                )
-                              ],
+                              ),
                             ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  _togglePreviousFragment();
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 5, left: 12, right: 12),
+                              child: BlocBuilder<PlayerBloc, PlayerState>(
+                                builder: (context, state) {
+                                  final player =
+                                      context.read<PlayerBloc>().player;
+                                  final position = player.position;
+                                  final duration = player.duration;
+
+                                  final currentSeconds = position.inSeconds;
+                                  final totalSeconds = duration?.inSeconds ?? 0;
+
+                                  return Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "${(currentSeconds ~/ 60).toString().padLeft(2, '0')}:${(currentSeconds % 60).toString().padLeft(2, '0')}",
+                                        style: AppTextStyles.timePlayer,
+                                      ),
+                                      Text(
+                                        "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
+                                        style: AppTextStyles.timePlayer,
+                                      )
+                                    ],
+                                  );
                                 },
-                                child: SvgPicture.asset(
-                                    "assets/svg/left_arrow.svg"),
                               ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  _toggleRepeat();
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: isRepeat
-                                        ? Colors.white
-                                        : Colors.white.withOpacity(0.4),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(12)),
-                                  ),
-                                  width: 64,
-                                  height: 47,
-                                  child: Icon(
-                                    Icons.repeat,
-                                    color: isRepeat
-                                        ? Colors.black.withOpacity(0.5)
-                                        : const Color.fromARGB(
-                                            255, 255, 255, 255),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  _toggleNextFragment();
-                                },
-                                child: SvgPicture.asset(
-                                    "assets/svg/right_arrow.svg"),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Positioned(
-                        left: 12,
-                        bottom: 14,
-                        child: Column(
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                SvgPicture.asset("assets/svg/bpm.svg"),
-                                const SizedBox(
-                                  width: 4,
-                                ),
-                                Text(
-                                  "163",
-                                  style: AppTextStyles.timePlayer.copyWith(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 12,
-                                    height: 0.9,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 6,
                             ),
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const SizedBox(
-                                  width: 1,
+                                GestureDetector(
+                                  onTap: () {
+                                    context.read<PlayerBloc>().add(
+                                          PreviousFragmentEvent(),
+                                        );
+                                  },
+                                  child: SvgPicture.asset(
+                                      "assets/svg/left_arrow.svg"),
                                 ),
-                                SvgPicture.asset("assets/svg/tune.svg"),
                                 const SizedBox(
-                                  width: 9,
+                                  width: 10,
                                 ),
-                                Text(
-                                  "Em",
-                                  style: AppTextStyles.timePlayer.copyWith(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 12,
-                                    height: 0.9,
+                                InkWell(
+                                  onTap: () {},
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isRepeat
+                                          ? Colors.white
+                                          : Colors.white.withOpacity(0.4),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(12)),
+                                    ),
+                                    width: 64,
+                                    height: 47,
+                                    child: Icon(
+                                      Icons.repeat,
+                                      color: isRepeat
+                                          ? Colors.black.withOpacity(0.5)
+                                          : const Color.fromARGB(
+                                              255, 255, 255, 255),
+                                    ),
                                   ),
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    context.read<PlayerBloc>().add(
+                                          NextFragmentEvent(),
+                                        );
+                                  },
+                                  child: SvgPicture.asset(
+                                      "assets/svg/right_arrow.svg"),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                      ),
-                      Positioned(
-                        right: 4,
-                        bottom: 2,
-                        child: IconButton(
-                          onPressed: () async {},
-                          icon: const Icon(Icons.info_outline),
-                          color: AppColors.iconPrimary,
+                        Positioned(
+                          left: 12,
+                          bottom: 14,
+                          child: Column(
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  SvgPicture.asset("assets/svg/bpm.svg"),
+                                  const SizedBox(
+                                    width: 4,
+                                  ),
+                                  Text(
+                                    "163",
+                                    style: AppTextStyles.timePlayer.copyWith(
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontSize: 12,
+                                      height: 0.9,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 6,
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const SizedBox(
+                                    width: 1,
+                                  ),
+                                  SvgPicture.asset("assets/svg/tune.svg"),
+                                  const SizedBox(
+                                    width: 9,
+                                  ),
+                                  Text(
+                                    "Em",
+                                    style: AppTextStyles.timePlayer.copyWith(
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontSize: 12,
+                                      height: 0.9,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                        Positioned(
+                          right: 4,
+                          bottom: 2,
+                          child: IconButton(
+                            onPressed: () async {},
+                            icon: const Icon(Icons.info_outline),
+                            color: AppColors.iconPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                })
               ],
             ),
             Positioned(
@@ -788,6 +858,79 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ),
       ),
     );
+  }
+}
+
+class WaveformPainter extends CustomPainter {
+  final List<double> waveformData;
+  final double progress;
+  final Color fixedWaveColor;
+  final Color liveWaveColor;
+  final double spacing;
+  final double scaleFactor;
+  final StrokeCap waveCap;
+
+  WaveformPainter({
+    required this.waveformData,
+    required this.progress,
+    required this.fixedWaveColor,
+    required this.liveWaveColor,
+    required this.spacing,
+    required this.scaleFactor,
+    required this.waveCap,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (waveformData.isEmpty) return;
+
+    final paint = Paint()
+      ..strokeCap = waveCap
+      ..strokeWidth = 3;
+
+    final barWidth = (size.width - (waveformData.length - 1) * spacing) /
+        waveformData.length;
+    final progressWidth = size.width * progress;
+    final center = size.height / 2;
+
+    // Draw background (unplayed) waveform
+    paint.color = fixedWaveColor;
+    _drawWaveform(
+        canvas, size, paint, barWidth, center, 0, waveformData.length);
+
+    // Draw progress (played) waveform
+    paint.color = liveWaveColor;
+    final progressBars = (progressWidth / (barWidth + spacing)).floor();
+    _drawWaveform(canvas, size, paint, barWidth, center, 0, progressBars);
+  }
+
+  void _drawWaveform(Canvas canvas, Size size, Paint paint, double barWidth,
+      double center, int start, int end) {
+    for (var i = start; i < end && i < waveformData.length; i++) {
+      final x = i * (barWidth + spacing);
+      final amplitude = waveformData[i].clamp(0.1, 1.0);
+      final barHeight = amplitude * scaleFactor;
+
+      // Draw the bar
+      final topY = center - barHeight / 2;
+      final bottomY = center + barHeight / 2;
+      canvas.drawLine(
+        Offset(x + barWidth / 2, topY),
+        Offset(x + barWidth / 2, bottomY),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(WaveformPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.waveformData != waveformData ||
+        oldDelegate.fixedWaveColor != fixedWaveColor ||
+        oldDelegate.liveWaveColor != liveWaveColor ||
+        oldDelegate.spacing != spacing ||
+        oldDelegate.scaleFactor != scaleFactor ||
+        oldDelegate.waveCap != waveCap;
   }
 }
 
