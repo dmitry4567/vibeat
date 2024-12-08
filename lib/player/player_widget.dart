@@ -7,7 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/player/widgets/player_control_widget.dart';
-import 'package:vibeat/utils/utils.dart';
+import 'package:vibeat/utils/image_extractor.dart';
 
 import '../utils/theme.dart';
 
@@ -530,18 +530,21 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                   style: AppTextStyles.headline1,
                                 ),
 
-                                // const SizedBox(
-                                //   height: 2,
-                                // ),
+                                const SizedBox(
+                                  height: 2,
+                                ),
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
-                                      style: AppTextStyles.bodyText1,
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 1),
+                                      child: Text(
+                                        "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
+                                        style: AppTextStyles.bodyText1,
+                                      ),
                                     ),
                                     Text(
-                                      "₽${state.trackList[state.currentTrackIndex].bitmaker}",
+                                      "₽${state.trackList[state.currentTrackIndex].price}",
                                       style: AppTextStyles.bodyPrice1,
                                     ),
                                   ],

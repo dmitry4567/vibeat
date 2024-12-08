@@ -59,6 +59,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
                 id: t["id"],
                 name: t["name"],
                 bitmaker: t["bitmaker"],
+                price: int.parse(t["price"]),
                 trackUrl: t["trackUrl"],
                 photoUrl: t["photoUrl"],
               );
@@ -142,6 +143,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               id: "2",
               name: "name",
               bitmaker: "bitmaker",
+              price: 2000,
               trackUrl: "http://$host:3000/music/2.wav",
               photoUrl: "http://$host:3000/photo/2.png");
 
@@ -200,8 +202,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             if (currentTime >= state.fragmentsMusic[i]) {
               newIndexFragment = i;
             }
-          } else if (currentTime >= state.fragmentsMusic[i] && 
-                    currentTime < state.fragmentsMusic[i + 1]) {
+          } else if (currentTime >= state.fragmentsMusic[i] &&
+              currentTime < state.fragmentsMusic[i + 1]) {
             newIndexFragment = i;
             break;
           }
@@ -211,9 +213,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       // Проверяем необходимость зацикливания
       if (state.loopCurrentFragment) {
         final currentFragmentStart = state.fragmentsMusic[state.indexFragment];
-        final currentFragmentEnd = state.indexFragment < state.fragmentsMusic.length - 1
-            ? state.fragmentsMusic[state.indexFragment + 1]
-            : state.endTime;
+        final currentFragmentEnd =
+            state.indexFragment < state.fragmentsMusic.length - 1
+                ? state.fragmentsMusic[state.indexFragment + 1]
+                : state.endTime;
 
         // Если вышли за пределы текущего фрагмента
         if (currentTime >= currentFragmentEnd) {
@@ -239,6 +242,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             id: "2",
             name: "name",
             bitmaker: "bitmaker",
+            price: 2000,
             trackUrl: "http://$host:3000/music/2.wav",
             photoUrl: "http://$host:3000/photo/2.png");
 
