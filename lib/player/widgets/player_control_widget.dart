@@ -10,56 +10,57 @@ class PlayerControlWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PlayerBloc, PlayerState>(
-      builder: (context, state) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              onPressed: () {
-                context.read<PlayerBloc>().add(PreviousTrackEvent());
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          onPressed: () {
+            context.read<PlayerBloc>().add(PreviousTrackEvent());
 
-                pageController.previousPage(
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.fastLinearToSlowEaseIn,
-                );
-              },
-              icon: const Icon(
-                Icons.skip_previous,
-                size: 48,
-              ),
-              color: AppColors.iconPrimary,
-            ),
-            IconButton(
-              onPressed: () async {
-                context.read<PlayerBloc>().state.isPlaying
-                    ? context.read<PlayerBloc>().add(PauseAudioEvent())
-                    : context.read<PlayerBloc>().add(PlayAudioEvent());
+            pageController.previousPage(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.fastLinearToSlowEaseIn,
+            );
+          },
+          icon: const Icon(
+            Icons.skip_previous,
+            size: 48,
+          ),
+          color: AppColors.iconPrimary,
+        ),
+        BlocBuilder<PlayerBloc, PlayerState>(
+          buildWhen: (previous, current) =>
+              previous.isPlaying != current.isPlaying,
+          builder: (context, state) {
+            return IconButton(
+              onPressed: () {
+                context.read<PlayerBloc>().add(
+                    state.isPlaying ? PauseAudioEvent() : PlayAudioEvent());
               },
               icon: Icon(
                 state.isPlaying ? Icons.pause_circle : Icons.play_circle,
                 size: 64,
+                color: AppColors.iconPrimary,
               ),
-              color: AppColors.iconPrimary,
-            ),
-            IconButton(
-              onPressed: () {
-                context.read<PlayerBloc>().add(NextTrackEvent());
+            );
+          },
+        ),
+        IconButton(
+          onPressed: () {
+            context.read<PlayerBloc>().add(NextTrackEvent());
 
-                pageController.nextPage(
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.fastLinearToSlowEaseIn,
-                );
-              },
-              icon: const Icon(
-                Icons.skip_next,
-                size: 48,
-              ),
-              color: AppColors.iconPrimary,
-            ),
-          ],
-        );
-      },
+            pageController.nextPage(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.fastLinearToSlowEaseIn,
+            );
+          },
+          icon: const Icon(
+            Icons.skip_next,
+            size: 48,
+          ),
+          color: AppColors.iconPrimary,
+        ),
+      ],
     );
   }
 }

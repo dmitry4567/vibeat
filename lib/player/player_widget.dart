@@ -427,22 +427,27 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       margin: const EdgeInsets.only(top: 90),
                       height: coverWidth,
                       child: BlocBuilder<PlayerBloc, PlayerState>(
+                        buildWhen: (previous, current) {
+                          return previous.currentTrackIndex !=
+                              current.currentTrackIndex;
+                        },
                         builder: (context, state) {
                           return PageView.builder(
                             controller: _pageController,
                             itemCount: state.trackList.length,
                             onPageChanged: (value) {
-                              if (value > state.currentTrackIndex &&
-                                  _pageController.page!.isFinite) {
-                                context
-                                    .read<PlayerBloc>()
-                                    .add(NextTrackEvent());
-                              } else if (value < state.currentTrackIndex &&
-                                  _pageController.page!.isFinite) {
-                                context
-                                    .read<PlayerBloc>()
-                                    .add(PreviousTrackEvent());
-                              }
+                              // if (value > state.currentTrackIndex &&
+                              //     _pageController.page!.isFinite) {
+                              //   context
+                              //       .read<PlayerBloc>()
+                              //       .add(NextTrackEvent());
+                              // } else if (value < state.currentTrackIndex &&
+                              //     _pageController.page!.isFinite) {
+                              //   context
+                              //       .read<PlayerBloc>()
+                              //       .add(PreviousTrackEvent());
+                              // }
+
                               // _pageController.nextPage(
                               //   duration: const Duration(milliseconds: 500),
                               //   curve: Curves.fastLinearToSlowEaseIn,
@@ -499,41 +504,51 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                BlocBuilder<PlayerBloc, PlayerState>(
-                  builder: (context, state) {
-                    return Container(
-                      padding: const EdgeInsets.only(left: 30, right: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // SizedBox(
-                                //   height: 25,
-                                //   child: Marquee(
-                                //     text: listOfName[currentAudioIndex],
-                                //     style: AppTextStyles.headline1,
-                                //     scrollAxis: Axis.horizontal,
-                                //     crossAxisAlignment: CrossAxisAlignment.start,
-                                //     blankSpace: 20.0,
-                                //     velocity: 50.0,
-                                //     startAfter: const Duration(seconds: 1),
-                                //     pauseAfterRound: const Duration(seconds: 1),
-                                //   ),
-                                // ),
+                Container(
+                  padding: const EdgeInsets.only(left: 30, right: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // SizedBox(
+                            //   height: 25,
+                            //   child: Marquee(
+                            //     text: listOfName[currentAudioIndex],
+                            //     style: AppTextStyles.headline1,
+                            //     scrollAxis: Axis.horizontal,
+                            //     crossAxisAlignment: CrossAxisAlignment.start,
+                            //     blankSpace: 20.0,
+                            //     velocity: 50.0,
+                            //     startAfter: const Duration(seconds: 1),
+                            //     pauseAfterRound: const Duration(seconds: 1),
+                            //   ),
+                            // ),
 
-                                ConditionalMarquee(
-                                  text: state
-                                      .trackList[state.currentTrackIndex].name,
-                                  style: AppTextStyles.headline1,
-                                ),
+                            BlocBuilder<PlayerBloc, PlayerState>(
+                                buildWhen: (previous, current) =>
+                                    previous.currentTrackIndex !=
+                                    current.currentTrackIndex,
+                                builder: (context, state) {
+                                  return ConditionalMarquee(
+                                    text: state
+                                        .trackList[state.currentTrackIndex]
+                                        .name,
+                                    style: AppTextStyles.headline1,
+                                  );
+                                }),
 
-                                const SizedBox(
-                                  height: 2,
-                                ),
-                                Row(
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            BlocBuilder<PlayerBloc, PlayerState>(
+                              buildWhen: (previous, current) =>
+                                  previous.currentTrackIndex !=
+                                  current.currentTrackIndex,
+                              builder: (context, state) {
+                                return Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Padding(
@@ -548,306 +563,347 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                       style: AppTextStyles.bodyPrice1,
                                     ),
                                   ],
-                                ),
-                              ],
+                                );
+                              },
                             ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.shopping_cart,
-                                  ),
-                                  color: AppColors.iconPrimary,
-                                ),
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.favorite_border,
-                                  ),
-                                  color: AppColors.iconPrimary,
-                                ),
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(Icons.share),
-                                  color: AppColors.iconPrimary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    );
-                  },
+                      Expanded(
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.shopping_cart,
+                              ),
+                              color: AppColors.iconPrimary,
+                            ),
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.favorite_border,
+                              ),
+                              color: AppColors.iconPrimary,
+                            ),
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(Icons.share),
+                              color: AppColors.iconPrimary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
                 PlayerControlWidget(pageController: _pageController),
                 const SizedBox(height: 18),
-                BlocBuilder<PlayerBloc, PlayerState>(builder: (context, state) {
-                  return Container(
-                    margin: const EdgeInsets.only(top: 18, left: 18, right: 18),
-                    width: double.infinity,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.all(Radius.circular(6)),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.4),
-                        width: 0.5,
-                      ),
-                      color: Colors.white.withOpacity(0.1),
+                Container(
+                  margin: const EdgeInsets.only(top: 18, left: 18, right: 18),
+                  width: double.infinity,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(6)),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.4),
+                      width: 0.5,
                     ),
-                    child: Stack(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 5, left: 12),
-                                child: BlocBuilder<PlayerBloc, PlayerState>(
-                                  builder: (context, state) {
-                                    return Text(
-                                      state.fragmentsNames[state.indexFragment],
-                                      style: AppTextStyles.bodyPrice1.copyWith(
-                                        fontSize: 12,
-                                        color: Colors.white,
-                                        height: 1.375,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.only(top: 5),
-                              child: Container(
-                                height: 54,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                child: GestureDetector(
-                                  onTapDown: (details) {
-                                    final RenderBox box =
-                                        context.findRenderObject() as RenderBox;
-                                    final Offset localPosition = box
-                                        .globalToLocal(details.globalPosition);
-                                    final double percent =
-                                        localPosition.dx / box.size.width;
-                                    final duration = context
-                                        .read<PlayerBloc>()
-                                        .player
-                                        .duration;
-                                    if (duration != null) {
-                                      final position =
-                                          duration.inMilliseconds * percent;
-                                      context.read<PlayerBloc>().player.seek(
-                                            Duration(
-                                                milliseconds: position.round()),
-                                          );
-                                    }
-                                  },
-                                  onHorizontalDragUpdate: (details) {
-                                    final RenderBox box =
-                                        context.findRenderObject() as RenderBox;
-                                    final Offset localPosition = box
-                                        .globalToLocal(details.globalPosition);
-                                    final double percent =
-                                        (localPosition.dx / box.size.width)
-                                            .clamp(0.0, 1.0);
-
-                                    context.read<PlayerBloc>().add(
-                                          UpdateDragProgressEvent(percent),
-                                        );
-                                  },
-                                  onHorizontalDragEnd: (details) {
-                                    final duration = context
-                                        .read<PlayerBloc>()
-                                        .player
-                                        .duration;
-                                    final progress = context
-                                        .read<PlayerBloc>()
-                                        .state
-                                        .dragProgress;
-                                    if (duration != null && progress != null) {
-                                      final position =
-                                          duration.inMilliseconds * progress;
-                                      context.read<PlayerBloc>().player.seek(
-                                            Duration(
-                                                milliseconds: position.round()),
-                                          );
-                                    }
-                                    context.read<PlayerBloc>().add(
-                                          UpdateDragProgressEvent(null),
-                                        );
-                                  },
-                                  child: CustomPaint(
-                                    painter: WaveformPainter(
-                                      waveformData: state.waveformData,
-                                      progress: state.progress,
-                                      fixedWaveColor:
-                                          Colors.white.withOpacity(0.4),
-                                      liveWaveColor: Colors.white,
-                                      spacing: 4,
-                                      scaleFactor: 54,
-                                      waveCap: StrokeCap.round,
-                                    ),
-                                    size: Size(
-                                        MediaQuery.of(context).size.width - 32,
-                                        100),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  top: 5, left: 12, right: 12),
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                  child: Stack(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 5, left: 12),
                               child: BlocBuilder<PlayerBloc, PlayerState>(
+                                buildWhen: (previous, current) =>
+                                    previous.indexFragment !=
+                                    current.indexFragment,
                                 builder: (context, state) {
-                                  final player =
-                                      context.read<PlayerBloc>().player;
-                                  final position = player.position;
-                                  final duration = player.duration;
-
-                                  final currentSeconds = position.inSeconds;
-                                  final totalSeconds = duration?.inSeconds ?? 0;
-
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "${(currentSeconds ~/ 60).toString().padLeft(2, '0')}:${(currentSeconds % 60).toString().padLeft(2, '0')}",
-                                        style: AppTextStyles.timePlayer,
-                                      ),
-                                      Text(
-                                        "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
-                                        style: AppTextStyles.timePlayer,
-                                      )
-                                    ],
+                                  return Text(
+                                    state.fragmentsNames[state.indexFragment],
+                                    style: AppTextStyles.bodyPrice1.copyWith(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      height: 1.375,
+                                    ),
                                   );
                                 },
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.only(top: 5),
+                            child: Container(
+                              height: 54,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: GestureDetector(
+                                onTapDown: (details) {
+                                  final RenderBox box =
+                                      context.findRenderObject() as RenderBox;
+                                  final Offset localPosition =
+                                      box.globalToLocal(details.globalPosition);
+                                  final double percent =
+                                      localPosition.dx / box.size.width;
+                                  final duration = context
+                                      .read<PlayerBloc>()
+                                      .player
+                                      .duration;
+                                  if (duration != null) {
+                                    final position =
+                                        duration.inMilliseconds * percent;
+                                    context.read<PlayerBloc>().player.seek(
+                                          Duration(
+                                              milliseconds: position.round()),
+                                        );
+                                  }
+                                },
+                                onHorizontalDragUpdate: (details) {
+                                  final RenderBox box =
+                                      context.findRenderObject() as RenderBox;
+                                  final Offset localPosition =
+                                      box.globalToLocal(details.globalPosition);
+                                  final double percent =
+                                      (localPosition.dx / box.size.width)
+                                          .clamp(0.0, 1.0);
+
+                                  context.read<PlayerBloc>().add(
+                                        UpdateDragProgressEvent(percent),
+                                      );
+                                },
+                                onHorizontalDragEnd: (details) {
+                                  final duration = context
+                                      .read<PlayerBloc>()
+                                      .player
+                                      .duration;
+                                  final progress = context
+                                      .read<PlayerBloc>()
+                                      .state
+                                      .dragProgress;
+                                  if (duration != null && progress != null) {
+                                    final position =
+                                        duration.inMilliseconds * progress;
+                                    context.read<PlayerBloc>().player.seek(
+                                          Duration(
+                                              milliseconds: position.round()),
+                                        );
+                                  }
+                                  context.read<PlayerBloc>().add(
+                                        UpdateDragProgressEvent(null),
+                                      );
+                                },
+                                child: BlocBuilder<PlayerBloc, PlayerState>(
+                                    buildWhen: (previous, current) =>
+                                        previous.progress != current.progress,
+                                    builder: (context, state) {
+                                      return CustomPaint(
+                                        painter: WaveformPainter(
+                                          waveformData: state.waveformData,
+                                          progress: state.progress,
+                                          fixedWaveColor:
+                                              Colors.white.withOpacity(0.4),
+                                          liveWaveColor: Colors.white,
+                                          spacing: 4,
+                                          scaleFactor: 54,
+                                          waveCap: StrokeCap.round,
+                                        ),
+                                        size: Size(
+                                            MediaQuery.of(context).size.width -
+                                                32,
+                                            100),
+                                      );
+                                    }),
+                              ),
+                            ),
+                          ),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(
+                          //       top: 5, left: 12, right: 12),
+                          //   child: BlocBuilder<PlayerBloc, PlayerState>(
+                          //     builder: (context, state) {
+                          //       final player =
+                          //           context.read<PlayerBloc>().player;
+                          //       final position = player.position;
+                          //       final duration = player.duration;
+
+                          //       final currentSeconds = position.inSeconds;
+                          //       final totalSeconds = duration?.inSeconds ?? 0;
+
+                          //       return Row(
+                          //         mainAxisAlignment:
+                          //             MainAxisAlignment.spaceBetween,
+                          //         children: [
+                          //           Text(
+                          //             "${(currentSeconds ~/ 60).toString().padLeft(2, '0')}:${(currentSeconds % 60).toString().padLeft(2, '0')}",
+                          //             style: AppTextStyles.timePlayer,
+                          //           ),
+                          //           Text(
+                          //             "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
+                          //             style: AppTextStyles.timePlayer,
+                          //           )
+                          //         ],
+                          //       );
+                          //     },
+                          //   ),
+                          // ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: 5, left: 12, right: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    context.read<PlayerBloc>().add(
-                                          PreviousFragmentEvent(),
-                                        );
+                                BlocBuilder<PlayerBloc, PlayerState>(
+                                  buildWhen: (previous, current) =>
+                                      previous.position != current.position,
+                                  builder: (context, state) {
+                                    final currentSeconds =
+                                        state.position.inSeconds;
+
+                                    return Text(
+                                      "${(currentSeconds ~/ 60).toString().padLeft(2, '0')}:${(currentSeconds % 60).toString().padLeft(2, '0')}",
+                                      style: AppTextStyles.timePlayer,
+                                    );
                                   },
-                                  child: SvgPicture.asset(
-                                      "assets/svg/left_arrow.svg"),
                                 ),
+                                BlocBuilder<PlayerBloc, PlayerState>(
+                                  buildWhen: (previous, current) =>
+                                      previous.position != current.position,
+                                  builder: (context, state) {
+                                    final totalSeconds =
+                                        state.duration?.inSeconds ?? 0;
+                                        
+                                    return Text(
+                                      "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
+                                      style: AppTextStyles.timePlayer,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  context.read<PlayerBloc>().add(
+                                        PreviousFragmentEvent(),
+                                      );
+                                },
+                                child: SvgPicture.asset(
+                                    "assets/svg/left_arrow.svg"),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              // InkWell(
+                              //   onTap: () {
+                              //     context.read<PlayerBloc>().add(
+                              //           ToggleLoopFragmentEvent(),
+                              //         );
+                              //   },
+                              //   child: Container(
+                              //     decoration: BoxDecoration(
+                              //       color: state.loopCurrentFragment
+                              //           ? Colors.white
+                              //           : Colors.white.withOpacity(0.4),
+                              //       borderRadius: const BorderRadius.all(
+                              //           Radius.circular(12)),
+                              //     ),
+                              //     width: 64,
+                              //     height: 47,
+                              //     child: Icon(
+                              //       Icons.repeat_one,
+                              //       color: state.loopCurrentFragment
+                              //           ? Colors.black.withOpacity(0.5)
+                              //           : const Color.fromARGB(
+                              //               255, 255, 255, 255),
+                              //     ),
+                              //   ),
+                              // ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  context.read<PlayerBloc>().add(
+                                        NextFragmentEvent(),
+                                      );
+                                },
+                                child: SvgPicture.asset(
+                                    "assets/svg/right_arrow.svg"),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Positioned(
+                        left: 12,
+                        bottom: 14,
+                        child: Column(
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                SvgPicture.asset("assets/svg/bpm.svg"),
                                 const SizedBox(
-                                  width: 10,
+                                  width: 4,
                                 ),
-                                InkWell(
-                                  onTap: () {
-                                    context.read<PlayerBloc>().add(
-                                          ToggleLoopFragmentEvent(),
-                                        );
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: state.loopCurrentFragment
-                                          ? Colors.white
-                                          : Colors.white.withOpacity(0.4),
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(12)),
-                                    ),
-                                    width: 64,
-                                    height: 47,
-                                    child: Icon(
-                                      Icons.repeat_one,
-                                      color: state.loopCurrentFragment
-                                          ? Colors.black.withOpacity(0.5)
-                                          : const Color.fromARGB(
-                                              255, 255, 255, 255),
-                                    ),
+                                Text(
+                                  "163",
+                                  style: AppTextStyles.timePlayer.copyWith(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 12,
+                                    height: 0.9,
                                   ),
                                 ),
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
                                 const SizedBox(
-                                  width: 10,
+                                  width: 1,
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    context.read<PlayerBloc>().add(
-                                          NextFragmentEvent(),
-                                        );
-                                  },
-                                  child: SvgPicture.asset(
-                                      "assets/svg/right_arrow.svg"),
+                                SvgPicture.asset("assets/svg/tune.svg"),
+                                const SizedBox(
+                                  width: 9,
+                                ),
+                                Text(
+                                  "Em",
+                                  style: AppTextStyles.timePlayer.copyWith(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 12,
+                                    height: 0.9,
+                                  ),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        Positioned(
-                          left: 12,
-                          bottom: 14,
-                          child: Column(
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  SvgPicture.asset("assets/svg/bpm.svg"),
-                                  const SizedBox(
-                                    width: 4,
-                                  ),
-                                  Text(
-                                    "163",
-                                    style: AppTextStyles.timePlayer.copyWith(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 12,
-                                      height: 0.9,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: 6,
-                              ),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  const SizedBox(
-                                    width: 1,
-                                  ),
-                                  SvgPicture.asset("assets/svg/tune.svg"),
-                                  const SizedBox(
-                                    width: 9,
-                                  ),
-                                  Text(
-                                    "Em",
-                                    style: AppTextStyles.timePlayer.copyWith(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 12,
-                                      height: 0.9,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                      ),
+                      Positioned(
+                        right: 4,
+                        bottom: 2,
+                        child: IconButton(
+                          onPressed: () async {},
+                          icon: const Icon(Icons.info_outline),
+                          color: AppColors.iconPrimary,
                         ),
-                        Positioned(
-                          right: 4,
-                          bottom: 2,
-                          child: IconButton(
-                            onPressed: () async {},
-                            icon: const Icon(Icons.info_outline),
-                            color: AppColors.iconPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                })
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             Positioned(
