@@ -6,8 +6,8 @@ class PlayerState extends Equatable {
   final bool loopCurrentFragment;
   final int currentTrackIndex;
   final String pathTrack;
-  final int currentTime;
-  final int endTime;
+  final Duration position;
+  final Duration duration;
   final List<int> fragmentsMusic;
   final List<String> fragmentsNames;
   final int indexFragment;
@@ -16,7 +16,7 @@ class PlayerState extends Equatable {
   final double? dragProgress;
 
   double get progress =>
-      dragProgress ?? (endTime > 0 ? currentTime / (endTime * 1000) : 0.0);
+      dragProgress ?? (duration.inMilliseconds > 0 ? position.inMilliseconds / duration.inMilliseconds : 0.0);
 
   const PlayerState({
     required this.isPlaying,
@@ -24,8 +24,8 @@ class PlayerState extends Equatable {
     required this.loopCurrentFragment,
     required this.currentTrackIndex,
     required this.pathTrack,
-    required this.currentTime,
-    required this.endTime,
+    required this.position,
+    required this.duration,
     required this.fragmentsMusic,
     required this.fragmentsNames,
     this.indexFragment = 0,
@@ -41,8 +41,8 @@ class PlayerState extends Equatable {
       loopCurrentFragment: false,
       currentTrackIndex: 0,
       pathTrack: "",
-      currentTime: 0,
-      endTime: 0,
+      position: Duration.zero,
+      duration: Duration.zero,
       fragmentsMusic: [0, 3, 10],
       fragmentsNames: ['Verse', 'Chorus', 'ver2'],
       indexFragment: 0,
@@ -57,8 +57,8 @@ class PlayerState extends Equatable {
     bool? loopCurrentFragment,
     int? currentTrackIndex,
     String? pathTrack,
-    int? currentTime,
-    int? endTime,
+    Duration? position,
+    Duration? duration,
     List<int>? fragmentsMusic,
     List<String>? fragmentsNames,
     int? indexFragment,
@@ -72,8 +72,8 @@ class PlayerState extends Equatable {
       loopCurrentFragment: loopCurrentFragment ?? this.loopCurrentFragment,
       currentTrackIndex: currentTrackIndex ?? this.currentTrackIndex,
       pathTrack: pathTrack ?? this.pathTrack,
-      currentTime: currentTime ?? this.currentTime,
-      endTime: endTime ?? this.endTime,
+      position: position ?? this.position,
+      duration: duration ?? this.duration,
       fragmentsMusic: fragmentsMusic ?? this.fragmentsMusic,
       fragmentsNames: fragmentsNames ?? this.fragmentsNames,
       indexFragment: indexFragment ?? this.indexFragment,
@@ -90,8 +90,8 @@ class PlayerState extends Equatable {
         loopCurrentFragment,
         currentTrackIndex,
         pathTrack,
-        currentTime,
-        endTime,
+        position,
+        duration,
         fragmentsMusic,
         fragmentsNames,
         indexFragment,

@@ -428,8 +428,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       height: coverWidth,
                       child: BlocBuilder<PlayerBloc, PlayerState>(
                         buildWhen: (previous, current) {
-                          return previous.currentTrackIndex !=
-                              current.currentTrackIndex;
+                          return previous.trackList.length !=
+                              current.trackList.length;
                         },
                         builder: (context, state) {
                           return PageView.builder(
@@ -701,7 +701,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                 },
                                 child: BlocBuilder<PlayerBloc, PlayerState>(
                                     buildWhen: (previous, current) =>
-                                        previous.progress != current.progress,
+                                        previous.progress / 100 != current.progress / 100,
                                     builder: (context, state) {
                                       return CustomPaint(
                                         painter: WaveformPainter(
@@ -761,24 +761,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               children: [
                                 BlocBuilder<PlayerBloc, PlayerState>(
                                   buildWhen: (previous, current) =>
-                                      previous.position != current.position,
+                                      previous.position.inSeconds !=
+                                      current.position.inSeconds,
                                   builder: (context, state) {
-                                    final currentSeconds =
-                                        state.position.inSeconds;
-
                                     return Text(
-                                      "${(currentSeconds ~/ 60).toString().padLeft(2, '0')}:${(currentSeconds % 60).toString().padLeft(2, '0')}",
+                                      "${(state.position.inSeconds ~/ 60).toString().padLeft(2, '0')}:${(state.position.inSeconds % 60).toString().padLeft(2, '0')}",
                                       style: AppTextStyles.timePlayer,
                                     );
                                   },
                                 ),
                                 BlocBuilder<PlayerBloc, PlayerState>(
                                   buildWhen: (previous, current) =>
-                                      previous.position != current.position,
+                                      previous.duration != current.duration,
                                   builder: (context, state) {
                                     final totalSeconds =
                                         state.duration?.inSeconds ?? 0;
-                                        
+
                                     return Text(
                                       "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
                                       style: AppTextStyles.timePlayer,

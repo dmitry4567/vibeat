@@ -25,13 +25,13 @@ class ToggleRepeatEvent extends PlayerEvent {}
 
 class ToggleLoopFragmentEvent extends PlayerEvent {}
 
-class UpdateCurrentTime extends PlayerEvent {
-  final int currentTime;
+class UpdatePositionEvent extends PlayerEvent {
+  final Duration position;
 
-  UpdateCurrentTime(this.currentTime);
+  UpdatePositionEvent(this.position);
 
   @override
-  List<Object?> get props => [currentTime];
+  List<Object?> get props => [position];
 }
 
 class UpdateCurrentTrackEvent extends PlayerEvent {

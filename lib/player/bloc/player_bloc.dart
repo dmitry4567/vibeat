@@ -28,7 +28,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
 
     player.positionStream.listen((position) {
-      add(UpdateCurrentTime(position.inMilliseconds));
+      add(UpdatePositionEvent(position));
     });
 
     player.playerStateStream.listen((playerState) {
@@ -39,7 +39,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     player.durationStream.listen((duration) {
       if (duration != null) {
-        emit(state.copyWith(endTime: duration.inSeconds));
+        emit(state.copyWith(duration: duration));
       }
     });
 
@@ -117,7 +117,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
 
     on<StopAudioEvent>((event, emit) {
-      emit(state.copyWith(isPlaying: false, currentTime: 0));
+      emit(state.copyWith(isPlaying: false, position: Duration.zero));
     });
 
     on<UpdateCurrentTrackEvent>((event, emit) {
@@ -191,19 +191,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       emit(state.copyWith(loopCurrentFragment: !state.loopCurrentFragment));
     });
 
-    on<UpdateCurrentTime>((event, emit) async {
-      final currentTime = event.currentTime ~/ 1000;
+    on<UpdatePositionEvent>((event, emit) async {
+      final currentSeconds = event.position.inSeconds;
       int newIndexFragment = state.indexFragment;
 
       // Если зацикливание выключено, обновляем индекс фрагмента
       if (!state.loopCurrentFragment) {
         for (int i = 0; i < state.fragmentsMusic.length; i++) {
           if (i == state.fragmentsMusic.length - 1) {
-            if (currentTime >= state.fragmentsMusic[i]) {
+            if (currentSeconds >= state.fragmentsMusic[i]) {
               newIndexFragment = i;
             }
-          } else if (currentTime >= state.fragmentsMusic[i] &&
-              currentTime < state.fragmentsMusic[i + 1]) {
+          } else if (currentSeconds >= state.fragmentsMusic[i] &&
+              currentSeconds < state.fragmentsMusic[i + 1]) {
             newIndexFragment = i;
             break;
           }
@@ -216,18 +216,18 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         final currentFragmentEnd =
             state.indexFragment < state.fragmentsMusic.length - 1
                 ? state.fragmentsMusic[state.indexFragment + 1]
-                : state.endTime;
+                : state.duration.inSeconds;
 
         // Если вышли за пределы текущего фрагмента
-        if (currentTime >= currentFragmentEnd) {
+        if (currentSeconds >= currentFragmentEnd) {
           await player.seek(Duration(seconds: currentFragmentStart));
-          emit(state.copyWith(currentTime: currentFragmentStart * 1000));
+          emit(state.copyWith(position: Duration(seconds: currentFragmentStart)));
           return;
         }
       }
 
       emit(state.copyWith(
-        currentTime: event.currentTime,
+        position: event.position,
         indexFragment: newIndexFragment,
       ));
     });
