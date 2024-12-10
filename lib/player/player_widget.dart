@@ -688,7 +688,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                       .read<PlayerBloc>()
                                       .state
                                       .dragProgress;
-                                      
+
                                   if (duration != null && progress != null) {
                                     final position =
                                         duration.inMilliseconds * progress;
@@ -806,31 +806,38 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               const SizedBox(
                                 width: 10,
                               ),
-                              // InkWell(
-                              //   onTap: () {
-                              //     context.read<PlayerBloc>().add(
-                              //           ToggleLoopFragmentEvent(),
-                              //         );
-                              //   },
-                              //   child: Container(
-                              //     decoration: BoxDecoration(
-                              //       color: state.loopCurrentFragment
-                              //           ? Colors.white
-                              //           : Colors.white.withOpacity(0.4),
-                              //       borderRadius: const BorderRadius.all(
-                              //           Radius.circular(12)),
-                              //     ),
-                              //     width: 64,
-                              //     height: 47,
-                              //     child: Icon(
-                              //       Icons.repeat_one,
-                              //       color: state.loopCurrentFragment
-                              //           ? Colors.black.withOpacity(0.5)
-                              //           : const Color.fromARGB(
-                              //               255, 255, 255, 255),
-                              //     ),
-                              //   ),
-                              // ),
+                              InkWell(
+                                onTap: () {
+                                  context.read<PlayerBloc>().add(
+                                        ToggleLoopFragmentEvent(),
+                                      );
+                                },
+                                child: BlocBuilder<PlayerBloc, PlayerState>(
+                                  buildWhen: (previous, current) =>
+                                      previous.loopCurrentFragment !=
+                                      current.loopCurrentFragment,
+                                  builder: (context, state) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: state.loopCurrentFragment
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.4),
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(12)),
+                                      ),
+                                      width: 64,
+                                      height: 47,
+                                      child: Icon(
+                                        Icons.repeat_one,
+                                        color: state.loopCurrentFragment
+                                            ? Colors.black.withOpacity(0.5)
+                                            : const Color.fromARGB(
+                                                255, 255, 255, 255),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                               const SizedBox(
                                 width: 10,
                               ),
