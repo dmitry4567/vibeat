@@ -12,7 +12,7 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  static String host = "172.20.10.2";
+  static String host = "192.168.0.136";
 
   final AudioPlayer player = AudioPlayer();
   late ConcatenatingAudioSource playlist;
@@ -192,44 +192,48 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
 
     on<UpdatePositionEvent>((event, emit) async {
-      final currentSeconds = event.position.inSeconds;
-      int newIndexFragment = state.indexFragment;
+      if (state.dragProgress == null) {
+        final currentSeconds = event.position.inSeconds;
+        int newIndexFragment = state.indexFragment;
 
-      // Если зацикливание выключено, обновляем индекс фрагмента
-      if (!state.loopCurrentFragment) {
-        for (int i = 0; i < state.fragmentsMusic.length; i++) {
-          if (i == state.fragmentsMusic.length - 1) {
-            if (currentSeconds >= state.fragmentsMusic[i]) {
+        // Если зацикливание выключено, обновляем индекс фрагмента
+        if (!state.loopCurrentFragment) {
+          for (int i = 0; i < state.fragmentsMusic.length; i++) {
+            if (i == state.fragmentsMusic.length - 1) {
+              if (currentSeconds >= state.fragmentsMusic[i]) {
+                newIndexFragment = i;
+              }
+            } else if (currentSeconds >= state.fragmentsMusic[i] &&
+                currentSeconds < state.fragmentsMusic[i + 1]) {
               newIndexFragment = i;
+              break;
             }
-          } else if (currentSeconds >= state.fragmentsMusic[i] &&
-              currentSeconds < state.fragmentsMusic[i + 1]) {
-            newIndexFragment = i;
-            break;
           }
         }
-      }
 
-      // Проверяем необходимость зацикливания
-      if (state.loopCurrentFragment) {
-        final currentFragmentStart = state.fragmentsMusic[state.indexFragment];
-        final currentFragmentEnd =
-            state.indexFragment < state.fragmentsMusic.length - 1
-                ? state.fragmentsMusic[state.indexFragment + 1]
-                : state.duration.inSeconds;
+        // Проверяем необходимость зацикливания
+        if (state.loopCurrentFragment) {
+          final currentFragmentStart =
+              state.fragmentsMusic[state.indexFragment];
+          final currentFragmentEnd =
+              state.indexFragment < state.fragmentsMusic.length - 1
+                  ? state.fragmentsMusic[state.indexFragment + 1]
+                  : state.duration.inSeconds;
 
-        // Если вышли за пределы текущего фрагмента
-        if (currentSeconds >= currentFragmentEnd) {
-          await player.seek(Duration(seconds: currentFragmentStart));
-          emit(state.copyWith(position: Duration(seconds: currentFragmentStart)));
-          return;
+          // Если вышли за пределы текущего фрагмента
+          if (currentSeconds >= currentFragmentEnd) {
+            await player.seek(Duration(seconds: currentFragmentStart));
+            emit(state.copyWith(
+                position: Duration(seconds: currentFragmentStart)));
+            return;
+          }
         }
-      }
 
-      emit(state.copyWith(
-        position: event.position,
-        indexFragment: newIndexFragment,
-      ));
+        emit(state.copyWith(
+          position: event.position,
+          indexFragment: newIndexFragment,
+        ));
+      }
     });
 
     on<UpdateDragProgressEvent>((event, emit) {

@@ -21,7 +21,7 @@ class PlayerScreen extends StatefulWidget {
 
 class _PlayerScreenState extends State<PlayerScreen> {
   // static String host = "localhost";
-  static String host = "172.20.10.2";
+  static String host = "192.168.0.136";
 
   List<String> listOfAudioUrl = [
     "http://$host:3000/music/1.wav",
@@ -505,7 +505,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 ),
                 const SizedBox(height: 20),
                 Container(
-                  padding: const EdgeInsets.only(left: 30, right: 16),
+                  padding: const EdgeInsets.only(left: 30),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -642,7 +642,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             padding: const EdgeInsets.only(top: 5),
                             child: Container(
                               height: 54,
-                              padding:
+                              margin:
                                   const EdgeInsets.symmetric(horizontal: 16),
                               child: GestureDetector(
                                 onTapDown: (details) {
@@ -656,6 +656,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                       .read<PlayerBloc>()
                                       .player
                                       .duration;
+
                                   if (duration != null) {
                                     final position =
                                         duration.inMilliseconds * percent;
@@ -687,6 +688,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                       .read<PlayerBloc>()
                                       .state
                                       .dragProgress;
+                                      
                                   if (duration != null && progress != null) {
                                     final position =
                                         duration.inMilliseconds * progress;
@@ -695,18 +697,21 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                               milliseconds: position.round()),
                                         );
                                   }
-                                  context.read<PlayerBloc>().add(
-                                        UpdateDragProgressEvent(null),
-                                      );
+                                  // context.read<PlayerBloc>().add(
+                                  //        UpdateDragProgressEvent(null),
+                                  //     );
                                 },
                                 child: BlocBuilder<PlayerBloc, PlayerState>(
                                     buildWhen: (previous, current) =>
-                                        previous.progress / 100 != current.progress / 100,
+                                        previous.progress / 100 !=
+                                        current.progress / 100,
                                     builder: (context, state) {
                                       return CustomPaint(
                                         painter: WaveformPainter(
                                           waveformData: state.waveformData,
-                                          progress: state.progress,
+                                          progress: state.dragProgress != null
+                                              ? state.dragProgress!
+                                              : state.progress,
                                           fixedWaveColor:
                                               Colors.white.withOpacity(0.4),
                                           liveWaveColor: Colors.white,
