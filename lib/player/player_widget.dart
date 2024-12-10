@@ -20,53 +20,6 @@ class PlayerScreen extends StatefulWidget {
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  // static String host = "localhost";
-  static String host = "192.168.0.136";
-
-  List<String> listOfAudioUrl = [
-    "http://$host:3000/music/1.wav",
-    "http://$host:3000/music/2.wav",
-    "http://$host:3000/music/3.wav",
-    "http://$host:3000/music/4.wav",
-    "http://$host:3000/music/5.wav",
-  ];
-
-  List<String> listOfPhotoUrl = [
-    "http://$host:3000/photo/1.png",
-    "http://$host:3000/photo/2.png",
-    "http://$host:3000/photo/3.png",
-    "http://$host:3000/photo/4.png",
-    "http://$host:3000/photo/5.png",
-  ];
-
-  List<String> listOfName = [
-    "Detroit",
-    "Verno - icantluvv feat Goga",
-    "Rany",
-    "В руках",
-    "на луне",
-  ];
-
-  List<String> listOfBitmaker = [
-    "No name",
-    "smokeynagato",
-    "No name",
-    "No name",
-    "No name",
-  ];
-
-  List<String> listOfPrice = [
-    "5000",
-    "8000",
-    "2000",
-    "15000",
-    "15000",
-  ];
-
-  List<int> fragmentsMusic = [0, 14, 24, 52, 62];
-
-  List<String> fragmentsNames = ['Verse', 'Chorus', 'Verse', 'Verse', 'Chorus'];
-
   List<List<Color>> listOfColors = [
     [const Color(0xffDBDBDB), const Color(0xffDADADA)],
     [
@@ -86,7 +39,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
       const Color.fromARGB(115, 54, 53, 53)
     ],
   ];
-  // List<Color> listOfColorsBackground = [];
 
   double? screenWidth;
   double? coverWidth;
@@ -319,30 +271,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
   //   });
   // }
 
-  Future<void> _togglePreviousFragment() async {
-    if (numberOfFragments > 0) {
-      setState(() {
-        numberOfFragments -= 1;
-      });
-      await controller.seekTo(fragmentsMusic[numberOfFragments] * 1100);
-    }
-  }
-
-  Future<void> _toggleRepeat() async {
-    setState(() {
-      isRepeat = !isRepeat;
-    });
-  }
-
-  Future<void> _toggleNextFragment() async {
-    if (numberOfFragments < fragmentsNames.length - 1) {
-      setState(() {
-        numberOfFragments += 1;
-      });
-      await controller.seekTo(fragmentsMusic[numberOfFragments] * 1100);
-    }
-  }
-
   Future<void> _getColorsBackground(String imageUrl) async {
     List<Color> colors =
         await ImageExtractor().extractTopAndBottomCenterColors(imageUrl);
@@ -373,25 +301,31 @@ class _PlayerScreenState extends State<PlayerScreen> {
           children: [
             Stack(
               children: [
-                Positioned.fill(
-                  child: TweenAnimationBuilder<List<Color>>(
-                    duration: const Duration(milliseconds: 500),
-                    tween: ColorListTween(
-                      listOfColors[0],
-                      listOfColors[currentAudioIndex],
-                    ),
-                    builder: (context, List<Color> colors, child) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: colors,
-                          ),
+                BlocBuilder<PlayerBloc, PlayerState>(
+                  buildWhen: (previous, current) =>
+                      previous.currentTrackIndex != current.currentTrackIndex,
+                  builder: (context, state) {
+                    return Positioned.fill(
+                      child: TweenAnimationBuilder<List<Color>>(
+                        duration: const Duration(milliseconds: 500),
+                        tween: ColorListTween(
+                          listOfColors[0],
+                          listOfColors[state.currentTrackIndex],
                         ),
-                      );
-                    },
-                  ),
+                        builder: (context, List<Color> colors, child) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: colors,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
                 Positioned.fill(
                   child: Container(color: Colors.black.withOpacity(0.5)),
@@ -436,32 +370,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             controller: _pageController,
                             itemCount: state.trackList.length,
                             onPageChanged: (value) {
-                              // if (value > state.currentTrackIndex &&
-                              //     _pageController.page!.isFinite) {
-                              //   context
-                              //       .read<PlayerBloc>()
-                              //       .add(NextTrackEvent());
-                              // } else if (value < state.currentTrackIndex &&
-                              //     _pageController.page!.isFinite) {
-                              //   context
-                              //       .read<PlayerBloc>()
-                              //       .add(PreviousTrackEvent());
-                              // }
-
-                              // _pageController.nextPage(
-                              //   duration: const Duration(milliseconds: 500),
-                              //   curve: Curves.fastLinearToSlowEaseIn,
-                              // );
-
-                              // context.read<PlayerBloc>().add(NextTrack());
-
-                              // await controller.stopPlayer();
-                              // isPlaying = false;
-
-                              // currentAudioIndex = value;
-
-                              // _downloadAudioFile();
-                              // _getColorsBackground(listOfPhotoUrl[currentAudioIndex]);
+                              context
+                                  .read<PlayerBloc>()
+                                  .add(UpdateCurrentTrackEvent(value));
                             },
                             itemBuilder: (context, index) {
                               double scale =
@@ -698,7 +609,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                         );
                                   }
                                   context.read<PlayerBloc>().add(
-                                         UpdateDragProgressEvent(null),
+                                        UpdateDragProgressEvent(null),
                                       );
                                 },
                                 child: BlocBuilder<PlayerBloc, PlayerState>(
