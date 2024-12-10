@@ -697,9 +697,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                               milliseconds: position.round()),
                                         );
                                   }
-                                  // context.read<PlayerBloc>().add(
-                                  //        UpdateDragProgressEvent(null),
-                                  //     );
+                                  context.read<PlayerBloc>().add(
+                                         UpdateDragProgressEvent(null),
+                                      );
                                 },
                                 child: BlocBuilder<PlayerBloc, PlayerState>(
                                     buildWhen: (previous, current) =>
