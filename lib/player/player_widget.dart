@@ -271,16 +271,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
   //   });
   // }
 
-  Future<void> _getColorsBackground(String imageUrl) async {
-    List<Color> colors =
-        await ImageExtractor().extractTopAndBottomCenterColors(imageUrl);
-
-    setState(() {
-      listOfColors.add([colors[0], colors[1]]);
-      // listOfColorsBackground = colors;
-    });
-  }
-
   // @override
   // void dispose() {
   //   _pageController.dispose();
@@ -308,10 +298,17 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     return Positioned.fill(
                       child: TweenAnimationBuilder<List<Color>>(
                         duration: const Duration(milliseconds: 500),
-                        tween: ColorListTween(
-                          listOfColors[0],
-                          listOfColors[state.currentTrackIndex],
-                        ),
+                        tween: state.colorsOfBackground.isEmpty
+                            ? ColorListTween(
+                                [Colors.black, Colors.black],
+                                [Colors.black, Colors.black],
+                              )
+                            : ColorListTween(
+                                state.colorsOfBackground[0],
+                                state.colorsOfBackground[
+                                    state.currentTrackIndex],
+                              ),
+                        child: Container(),
                         builder: (context, List<Color> colors, child) {
                           return Container(
                             decoration: BoxDecoration(

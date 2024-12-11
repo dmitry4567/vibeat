@@ -1,27 +1,36 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:math';
+import 'dart:ui';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:vibeat/player/model/model_track.dart';
+import 'package:vibeat/utils/image_extractor.dart';
 
 part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  static String host = "192.168.0.136";
+  static String host = "172.20.10.2";
 
   final AudioPlayer player = AudioPlayer();
   late ConcatenatingAudioSource playlist;
   StreamSubscription<Duration>? _positionSubscription;
   final Map<String, List<double>> _trackWaveforms = {};
+  final List<List<Color>> _trackColors = [];
 
   PlayerBloc() : super(PlayerState.initial()) {
     // Initialize position stream subscription
     player.currentIndexStream.listen((index) {
+      // if (index! > state.currentTrackIndex) {
+      //   add(NextTrackEvent());
+      // }
+      // else if (index < state.currentTrackIndex) {
+      //   add(PreviousTrackEvent());
+      // }
       if (index != null && index != state.currentTrackIndex) {
         add(UpdateCurrentTrackEvent(index));
       }
@@ -67,6 +76,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               trackList.add(track);
               // Generate waveform data for each track
               _generateWaveformForTrack(track);
+              await _getColorsBackground(track);
             }
 
             List<AudioSource> audioSources = trackList
@@ -90,6 +100,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             emit(state.copyWith(
               trackList: trackList,
               currentTrackIndex: player.currentIndex!,
+              colorsOfBackground: _trackColors,
               waveformData: initialWaveform,
             ));
           } else {
@@ -120,7 +131,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       emit(state.copyWith(isPlaying: false, position: Duration.zero));
     });
 
-    on<UpdateCurrentTrackEvent>((event, emit) {
+    on<UpdateCurrentTrackEvent>((event, emit) async {
       if (event.index >= 0 && event.index < state.trackList.length) {
         emit(state.copyWith(
           currentTrackIndex: event.index,
@@ -128,6 +139,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               _trackWaveforms[state.trackList[event.index].trackUrl] ??
                   _generateDefaultWaveform(),
         ));
+
+        await player.seek(Duration.zero, index: state.currentTrackIndex);
+        await player.stop();
+
+        await player.play();
       }
     });
 
@@ -148,6 +164,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               photoUrl: "http://$host:3000/photo/2.png");
 
           _generateWaveformForTrack(newTrack);
+          await _getColorsBackground(newTrack);
 
           final updatedTrackList = List<Track>.from(state.trackList)
             ..add(newTrack);
@@ -156,6 +173,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
           emit(state.copyWith(trackList: updatedTrackList));
         }
+      }
+    });
+
+    on<PreviousTrackEvent>((event, emit) async {
+      if (state.currentTrackIndex > 0) {
+        final previousIndex = state.currentTrackIndex - 1;
+        await player.seek(Duration.zero, index: previousIndex);
+        await player.play();
       }
     });
 
@@ -172,14 +197,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         final prevIndex = state.indexFragment - 1;
         await player.seek(Duration(seconds: state.fragmentsMusic[prevIndex]));
         emit(state.copyWith(indexFragment: prevIndex));
-      }
-    });
-
-    on<PreviousTrackEvent>((event, emit) async {
-      if (state.currentTrackIndex > 0) {
-        final previousIndex = state.currentTrackIndex - 1;
-        await player.seek(Duration.zero, index: previousIndex);
-        await player.play();
       }
     });
 
@@ -252,6 +269,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
         // Generate waveform for new track
         _generateWaveformForTrack(newTrack);
+        await _getColorsBackground(newTrack);
 
         final updatedTrackList = List<Track>.from(state.trackList)
           ..add(newTrack);
@@ -259,6 +277,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         emit(state.copyWith(
           trackList: updatedTrackList,
           currentTrackIndex: state.currentTrackIndex + 1,
+          colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
           waveformData:
               _trackWaveforms[newTrack.trackUrl] ?? _generateDefaultWaveform(),
         ));
@@ -266,18 +285,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         print("Error loading track: $e");
       }
     });
-  }
-
-  void _updateCurrentTrackWaveform(int index) {
-    if (index >= 0 && index < state.trackList.length) {
-      final track = state.trackList[index];
-      final waveform =
-          _trackWaveforms[track.trackUrl] ?? _generateDefaultWaveform();
-      emit(state.copyWith(
-        currentTrackIndex: index,
-        waveformData: waveform,
-      ));
-    }
   }
 
   void _generateWaveformForTrack(Track track) {
@@ -316,6 +323,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   List<double> _generateDefaultWaveform() {
     const samples = 55;
     return List.generate(samples, (i) => 0.5);
+  }
+
+  Future<void> _getColorsBackground(Track track) async {
+    List<Color> colors =
+        await ImageExtractor().extractTopAndBottomCenterColors(track.photoUrl);
+
+    _trackColors.add(colors);
   }
 
   @override
