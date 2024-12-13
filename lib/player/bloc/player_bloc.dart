@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/player/model/model_track.dart';
 import 'package:vibeat/utils/image_extractor.dart';
 
@@ -14,7 +15,8 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  static String host = "172.20.10.2";
+  static String host = "158.160.15.51";
+  // static String host = "192.168.0.136";
 
   final AudioPlayer player = AudioPlayer();
   late ConcatenatingAudioSource playlist;
@@ -80,8 +82,18 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             }
 
             List<AudioSource> audioSources = trackList
-                .map((track) =>
-                    LockCachingAudioSource(Uri.parse(track.trackUrl)))
+                .map(
+                  (track) => LockCachingAudioSource(
+                    Uri.parse(track.trackUrl),
+                    tag: MediaItem(
+                      id: track.id,
+                      album: "Album name",
+                      artist: track.bitmaker,
+                      title: track.name,
+                      artUri: Uri.parse(track.photoUrl),
+                    ),
+                  ),
+                )
                 .toList();
 
             playlist = ConcatenatingAudioSource(
@@ -168,7 +180,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
           final updatedTrackList = List<Track>.from(state.trackList)
             ..add(newTrack);
-          final newChild = LockCachingAudioSource(Uri.parse(newTrack.trackUrl));
+          final newChild = LockCachingAudioSource(
+            Uri.parse(newTrack.trackUrl),
+            tag: MediaItem(
+              id: newTrack.id,
+              album: "Album name",
+              artist: newTrack.bitmaker,
+              title: newTrack.name,
+              artUri: Uri.parse(newTrack.photoUrl),
+            ),
+          );
           await playlist.add(newChild);
 
           emit(state.copyWith(trackList: updatedTrackList));
