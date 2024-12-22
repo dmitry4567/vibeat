@@ -12,18 +12,18 @@ Future<void> main() async {
     return CustomError(errorDetails: errorDetails);
   };
 
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
-    androidNotificationChannelName: 'Audio playback',
-    androidNotificationOngoing: true,
-  );
+  // await JustAudioBackground.init(
+  //   androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+  //   androidNotificationChannelName: 'Audio playback',
+  //   androidNotificationOngoing: true,
+  // );
 
   runApp(
     MultiBlocProvider(providers: [
       BlocProvider(
         create: (_) => PlayerBloc(),
       ),
-    ], child: MainApp()),
+    ], child: const MainApp()),
   );
 }
 

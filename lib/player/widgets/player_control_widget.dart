@@ -17,10 +17,10 @@ class PlayerControlWidget extends StatelessWidget {
           onPressed: () {
             context.read<PlayerBloc>().add(PreviousTrackEvent());
 
-            pageController.previousPage(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.fastLinearToSlowEaseIn,
-            );
+            // pageController.previousPage(
+            //   duration: const Duration(milliseconds: 500),
+            //   curve: Curves.fastLinearToSlowEaseIn,
+            // );
           },
           icon: const Icon(
             Icons.skip_previous,
@@ -49,10 +49,10 @@ class PlayerControlWidget extends StatelessWidget {
           onPressed: () {
             context.read<PlayerBloc>().add(NextTrackEvent());
 
-            pageController.nextPage(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.fastLinearToSlowEaseIn,
-            );
+            // pageController.nextPage(
+            //   duration: const Duration(milliseconds: 500),
+            //   curve: Curves.fastLinearToSlowEaseIn,
+            // );
           },
           icon: const Icon(
             Icons.skip_next,

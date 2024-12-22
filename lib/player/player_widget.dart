@@ -72,11 +72,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
       initialPage: 0,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentIndex = context.read<PlayerBloc>().state.currentTrackIndex;
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   final currentIndex = context.read<PlayerBloc>().state.currentTrackIndex;
 
-      _pageController.jumpToPage(currentIndex);
-    });
+    //   _pageController.jumpToPage(currentIndex);
+    // });
 
     // _downloadAudioFile();
   }
@@ -291,39 +291,39 @@ class _PlayerScreenState extends State<PlayerScreen> {
           children: [
             Stack(
               children: [
-                BlocBuilder<PlayerBloc, PlayerState>(
-                  buildWhen: (previous, current) =>
-                      previous.currentTrackIndex != current.currentTrackIndex,
-                  builder: (context, state) {
-                    return Positioned.fill(
-                      child: TweenAnimationBuilder<List<Color>>(
-                        duration: const Duration(milliseconds: 500),
-                        tween: state.colorsOfBackground.isEmpty
-                            ? ColorListTween(
-                                [Colors.black, Colors.black],
-                                [Colors.black, Colors.black],
-                              )
-                            : ColorListTween(
-                                state.colorsOfBackground[0],
-                                state.colorsOfBackground[
-                                    state.currentTrackIndex],
-                              ),
-                        child: Container(),
-                        builder: (context, List<Color> colors, child) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: colors,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+                // BlocBuilder<PlayerBloc, PlayerState>(
+                //   buildWhen: (previous, current) =>
+                //       previous.currentTrackIndex != current.currentTrackIndex,
+                //   builder: (context, state) {
+                //     return Positioned.fill(
+                //       child: TweenAnimationBuilder<List<Color>>(
+                //         duration: const Duration(milliseconds: 500),
+                //         tween: state.colorsOfBackground.isEmpty
+                //             ? ColorListTween(
+                //                 [Colors.black, Colors.black],
+                //                 [Colors.black, Colors.black],
+                //               )
+                //             : ColorListTween(
+                //                 state.colorsOfBackground[0],
+                //                 state.colorsOfBackground[
+                //                     state.currentTrackIndex],
+                //               ),
+                //         child: Container(),
+                //         builder: (context, List<Color> colors, child) {
+                //           return Container(
+                //             decoration: BoxDecoration(
+                //               gradient: LinearGradient(
+                //                 begin: Alignment.topCenter,
+                //                 end: Alignment.bottomCenter,
+                //                 colors: colors,
+                //               ),
+                //             ),
+                //           );
+                //         },
+                //       ),
+                //     );
+                //   },
+                // ),
                 Positioned.fill(
                   child: Container(color: Colors.black.withOpacity(0.5)),
                 ),
@@ -359,52 +359,18 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       height: coverWidth,
                       child: BlocBuilder<PlayerBloc, PlayerState>(
                         buildWhen: (previous, current) {
-                          return previous.trackList.length !=
-                              current.trackList.length;
+                          return previous.currentTrackIndex !=
+                              current.currentTrackIndex;
                         },
                         builder: (context, state) {
-                          return PageView.builder(
-                            controller: _pageController,
-                            itemCount: state.trackList.length,
-                            onPageChanged: (value) {
-                              context
-                                  .read<PlayerBloc>()
-                                  .add(UpdateCurrentTrackEvent(value));
-                            },
-                            itemBuilder: (context, index) {
-                              double scale =
-                                  (index == _pageController.initialPage)
-                                      ? 1.0
-                                      : 0.9;
-                              return AnimatedBuilder(
-                                animation: _pageController,
-                                builder: (context, child) {
-                                  if (_pageController.position.haveDimensions) {
-                                    double currentPage = _pageController.page ??
-                                        _pageController.initialPage.toDouble();
-                                    scale =
-                                        (1 - (currentPage - index).abs() * 0.3)
-                                            .clamp(0.9, 1.0);
-                                  }
-                                  return Transform.scale(
-                                    scale: scale,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      child: CachedNetworkImage(
-                                        imageUrl:
-                                            state.trackList[index].photoUrl,
-                                        width: coverWidth,
-                                        height: coverWidth,
-                                        fit: BoxFit.cover,
-                                        errorWidget:
-                                            (context, imageUrl, error) =>
-                                                Text(error.toString()),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
+                          return CachedNetworkImage(
+                            imageUrl: state
+                                .trackList[state.currentTrackIndex].photoUrl,
+                            width: coverWidth,
+                            height: coverWidth,
+                            fit: BoxFit.cover,
+                            errorWidget: (context, imageUrl, error) =>
+                                Text(error.toString()),
                           );
                         },
                       ),

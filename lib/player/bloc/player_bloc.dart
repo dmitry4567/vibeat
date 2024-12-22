@@ -15,7 +15,7 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  static String host = "158.160.15.51";
+  static String host = "192.168.0.140";
   // static String host = "192.168.0.136";
 
   final AudioPlayer player = AudioPlayer();
@@ -78,7 +78,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               trackList.add(track);
               // Generate waveform data for each track
               _generateWaveformForTrack(track);
-              await _getColorsBackground(track);
+              // await _getColorsBackground(track);
             }
 
             List<AudioSource> audioSources = trackList
@@ -160,40 +160,57 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
 
     on<NextTrackEvent>((event, emit) async {
-      if (state.currentTrackIndex < state.trackList.length - 1) {
+      print('Starting NextTrackEvent handler');
+
+      // Load more tracks if we're near the end
+      print('Making HTTP request to fetch next track');
+      final response =
+          await http.get(Uri.parse("http://$host:3000/music/rec/rec2"));
+
+      print('HTTP response status code: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        print('Parsing response body');
+        final t = jsonDecode(response.body);
+
+        print('Creating new track object');
+        final newTrack = Track(
+          id: t["id"],
+          name: t["name"].toString(),
+          bitmaker: t["bitmaker"].toString(),
+          price: int.parse(t["price"]),
+          trackUrl: t["trackUrl"],
+          photoUrl: t["photoUrl"],
+        );
+
+        print('Generating waveform for track');
+        _generateWaveformForTrack(newTrack);
+        // await _getColorsBackground(newTrack);
+
+        print('Updating track list');
+        final updatedTrackList = List<Track>.from(state.trackList)
+          ..add(newTrack);
+
+        print('Creating new audio source');
+        final newChild = LockCachingAudioSource(
+          Uri.parse(newTrack.trackUrl),
+          tag: MediaItem(
+            id: newTrack.id,
+            album: "Album name",
+            artist: newTrack.bitmaker,
+            title: newTrack.name,
+            artUri: Uri.parse(newTrack.photoUrl),
+          ),
+        );
+
+        print('Adding to playlist');
+        await playlist.add(newChild);
+
         final nextIndex = state.currentTrackIndex + 1;
+
         await player.seek(Duration.zero, index: nextIndex);
         await player.play();
 
-        // Load more tracks if we're near the end
-        if (nextIndex + 1 >= state.trackList.length) {
-          final newTrack = Track(
-              id: "2",
-              name: "name",
-              bitmaker: "bitmaker",
-              price: 2000,
-              trackUrl: "http://$host:3000/music/2.wav",
-              photoUrl: "http://$host:3000/photo/2.png");
-
-          _generateWaveformForTrack(newTrack);
-          await _getColorsBackground(newTrack);
-
-          final updatedTrackList = List<Track>.from(state.trackList)
-            ..add(newTrack);
-          final newChild = LockCachingAudioSource(
-            Uri.parse(newTrack.trackUrl),
-            tag: MediaItem(
-              id: newTrack.id,
-              album: "Album name",
-              artist: newTrack.bitmaker,
-              title: newTrack.name,
-              artUri: Uri.parse(newTrack.photoUrl),
-            ),
-          );
-          await playlist.add(newChild);
-
-          emit(state.copyWith(trackList: updatedTrackList));
-        }
+        emit(state.copyWith(trackList: updatedTrackList));
       }
     });
 
