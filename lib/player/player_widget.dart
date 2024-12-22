@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/player/widgets/player_control_widget.dart';
-import 'package:vibeat/utils/utils.dart';
+import 'package:vibeat/utils/image_extractor.dart';
 
 import '../utils/theme.dart';
-import 'widgets/conditionalMarquee.dart';
 
 @RoutePage()
 class PlayerScreen extends StatefulWidget {
@@ -20,53 +20,6 @@ class PlayerScreen extends StatefulWidget {
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  // static String host = "localhost";
-  static String host = "172.20.10.2";
-
-  List<String> listOfAudioUrl = [
-    "http://$host:3000/music/1.wav",
-    "http://$host:3000/music/2.wav",
-    "http://$host:3000/music/3.wav",
-    "http://$host:3000/music/4.wav",
-    "http://$host:3000/music/5.wav",
-  ];
-
-  List<String> listOfPhotoUrl = [
-    "http://$host:3000/photo/1.png",
-    "http://$host:3000/photo/2.png",
-    "http://$host:3000/photo/3.png",
-    "http://$host:3000/photo/4.png",
-    "http://$host:3000/photo/5.png",
-  ];
-
-  List<String> listOfName = [
-    "Detroit",
-    "Verno - icantluvv feat Goga",
-    "Rany",
-    "В руках",
-    "на луне",
-  ];
-
-  List<String> listOfBitmaker = [
-    "No name",
-    "smokeynagato",
-    "No name",
-    "No name",
-    "No name",
-  ];
-
-  List<String> listOfPrice = [
-    "5000",
-    "8000",
-    "2000",
-    "15000",
-    "15000",
-  ];
-
-  List<int> fragmentsMusic = [0, 14, 24, 52, 62];
-
-  List<String> fragmentsNames = ['Verse', 'Chorus', 'Verse', 'Verse', 'Chorus'];
-
   List<List<Color>> listOfColors = [
     [const Color(0xffDBDBDB), const Color(0xffDADADA)],
     [
@@ -86,7 +39,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
       const Color.fromARGB(115, 54, 53, 53)
     ],
   ];
-  // List<Color> listOfColorsBackground = [];
 
   double? screenWidth;
   double? coverWidth;
@@ -319,40 +271,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
   //   });
   // }
 
-  Future<void> _togglePreviousFragment() async {
-    if (numberOfFragments > 0) {
-      setState(() {
-        numberOfFragments -= 1;
-      });
-      await controller.seekTo(fragmentsMusic[numberOfFragments] * 1100);
-    }
-  }
-
-  Future<void> _toggleRepeat() async {
-    setState(() {
-      isRepeat = !isRepeat;
-    });
-  }
-
-  Future<void> _toggleNextFragment() async {
-    if (numberOfFragments < fragmentsNames.length - 1) {
-      setState(() {
-        numberOfFragments += 1;
-      });
-      await controller.seekTo(fragmentsMusic[numberOfFragments] * 1100);
-    }
-  }
-
-  Future<void> _getColorsBackground(String imageUrl) async {
-    List<Color> colors =
-        await ImageExtractor().extractTopAndBottomCenterColors(imageUrl);
-
-    setState(() {
-      listOfColors.add([colors[0], colors[1]]);
-      // listOfColorsBackground = colors;
-    });
-  }
-
   // @override
   // void dispose() {
   //   _pageController.dispose();
@@ -373,26 +291,39 @@ class _PlayerScreenState extends State<PlayerScreen> {
           children: [
             Stack(
               children: [
-                Positioned.fill(
-                  child: TweenAnimationBuilder<List<Color>>(
-                    duration: const Duration(milliseconds: 500),
-                    tween: ColorListTween(
-                      listOfColors[0],
-                      listOfColors[currentAudioIndex],
-                    ),
-                    builder: (context, List<Color> colors, child) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: colors,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                // BlocBuilder<PlayerBloc, PlayerState>(
+                //   buildWhen: (previous, current) =>
+                //       previous.currentTrackIndex != current.currentTrackIndex,
+                //   builder: (context, state) {
+                //     return Positioned.fill(
+                //       child: TweenAnimationBuilder<List<Color>>(
+                //         duration: const Duration(milliseconds: 500),
+                //         tween: state.colorsOfBackground.isEmpty
+                //             ? ColorListTween(
+                //                 [Colors.black, Colors.black],
+                //                 [Colors.black, Colors.black],
+                //               )
+                //             : ColorListTween(
+                //                 state.colorsOfBackground[0],
+                //                 state.colorsOfBackground[
+                //                     state.currentTrackIndex],
+                //               ),
+                //         child: Container(),
+                //         builder: (context, List<Color> colors, child) {
+                //           return Container(
+                //             decoration: BoxDecoration(
+                //               gradient: LinearGradient(
+                //                 begin: Alignment.topCenter,
+                //                 end: Alignment.bottomCenter,
+                //                 colors: colors,
+                //               ),
+                //             ),
+                //           );
+                //         },
+                //       ),
+                //     );
+                //   },
+                // ),
                 Positioned.fill(
                   child: Container(color: Colors.black.withOpacity(0.5)),
                 ),
@@ -427,36 +358,28 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       margin: const EdgeInsets.only(top: 90),
                       height: coverWidth,
                       child: BlocBuilder<PlayerBloc, PlayerState>(
+                        buildWhen: (previous, current) {
+                          return previous.trackList.length !=
+                              current.trackList.length;
+                        },
                         builder: (context, state) {
                           return PageView.builder(
                             controller: _pageController,
                             itemCount: state.trackList.length,
                             onPageChanged: (value) {
-                              if (value > state.currentTrackIndex &&
-                                  _pageController.page!.isFinite) {
+                              if (value > state.currentTrackIndex) {
                                 context
                                     .read<PlayerBloc>()
                                     .add(NextTrackEvent());
-                              } else if (value < state.currentTrackIndex &&
-                                  _pageController.page!.isFinite) {
+                              } else {
                                 context
                                     .read<PlayerBloc>()
                                     .add(PreviousTrackEvent());
                               }
-                              // _pageController.nextPage(
-                              //   duration: const Duration(milliseconds: 500),
-                              //   curve: Curves.fastLinearToSlowEaseIn,
-                              // );
 
-                              // context.read<PlayerBloc>().add(NextTrack());
-
-                              // await controller.stopPlayer();
-                              // isPlaying = false;
-
-                              // currentAudioIndex = value;
-
-                              // _downloadAudioFile();
-                              // _getColorsBackground(listOfPhotoUrl[currentAudioIndex]);
+                              context
+                                  .read<PlayerBloc>()
+                                  .add(UpdateCurrentTrackEvent(value));
                             },
                             itemBuilder: (context, index) {
                               double scale =
@@ -499,91 +422,104 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                BlocBuilder<PlayerBloc, PlayerState>(
-                  builder: (context, state) {
-                    return Container(
-                      padding: const EdgeInsets.only(left: 30, right: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // SizedBox(
-                                //   height: 25,
-                                //   child: Marquee(
-                                //     text: listOfName[currentAudioIndex],
-                                //     style: AppTextStyles.headline1,
-                                //     scrollAxis: Axis.horizontal,
-                                //     crossAxisAlignment: CrossAxisAlignment.start,
-                                //     blankSpace: 20.0,
-                                //     velocity: 50.0,
-                                //     startAfter: const Duration(seconds: 1),
-                                //     pauseAfterRound: const Duration(seconds: 1),
-                                //   ),
-                                // ),
+                Container(
+                  padding: const EdgeInsets.only(left: 30),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // SizedBox(
+                            //   height: 25,
+                            //   child: Marquee(
+                            //     text: listOfName[currentAudioIndex],
+                            //     style: AppTextStyles.headline1,
+                            //     scrollAxis: Axis.horizontal,
+                            //     crossAxisAlignment: CrossAxisAlignment.start,
+                            //     blankSpace: 20.0,
+                            //     velocity: 50.0,
+                            //     startAfter: const Duration(seconds: 1),
+                            //     pauseAfterRound: const Duration(seconds: 1),
+                            //   ),
+                            // ),
 
-                                ConditionalMarquee(
-                                  text: state
-                                      .trackList[state.currentTrackIndex].name,
-                                  style: AppTextStyles.headline1,
-                                ),
+                            BlocBuilder<PlayerBloc, PlayerState>(
+                                buildWhen: (previous, current) =>
+                                    previous.currentTrackIndex !=
+                                    current.currentTrackIndex,
+                                builder: (context, state) {
+                                  return ConditionalMarquee(
+                                    text: state
+                                        .trackList[state.currentTrackIndex]
+                                        .name,
+                                    style: AppTextStyles.headline1,
+                                  );
+                                }),
 
-                                // const SizedBox(
-                                //   height: 2,
-                                // ),
-                                Row(
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            BlocBuilder<PlayerBloc, PlayerState>(
+                              buildWhen: (previous, current) =>
+                                  previous.currentTrackIndex !=
+                                  current.currentTrackIndex,
+                              builder: (context, state) {
+                                return Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
-                                      style: AppTextStyles.bodyText1,
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 1),
+                                      child: Text(
+                                        "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
+                                        style: AppTextStyles.bodyText1,
+                                      ),
                                     ),
                                     Text(
-                                      "₽${state.trackList[state.currentTrackIndex].bitmaker}",
+                                      "₽${state.trackList[state.currentTrackIndex].price}",
                                       style: AppTextStyles.bodyPrice1,
                                     ),
                                   ],
-                                ),
-                              ],
+                                );
+                              },
                             ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.shopping_cart,
-                                  ),
-                                  color: AppColors.iconPrimary,
-                                ),
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.favorite_border,
-                                  ),
-                                  color: AppColors.iconPrimary,
-                                ),
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(Icons.share),
-                                  color: AppColors.iconPrimary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    );
-                  },
+                      Expanded(
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.shopping_cart,
+                              ),
+                              color: AppColors.iconPrimary,
+                            ),
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.favorite_border,
+                              ),
+                              color: AppColors.iconPrimary,
+                            ),
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(Icons.share),
+                              color: AppColors.iconPrimary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
                 PlayerControlWidget(pageController: _pageController),
                 const SizedBox(height: 18),
                 Container(
-                  margin: const EdgeInsets.only(left: 18, right: 18),
+                  margin: const EdgeInsets.only(top: 18, left: 18, right: 18),
                   width: double.infinity,
                   height: 160,
                   decoration: BoxDecoration(
@@ -603,61 +539,173 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             alignment: Alignment.centerLeft,
                             child: Padding(
                               padding: const EdgeInsets.only(top: 5, left: 12),
-                              child: Text(
-                                currentFragmentName,
-                                style: AppTextStyles.bodyPrice1.copyWith(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                  height: 1.375,
-                                ),
+                              child: BlocBuilder<PlayerBloc, PlayerState>(
+                                buildWhen: (previous, current) =>
+                                    previous.indexFragment !=
+                                    current.indexFragment,
+                                builder: (context, state) {
+                                  return Text(
+                                    state.fragmentsNames[state.indexFragment],
+                                    style: AppTextStyles.bodyPrice1.copyWith(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      height: 1.375,
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.only(
-                                top: 5, left: 10, right: 10),
-                            child: !isLoading
-                                ? af.AudioFileWaveforms(
-                                    size: Size(
-                                        MediaQuery.of(context).size.width, 54),
-                                    playerController: controller,
-                                    animationCurve: Curves.linearToEaseOut,
-                                    enableSeekGesture: true,
-                                    waveformType: af.WaveformType.fitWidth,
-                                    waveformData: const [],
-                                    playerWaveStyle: af.PlayerWaveStyle(
-                                      fixedWaveColor:
-                                          Colors.white.withOpacity(0.4),
-                                      scaleFactor: 54,
-                                      waveCap: StrokeCap.round,
-                                      liveWaveColor: Colors.white,
-                                      spacing: 6,
-                                    ),
-                                  )
-                                : const Center(
-                                    child: SizedBox(
-                                      width: 54,
-                                      height: 54,
-                                      // child: CircularProgressIndicator(
-                                      // color: Colors.white,
-                                      // ),
-                                    ),
-                                  ),
+                            padding: const EdgeInsets.only(top: 5),
+                            child: Container(
+                              height: 54,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: GestureDetector(
+                                onTapDown: (details) {
+                                  final RenderBox box =
+                                      context.findRenderObject() as RenderBox;
+                                  final Offset localPosition =
+                                      box.globalToLocal(details.globalPosition);
+                                  final double percent =
+                                      localPosition.dx / box.size.width;
+                                  final duration = context
+                                      .read<PlayerBloc>()
+                                      .player
+                                      .duration;
+
+                                  if (duration != null) {
+                                    final position =
+                                        duration.inMilliseconds * percent;
+                                    context.read<PlayerBloc>().player.seek(
+                                          Duration(
+                                              milliseconds: position.round()),
+                                        );
+                                  }
+                                },
+                                onHorizontalDragUpdate: (details) {
+                                  final RenderBox box =
+                                      context.findRenderObject() as RenderBox;
+                                  final Offset localPosition =
+                                      box.globalToLocal(details.globalPosition);
+                                  final double percent =
+                                      (localPosition.dx / box.size.width)
+                                          .clamp(0.0, 1.0);
+
+                                  context.read<PlayerBloc>().add(
+                                        UpdateDragProgressEvent(percent),
+                                      );
+                                },
+                                onHorizontalDragEnd: (details) {
+                                  final duration = context
+                                      .read<PlayerBloc>()
+                                      .player
+                                      .duration;
+                                  final progress = context
+                                      .read<PlayerBloc>()
+                                      .state
+                                      .dragProgress;
+
+                                  if (duration != null && progress != null) {
+                                    final position =
+                                        duration.inMilliseconds * progress;
+                                    context.read<PlayerBloc>().player.seek(
+                                          Duration(
+                                              milliseconds: position.round()),
+                                        );
+                                  }
+                                  context.read<PlayerBloc>().add(
+                                        UpdateDragProgressEvent(null),
+                                      );
+                                },
+                                child: BlocBuilder<PlayerBloc, PlayerState>(
+                                    buildWhen: (previous, current) =>
+                                        previous.progress / 100 !=
+                                        current.progress / 100,
+                                    builder: (context, state) {
+                                      return CustomPaint(
+                                        painter: WaveformPainter(
+                                          waveformData: state.waveformData,
+                                          progress: state.dragProgress != null
+                                              ? state.dragProgress!
+                                              : state.progress,
+                                          fixedWaveColor:
+                                              Colors.white.withOpacity(0.4),
+                                          liveWaveColor: Colors.white,
+                                          spacing: 4,
+                                          scaleFactor: 54,
+                                          waveCap: StrokeCap.round,
+                                        ),
+                                        size: Size(
+                                            MediaQuery.of(context).size.width -
+                                                32,
+                                            100),
+                                      );
+                                    }),
+                              ),
+                            ),
                           ),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(
+                          //       top: 5, left: 12, right: 12),
+                          //   child: BlocBuilder<PlayerBloc, PlayerState>(
+                          //     builder: (context, state) {
+                          //       final player =
+                          //           context.read<PlayerBloc>().player;
+                          //       final position = player.position;
+                          //       final duration = player.duration;
+
+                          //       final currentSeconds = position.inSeconds;
+                          //       final totalSeconds = duration?.inSeconds ?? 0;
+
+                          //       return Row(
+                          //         mainAxisAlignment:
+                          //             MainAxisAlignment.spaceBetween,
+                          //         children: [
+                          //           Text(
+                          //             "${(currentSeconds ~/ 60).toString().padLeft(2, '0')}:${(currentSeconds % 60).toString().padLeft(2, '0')}",
+                          //             style: AppTextStyles.timePlayer,
+                          //           ),
+                          //           Text(
+                          //             "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
+                          //             style: AppTextStyles.timePlayer,
+                          //           )
+                          //         ],
+                          //       );
+                          //     },
+                          //   ),
+                          // ),
                           Padding(
                             padding: const EdgeInsets.only(
                                 top: 5, left: 12, right: 12),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "${(timePlayer ~/ 60).toString().padLeft(2, '0')}:${(timePlayer % 60).toString().padLeft(2, '0')}",
-                                  style: AppTextStyles.timePlayer,
+                                BlocBuilder<PlayerBloc, PlayerState>(
+                                  buildWhen: (previous, current) =>
+                                      previous.position.inSeconds !=
+                                      current.position.inSeconds,
+                                  builder: (context, state) {
+                                    return Text(
+                                      "${(state.position.inSeconds ~/ 60).toString().padLeft(2, '0')}:${(state.position.inSeconds % 60).toString().padLeft(2, '0')}",
+                                      style: AppTextStyles.timePlayer,
+                                    );
+                                  },
                                 ),
-                                Text(
-                                  "${(endTimePlayer ~/ 60).toString().padLeft(2, '0')}:${(endTimePlayer % 60).toString().padLeft(2, '0')}",
-                                  style: AppTextStyles.timePlayer,
-                                )
+                                BlocBuilder<PlayerBloc, PlayerState>(
+                                  buildWhen: (previous, current) =>
+                                      previous.duration != current.duration,
+                                  builder: (context, state) {
+                                    final totalSeconds =
+                                        state.duration?.inSeconds ?? 0;
+
+                                    return Text(
+                                      "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
+                                      style: AppTextStyles.timePlayer,
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           ),
@@ -666,7 +714,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  _togglePreviousFragment();
+                                  context.read<PlayerBloc>().add(
+                                        PreviousFragmentEvent(),
+                                      );
                                 },
                                 child: SvgPicture.asset(
                                     "assets/svg/left_arrow.svg"),
@@ -676,25 +726,34 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               ),
                               InkWell(
                                 onTap: () {
-                                  _toggleRepeat();
+                                  context.read<PlayerBloc>().add(
+                                        ToggleLoopFragmentEvent(),
+                                      );
                                 },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: isRepeat
-                                        ? Colors.white
-                                        : Colors.white.withOpacity(0.4),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(12)),
-                                  ),
-                                  width: 64,
-                                  height: 47,
-                                  child: Icon(
-                                    Icons.repeat,
-                                    color: isRepeat
-                                        ? Colors.black.withOpacity(0.5)
-                                        : const Color.fromARGB(
-                                            255, 255, 255, 255),
-                                  ),
+                                child: BlocBuilder<PlayerBloc, PlayerState>(
+                                  buildWhen: (previous, current) =>
+                                      previous.loopCurrentFragment !=
+                                      current.loopCurrentFragment,
+                                  builder: (context, state) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: state.loopCurrentFragment
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.4),
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(12)),
+                                      ),
+                                      width: 64,
+                                      height: 47,
+                                      child: Icon(
+                                        Icons.repeat_one,
+                                        color: state.loopCurrentFragment
+                                            ? Colors.black.withOpacity(0.5)
+                                            : const Color.fromARGB(
+                                                255, 255, 255, 255),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                               const SizedBox(
@@ -702,7 +761,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  _toggleNextFragment();
+                                  context.read<PlayerBloc>().add(
+                                        NextFragmentEvent(),
+                                      );
                                 },
                                 child: SvgPicture.asset(
                                     "assets/svg/right_arrow.svg"),
@@ -788,6 +849,79 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ),
       ),
     );
+  }
+}
+
+class WaveformPainter extends CustomPainter {
+  final List<double> waveformData;
+  final double progress;
+  final Color fixedWaveColor;
+  final Color liveWaveColor;
+  final double spacing;
+  final double scaleFactor;
+  final StrokeCap waveCap;
+
+  WaveformPainter({
+    required this.waveformData,
+    required this.progress,
+    required this.fixedWaveColor,
+    required this.liveWaveColor,
+    required this.spacing,
+    required this.scaleFactor,
+    required this.waveCap,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (waveformData.isEmpty) return;
+
+    final paint = Paint()
+      ..strokeCap = waveCap
+      ..strokeWidth = 3;
+
+    final barWidth = (size.width - (waveformData.length - 1) * spacing) /
+        waveformData.length;
+    final progressWidth = size.width * progress;
+    final center = size.height / 2;
+
+    // Draw background (unplayed) waveform
+    paint.color = fixedWaveColor;
+    _drawWaveform(
+        canvas, size, paint, barWidth, center, 0, waveformData.length);
+
+    // Draw progress (played) waveform
+    paint.color = liveWaveColor;
+    final progressBars = (progressWidth / (barWidth + spacing)).floor();
+    _drawWaveform(canvas, size, paint, barWidth, center, 0, progressBars);
+  }
+
+  void _drawWaveform(Canvas canvas, Size size, Paint paint, double barWidth,
+      double center, int start, int end) {
+    for (var i = start; i < end && i < waveformData.length; i++) {
+      final x = i * (barWidth + spacing);
+      final amplitude = waveformData[i].clamp(0.1, 1.0);
+      final barHeight = amplitude * scaleFactor;
+
+      // Draw the bar
+      final topY = center - barHeight / 2;
+      final bottomY = center + barHeight / 2;
+      canvas.drawLine(
+        Offset(x + barWidth / 2, topY),
+        Offset(x + barWidth / 2, bottomY),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(WaveformPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.waveformData != waveformData ||
+        oldDelegate.fixedWaveColor != fixedWaveColor ||
+        oldDelegate.liveWaveColor != liveWaveColor ||
+        oldDelegate.spacing != spacing ||
+        oldDelegate.scaleFactor != scaleFactor ||
+        oldDelegate.waveCap != waveCap;
   }
 }
 

@@ -17,15 +17,39 @@ class NextTrackEvent extends PlayerEvent {}
 
 class PreviousTrackEvent extends PlayerEvent {}
 
+class NextFragmentEvent extends PlayerEvent {}
+
+class PreviousFragmentEvent extends PlayerEvent {}
+
 class ToggleRepeatEvent extends PlayerEvent {}
 
-class UpdateCurrentTime extends PlayerEvent {
-  final int currentTime;
+class ToggleLoopFragmentEvent extends PlayerEvent {}
 
-  UpdateCurrentTime(this.currentTime);
+class UpdatePositionEvent extends PlayerEvent {
+  final Duration position;
+
+  UpdatePositionEvent(this.position);
 
   @override
-  List<Object?> get props => [currentTime];
+  List<Object?> get props => [position];
+}
+
+class UpdateCurrentTrackEvent extends PlayerEvent {
+  final int index;
+
+  UpdateCurrentTrackEvent(this.index);
+
+  @override
+  List<Object?> get props => [index];
+}
+
+class UpdateDragProgressEvent extends PlayerEvent {
+  final double? progress;
+
+  UpdateDragProgressEvent(this.progress);
+
+  @override
+  List<Object?> get props => [progress];
 }
 
 class LoadNextTrackEvent extends PlayerEvent {
