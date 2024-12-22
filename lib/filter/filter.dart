@@ -1,13 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/filter/bloc/filter_bloc.dart';
 import 'package:vibeat/filter/screen/filter_bpm/cubit/bpm_cubit.dart';
 import 'package:vibeat/filter/screen/filter_genre/cubit/genre_cubit.dart';
 import 'package:vibeat/filter/screen/filter_key/cubit/key_cubit.dart';
 import 'package:vibeat/filter/screen/filter_mood/cubit/mood_cubit.dart';
 import 'package:vibeat/filter/screen/filter_tag/cubit/tag_cubit.dart';
-import 'package:vibeat/main.gr.dart';
+import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 
 @RoutePage()
@@ -98,6 +99,7 @@ class FilterScreen extends StatelessWidget {
             ),
           ),
           Container(
+            margin: const EdgeInsets.only(bottom: 80),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             color: AppColors.background,
             child: ElevatedButton(
