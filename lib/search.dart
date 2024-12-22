@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:vibeat/main.gr.dart';
+import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 
