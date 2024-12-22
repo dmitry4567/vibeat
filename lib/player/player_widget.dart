@@ -698,7 +698,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                       previous.duration != current.duration,
                                   builder: (context, state) {
                                     final totalSeconds =
-                                        state.duration?.inSeconds ?? 0;
+                                        state.duration.inSeconds ?? 0;
 
                                     return Text(
                                       "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",

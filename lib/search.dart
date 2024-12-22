@@ -53,7 +53,7 @@ class SearchScreen extends StatelessWidget {
                       ),
                       suffixIcon: GestureDetector(
                         onTap: () {
-                          context.pushRoute(FilterRoute());
+                          context.pushRoute(const FilterRoute());
                         },
                         child: Icon(
                           Icons.filter_alt_outlined,
