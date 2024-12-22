@@ -291,39 +291,39 @@ class _PlayerScreenState extends State<PlayerScreen> {
           children: [
             Stack(
               children: [
-                BlocBuilder<PlayerBloc, PlayerState>(
-                  buildWhen: (previous, current) =>
-                      previous.currentTrackIndex != current.currentTrackIndex,
-                  builder: (context, state) {
-                    return Positioned.fill(
-                      child: TweenAnimationBuilder<List<Color>>(
-                        duration: const Duration(milliseconds: 500),
-                        tween: state.colorsOfBackground.isEmpty
-                            ? ColorListTween(
-                                [Colors.black, Colors.black],
-                                [Colors.black, Colors.black],
-                              )
-                            : ColorListTween(
-                                state.colorsOfBackground[0],
-                                state.colorsOfBackground[
-                                    state.currentTrackIndex],
-                              ),
-                        child: Container(),
-                        builder: (context, List<Color> colors, child) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: colors,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+                // BlocBuilder<PlayerBloc, PlayerState>(
+                //   buildWhen: (previous, current) =>
+                //       previous.currentTrackIndex != current.currentTrackIndex,
+                //   builder: (context, state) {
+                //     return Positioned.fill(
+                //       child: TweenAnimationBuilder<List<Color>>(
+                //         duration: const Duration(milliseconds: 500),
+                //         tween: state.colorsOfBackground.isEmpty
+                //             ? ColorListTween(
+                //                 [Colors.black, Colors.black],
+                //                 [Colors.black, Colors.black],
+                //               )
+                //             : ColorListTween(
+                //                 state.colorsOfBackground[0],
+                //                 state.colorsOfBackground[
+                //                     state.currentTrackIndex],
+                //               ),
+                //         child: Container(),
+                //         builder: (context, List<Color> colors, child) {
+                //           return Container(
+                //             decoration: BoxDecoration(
+                //               gradient: LinearGradient(
+                //                 begin: Alignment.topCenter,
+                //                 end: Alignment.bottomCenter,
+                //                 colors: colors,
+                //               ),
+                //             ),
+                //           );
+                //         },
+                //       ),
+                //     );
+                //   },
+                // ),
                 Positioned.fill(
                   child: Container(color: Colors.black.withOpacity(0.5)),
                 ),
@@ -367,6 +367,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             controller: _pageController,
                             itemCount: state.trackList.length,
                             onPageChanged: (value) {
+                              if (value > state.currentTrackIndex) {
+                                context
+                                    .read<PlayerBloc>()
+                                    .add(NextTrackEvent());
+                              } else {
+                                context
+                                    .read<PlayerBloc>()
+                                    .add(PreviousTrackEvent());
+                              }
+
                               context
                                   .read<PlayerBloc>()
                                   .add(UpdateCurrentTrackEvent(value));
