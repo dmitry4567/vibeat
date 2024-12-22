@@ -1,27 +1,34 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/main.gr.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/custom_error.dart';
 
-void main() {
+Future<void> main() async {
   ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
     return CustomError(errorDetails: errorDetails);
   };
-  
+
+  // await JustAudioBackground.init(
+  //   androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+  //   androidNotificationChannelName: 'Audio playback',
+  //   androidNotificationOngoing: true,
+  // );
+
   runApp(
     MultiBlocProvider(providers: [
       BlocProvider(
         create: (_) => PlayerBloc(),
       ),
-    ], child: MainApp()),
+    ], child: const MainApp()),
   );
 }
 
 class MainApp extends StatefulWidget {
-  MainApp({super.key});
+  const MainApp({super.key});
 
   @override
   State<MainApp> createState() => _MainAppState();

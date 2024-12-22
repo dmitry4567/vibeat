@@ -9,7 +9,7 @@ class ConditionalMarquee extends StatelessWidget {
   final Duration startAfter;
   final Duration pauseAfterRound;
 
-  const ConditionalMarquee({
+  const ConditionalMarquee({super.key, 
     required this.text,
     required this.style,
     this.blankSpace = 30.0,
@@ -35,7 +35,6 @@ class ConditionalMarquee extends StatelessWidget {
 
         return SizedBox(
           width: constraints.maxWidth,
-          height: 25,
           child: isOverflow
               ? Marquee(
                   text: text,
