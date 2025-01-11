@@ -102,8 +102,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             id: "2",
             name: "name",
             bitmaker: "bitmaker",
-            trackUrl: "http://${host}:3000/music/2.wav",
-            photoUrl: "http://${host}:3000/photo/2.png");
+            trackUrl: "http://$host:3000/music/2.wav",
+            photoUrl: "http://$host:3000/photo/2.png");
 
         final updatedTrackList = List<Track>.from(state.trackList)
           ..add(newTrack);
@@ -161,8 +161,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             id: "2",
             name: "name",
             bitmaker: "bitmaker",
-            trackUrl: "http://${host}:3000/music/2.wav",
-            photoUrl: "http://${host}:3000/photo/2.png");
+            trackUrl: "http://$host:3000/music/2.wav",
+            photoUrl: "http://$host:3000/photo/2.png");
 
         final updatedTrackList = List<Track>.from(state.trackList)
           ..add(newTrack);
