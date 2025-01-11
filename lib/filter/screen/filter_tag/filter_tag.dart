@@ -11,6 +11,8 @@ import 'package:vibeat/filter/screen/filter_tag/widgets/tag_card.dart';
 import 'package:vibeat/utils/random_word_generator.dart';
 import 'package:vibeat/utils/theme.dart';
 
+import '../widgets/error_placeholder.dart';
+
 @RoutePage()
 class FilterTagScreen extends StatelessWidget {
   const FilterTagScreen({super.key});
@@ -41,9 +43,7 @@ class FilterTagScreen extends StatelessWidget {
                     builder: (context, state) {
                       if (state is TagError) {
                         return const SliverFillRemaining(
-                          child: Center(
-                            child: Text('Error'),
-                          ),
+                          child: ErrorPlaceholder(),
                         );
                       }
 

@@ -7,6 +7,8 @@ import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_key/widgets/key_card.dart';
 import 'package:vibeat/utils/theme.dart';
 
+import '../widgets/error_placeholder.dart';
+
 @RoutePage()
 class FilterKeyScreen extends StatelessWidget {
   const FilterKeyScreen({super.key});
@@ -37,9 +39,7 @@ class FilterKeyScreen extends StatelessWidget {
                     builder: (context, state) {
                       if (state is KeyError) {
                         return const SliverFillRemaining(
-                          child: Center(
-                            child: Text('Error'),
-                          ),
+                          child: ErrorPlaceholder(),
                         );
                       } else if (state is KeyLoading) {
                         return SliverList.builder(

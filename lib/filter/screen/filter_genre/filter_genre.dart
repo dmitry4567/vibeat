@@ -5,6 +5,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/filter/screen/filter_genre/cubit/genre_cubit.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
 import 'package:vibeat/filter/screen/filter_genre/widgets/genre_card.dart';
+import 'package:vibeat/filter/screen/widgets/error_placeholder.dart';
 import 'package:vibeat/utils/theme.dart';
 
 @RoutePage()
@@ -43,9 +44,7 @@ class FilterGenreScreen extends StatelessWidget {
                     builder: (context, state) {
                       if (state is GenreError) {
                         return const SliverFillRemaining(
-                          child: Center(
-                            child: Text('Error'),
-                          ),
+                          child: ErrorPlaceholder()
                         );
                       } else if (state is GenreLoading) {
                         return SliverGrid.builder(

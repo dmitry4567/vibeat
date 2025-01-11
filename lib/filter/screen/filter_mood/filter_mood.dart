@@ -8,6 +8,8 @@ import 'package:vibeat/filter/screen/filter_key/widgets/key_card.dart';
 import 'package:vibeat/filter/screen/filter_mood/cubit/mood_cubit.dart';
 import 'package:vibeat/utils/theme.dart';
 
+import '../widgets/error_placeholder.dart';
+
 @RoutePage()
 class FilterMoodScreen extends StatelessWidget {
   const FilterMoodScreen({super.key});
@@ -36,11 +38,9 @@ class FilterMoodScreen extends StatelessWidget {
                         previous.selectedMoods != current.selectedMoods ||
                         previous.moods != current.moods,
                     builder: (context, state) {
-                      if (state is KeyError) {
+                      if (state is MoodError) {
                         return const SliverFillRemaining(
-                          child: Center(
-                            child: Text('Error'),
-                          ),
+                          child: ErrorPlaceholder(),
                         );
                       } else if (state is KeyLoading) {
                         return SliverList.builder(
