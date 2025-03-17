@@ -88,7 +88,7 @@ class AppRouter extends RootStackRouter {
 class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
-    final isAuthenticated = false;
+    final isAuthenticated = true;
 
     if (!isAuthenticated) {
       router.push(const SignInRoute());
