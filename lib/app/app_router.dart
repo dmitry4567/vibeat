@@ -33,6 +33,22 @@ class AppRouter extends RootStackRouter {
                   page: FilterGenreRoute.page,
                 ),
                 AutoRoute(
+                  path: 'search/filter_tag',
+                  page: FilterTagRoute.page,
+                ),
+                AutoRoute(
+                  path: 'search/filter_bpm',
+                  page: FilterBpmRoute.page,
+                ),
+                AutoRoute(
+                  path: 'search/filter_key',
+                  page: FilterKeyRoute.page,
+                ),
+                AutoRoute(
+                  path: 'search/filter_mood',
+                  page: FilterMoodRoute.page,
+                ),
+                AutoRoute(
                   path: 'search/result',
                   page: ResultRoute.page,
                 ),
