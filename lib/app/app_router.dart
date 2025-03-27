@@ -12,12 +12,12 @@ class AppRouter extends RootStackRouter {
           guards: [AuthGuard()],
           children: [
             AutoRoute(
-              path: 'home',
-              page: HomeRoute.page,
+              path: 'head',
+              page: HeadRoute.page,
+              initial: true,
             ),
             AutoRoute(
               path: 'search',
-              initial: true,
               page: const EmptyShellRoute('search'),
               children: [
                 AutoRoute(
@@ -56,10 +56,6 @@ class AppRouter extends RootStackRouter {
           path: '/profile',
           page: ProfileRoute.page,
         ),
-        AutoRoute(
-          path: '/head',
-          page: HeadRoute.page,
-        ),
         CustomRoute(
           path: '/player',
           page: PlayerRoute.page,
@@ -92,10 +88,10 @@ class AppRouter extends RootStackRouter {
 class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
-    final isAuthenticated = false;
+    final isAuthenticated = true;
 
     if (!isAuthenticated) {
-      router.push(const HeadRoute());
+      router.push(const SignInRoute());
     } else {
       resolver.next(true);
     }

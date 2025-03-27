@@ -125,7 +125,7 @@ class DashboardPage extends StatelessWidget {
           ),
           backgroundColor: AppColors.background,
           routes: const [
-            HomeRoute(),
+            HeadRoute(),
             SearchRoute(),
             FavoriteRoute(),
             CartRoute(),
