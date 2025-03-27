@@ -41,7 +41,9 @@ class _HeadScreenState extends State<HeadScreen> {
           slivers: [
             const SliverAppBar(
               pinned: true,
+              elevation: 0,
               backgroundColor: AppColors.background,
+              surfaceTintColor: Colors.transparent,
             ),
             const SliverToBoxAdapter(
               child: Text(
