@@ -15,7 +15,7 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  static String host = "192.168.0.140";
+  static String host = "192.168.0.135";
   // static String host = "192.168.0.136";
 
   final AudioPlayer player = AudioPlayer();
@@ -83,7 +83,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
             List<AudioSource> audioSources = trackList
                 .map(
-                  (track) => LockCachingAudioSource(
+                  (track) => AudioSource.uri(
                     Uri.parse(track.trackUrl),
                     tag: MediaItem(
                       id: track.id,
@@ -125,11 +125,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
 
     on<PlayAudioEvent>((event, emit) async {
-      final cachePath = (await LockCachingAudioSource.getCacheFile(
-              Uri.parse(state.trackList[player.currentIndex!].trackUrl)))
-          .toString();
+      // final cachePath = (await LockCachingAudioSource.getCacheFile(
+      //         Uri.parse(state.trackList[player.currentIndex!].trackUrl)))
+      //     .toString();
 
-      emit(state.copyWith(isPlaying: true, pathTrack: cachePath));
+      emit(state.copyWith(isPlaying: true));
 
       await player.play();
     });
@@ -160,7 +160,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
 
     on<NextTrackEvent>((event, emit) async {
-
       // Load more tracks if we're near the end
       final response =
           await http.get(Uri.parse("http://$host:3000/music/rec/rec2"));
@@ -183,7 +182,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         final updatedTrackList = List<Track>.from(state.trackList)
           ..add(newTrack);
 
-        final newChild = LockCachingAudioSource(
+        final newChild = AudioSource.uri(
           Uri.parse(newTrack.trackUrl),
           tag: MediaItem(
             id: newTrack.id,
