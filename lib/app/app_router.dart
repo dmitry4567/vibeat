@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:vibeat/anketa/anketa.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 
 @AutoRouterConfig()
@@ -49,6 +50,10 @@ class AppRouter extends RootStackRouter {
           ],
         ),
         AutoRoute(
+          path: '/anketa',
+          page: AnketaRoute.page,
+        ),
+        AutoRoute(
           path: '/signIn',
           page: SignInRoute.page,
         ),
@@ -88,10 +93,10 @@ class AppRouter extends RootStackRouter {
 class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
-    final isAuthenticated = true;
+    final isAuthenticated = false;
 
     if (!isAuthenticated) {
-      router.push(const SignInRoute());
+      router.push(const AnketaRoute());
     } else {
       resolver.next(true);
     }
