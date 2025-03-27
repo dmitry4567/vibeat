@@ -56,6 +56,10 @@ class AppRouter extends RootStackRouter {
           path: '/profile',
           page: ProfileRoute.page,
         ),
+        AutoRoute(
+          path: '/head',
+          page: HeadRoute.page,
+        ),
         CustomRoute(
           path: '/player',
           page: PlayerRoute.page,
@@ -88,10 +92,10 @@ class AppRouter extends RootStackRouter {
 class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
-    final isAuthenticated = true;
+    final isAuthenticated = false;
 
     if (!isAuthenticated) {
-      router.push(const SignInRoute());
+      router.push(const HeadRoute());
     } else {
       resolver.next(true);
     }
