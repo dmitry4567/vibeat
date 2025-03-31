@@ -245,7 +245,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       const SizedBox(height: 16),
                       GestureDetector(
                         onTap: () {
-                          print("fsef");
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -308,7 +307,9 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 12),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          context.pushRoute(const SignUpRoute());
+                        },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),

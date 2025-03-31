@@ -12,7 +12,6 @@ class AppRouter extends RootStackRouter {
   List<AutoRoute> get routes => [
         AutoRoute(
           path: '/',
-          initial: true,
           page: DashboardRoute.page,
           guards: [AuthGuard()],
           children: [
@@ -56,6 +55,11 @@ class AppRouter extends RootStackRouter {
         AutoRoute(
           path: '/signIn',
           page: SignInRoute.page,
+        ),
+        AutoRoute(
+          path: '/signUp',
+          initial: true,
+          page: SignUpRoute.page,
         ),
         AutoRoute(
           path: '/profile',
