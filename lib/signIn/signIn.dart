@@ -1,5 +1,13 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/primary_button.dart';
 
@@ -11,235 +19,317 @@ class SignInScreen extends StatefulWidget {
   State<SignInScreen> createState() => _SignInScreenState();
 }
 
+// final GoogleSignIn googleSignIn = GoogleSignIn(
+//   clientId:
+//       '81758102489-02at57f056e9gr911upacte4llidj607.apps.googleusercontent.com',
+//   serverClientId:
+//       '81758102489-595rl6k8eiq65p06tipflgjk96llo7go.apps.googleusercontent.com',
+//   scopes: [
+//     'email',
+//     'profile',
+//     'openid',
+//   ],
+//   // hostedDomain: '',
+// );
+
 class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController textController1 = TextEditingController();
   final TextEditingController textController2 = TextEditingController();
   bool _isPasswordVisible = false;
 
+  final dio = Dio();
+  String _message = '';
+
+  // Future<void> _handleSignIn() async {
+  //   try {
+  //     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+  //     if (googleUser == null) return;
+
+  //     final GoogleSignInAuthentication googleAuth =
+  //         await googleUser.authentication;
+
+  //     final response = await dio.post(
+  //       'http://192.168.0.135:3000/auth/google',
+  //       options: Options(
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //       ),
+  //       data: {
+  //         'token': googleAuth.idToken,
+  //       },
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final responseData = response.data;
+
+  //       log(responseData.toString());
+  //     }
+  //   } catch (error) {
+  //     print('Ошибка авторизации: $error');
+  //   }
+  // }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: NotificationListener<OverscrollIndicatorNotification>(
-            onNotification: (overscroll) {
-              overscroll.disallowIndicator();
-              return true;
-            },
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'АВТОРИЗАЦИЯ',
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Helvetica',
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is Authenticated) {
+          // Переход на главный экран
+          context.router.push(const HomeRoute());
+        } else if (state is AuthError) {
+          // Показываем сообщение об ошибке
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: NotificationListener<OverscrollIndicatorNotification>(
+              onNotification: (overscroll) {
+                overscroll.disallowIndicator();
+                return true;
+              },
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'АВТОРИЗАЦИЯ',
+                        style: TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Helvetica',
+                        ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 48,
-                    ),
-                    TextFormField(
-                      textAlignVertical: TextAlignVertical.center,
-                      controller: textController1,
-                      obscureText: false,
-                      autofocus: false,
-                      decoration: InputDecoration(
-                          hintText: 'E-mail',
-                          hintStyle: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: 'Helvetica',
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.transparent,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Color(0x00000000),
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Color(0x00000000),
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          filled: true,
-                          fillColor: AppColors.backgroundFilterTextField,
-                          contentPadding: const EdgeInsets.only(
-                            left: 12,
-                            right: 12,
-                            top: 7,
-                            bottom: 7,
-                          )),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        height: 1,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Poppins',
+                      const SizedBox(
+                        height: 48,
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    TextFormField(
-                      textAlignVertical: TextAlignVertical.center,
-                      controller: textController2,
-                      obscureText: !_isPasswordVisible,
-                      autofocus: false,
-                      decoration: InputDecoration(
-                          hintText: 'Пароль',
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
+                      TextFormField(
+                        textAlignVertical: TextAlignVertical.center,
+                        controller: textController1,
+                        obscureText: false,
+                        autofocus: false,
+                        decoration: InputDecoration(
+                            hintText: 'E-mail',
+                            hintStyle: TextStyle(
                               color: Colors.white.withOpacity(0.4),
-                              size: 22,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Helvetica',
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Colors.transparent,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: AppColors.primary,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Color(0x00000000),
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Color(0x00000000),
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            filled: true,
+                            fillColor: AppColors.backgroundFilterTextField,
+                            contentPadding: const EdgeInsets.only(
+                              left: 12,
+                              right: 12,
+                              top: 7,
+                              bottom: 7,
+                            )),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Poppins',
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      TextFormField(
+                        textAlignVertical: TextAlignVertical.center,
+                        controller: textController2,
+                        obscureText: !_isPasswordVisible,
+                        autofocus: false,
+                        decoration: InputDecoration(
+                            hintText: 'Пароль',
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.white.withOpacity(0.4),
+                                size: 22,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                            hintStyle: TextStyle(
+                              color: Colors.white.withOpacity(0.4),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Helvetica',
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Colors.transparent,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: AppColors.primary,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Color(0x00000000),
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Color(0x00000000),
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            filled: true,
+                            fillColor: AppColors.backgroundFilterTextField,
+                            contentPadding: const EdgeInsets.only(
+                              left: 12,
+                              right: 12,
+                              top: 7,
+                              bottom: 7,
+                            )),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Helvetica',
+                        ),
+                        keyboardType: TextInputType.text,
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () {
+                          print("fsef");
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Text(
+                            "Я забыл пароль",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.4),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Helvetica',
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: FFButtonWidget(
+                          onPressed: () async {},
+                          text: 'Войти',
+                          options: FFButtonOptions(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: AppColors.primary,
+                            elevation: 0,
+                            textStyle: const TextStyle(
+                              fontFamily: 'Poppins',
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: () async {
+                              // await _handleSignIn();
+                              context
+                                  .read<AuthBloc>()
+                                  .add(GoogleSignInRequested());
                             },
-                          ),
-                          hintStyle: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: 'Helvetica',
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.transparent,
-                              width: 1,
+                            icon: SvgPicture.asset(
+                              'assets/svg/google.svg',
                             ),
-                            borderRadius: BorderRadius.circular(6),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
-                              width: 1,
+                          IconButton(
+                            onPressed: () {},
+                            icon: SvgPicture.asset(
+                              'assets/svg/yandex.svg',
                             ),
-                            borderRadius: BorderRadius.circular(6),
                           ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Color(0x00000000),
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Color(0x00000000),
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          filled: true,
-                          fillColor: AppColors.backgroundFilterTextField,
-                          contentPadding: const EdgeInsets.only(
-                            left: 12,
-                            right: 12,
-                            top: 7,
-                            bottom: 7,
-                          )),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        height: 1,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Helvetica',
+                        ],
                       ),
-                      keyboardType: TextInputType.text,
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () {
-                        print("fsef");
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: Text(
-                          "Я забыл пароль",
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: 'Helvetica',
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () {
+                          context.read<AuthBloc>().add(SignOutRequested());
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Text(
+                            'Зарегистрироваться',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.4),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Helvetica',
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.white.withOpacity(0.4),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: FFButtonWidget(
-                        onPressed: () async {},
-                        text: 'Войти',
-                        options: FFButtonOptions(
-                          width: double.infinity,
-                          height: double.infinity,
-                          color: AppColors.primary,
-                          elevation: 0,
-                          textStyle: const TextStyle(
-                            fontFamily: 'Poppins',
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    GestureDetector(
-                      onTap: () {
-                        print("fse");
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: Text(
-                          'Зарегистрироваться',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: 'Helvetica',
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.white.withOpacity(0.4),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

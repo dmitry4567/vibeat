@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/app_router.dart';
+import 'package:vibeat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/custom_error.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'injection_container.dart' as di;
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await di.init();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
     return CustomError(errorDetails: errorDetails);
   };
@@ -18,11 +31,17 @@ Future<void> main() async {
   // );
 
   runApp(
-    MultiBlocProvider(providers: [
-      BlocProvider(
-        create: (_) => PlayerBloc(),
-      ),
-    ], child: const MainApp()),
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => PlayerBloc(),
+        ),
+        BlocProvider(
+          create: (context) => di.sl<AuthBloc>(),
+        ),
+      ],
+      child: const MainApp(),
+    ),
   );
 }
 

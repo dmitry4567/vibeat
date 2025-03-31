@@ -1,6 +1,10 @@
+import 'dart:developer';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/features/auth/presentation/bloc/auth_bloc.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
@@ -8,6 +12,7 @@ class AppRouter extends RootStackRouter {
   List<AutoRoute> get routes => [
         AutoRoute(
           path: '/',
+          initial: true,
           page: DashboardRoute.page,
           guards: [AuthGuard()],
           children: [
@@ -88,12 +93,26 @@ class AppRouter extends RootStackRouter {
 class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
-    final isAuthenticated = true;
+    final authBloc = GetIt.I<AuthBloc>();
 
-    if (!isAuthenticated) {
-      router.push(const SignInRoute());
+    // Проверяем текущее состояние авторизации
+    final currentState = authBloc.state;
+    if (currentState is Authenticated) {
+      resolver.next(); // Продолжаем навигацию без анимации
     } else {
-      resolver.next(true);
+      authBloc.add(AuthCheckRequested());
+
+      // Подписываемся на изменения состояния
+      authBloc.stream
+          .firstWhere(
+              (state) => state is Authenticated || state is Unauthenticated)
+          .then((state) {
+        if (state is Authenticated) {
+          resolver.next();
+        } else {
+          router.replace(const SignInRoute());
+        }
+      });
     }
   }
 }

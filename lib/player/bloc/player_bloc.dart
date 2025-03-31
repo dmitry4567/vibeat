@@ -116,7 +116,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               waveformData: initialWaveform,
             ));
           } else {
-            throw Exception("Failed to load new track");
+            // throw Exception("Failed to load new track");
           }
         } catch (e) {
           print(e);
