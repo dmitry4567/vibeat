@@ -20,7 +20,7 @@ import 'package:vibeat/profile.dart' as _i8;
 import 'package:vibeat/result.dart' as _i9;
 import 'package:vibeat/search.dart' as _i10;
 import 'package:vibeat/settings.dart' as _i1;
-import 'package:vibeat/signIn/signIn.dart' as _i11;
+import 'package:vibeat/signIn.dart' as _i11;
 
 /// generated route for
 /// [_i1.CartScreen]

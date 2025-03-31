@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:vibeat/app/app_router.gr.dart';
-import 'package:vibeat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:vibeat/features/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/primary_button.dart';
 
@@ -37,8 +37,8 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController textController2 = TextEditingController();
   bool _isPasswordVisible = false;
 
-  final dio = Dio();
-  String _message = '';
+  // final dio = Dio();
+  // String _message = '';
 
   // Future<void> _handleSignIn() async {
   //   try {
@@ -76,7 +76,7 @@ class _SignInScreenState extends State<SignInScreen> {
       listener: (context, state) {
         if (state is Authenticated) {
           // Переход на главный экран
-          context.router.push(const HomeRoute());
+          context.router.push(const SearchRoute());
         } else if (state is AuthError) {
           // Показываем сообщение об ошибке
           ScaffoldMessenger.of(context).showSnackBar(
@@ -308,9 +308,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 12),
                       GestureDetector(
-                        onTap: () {
-                          context.read<AuthBloc>().add(SignOutRequested());
-                        },
+                        onTap: () {},
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),

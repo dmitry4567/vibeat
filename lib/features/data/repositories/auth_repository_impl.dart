@@ -1,29 +1,27 @@
 import 'dart:convert';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
+import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/core/constants/strings.dart';
-import 'package:vibeat/features/auth/domain/entities/user_entity.dart';
-import 'package:vibeat/features/auth/domain/repositories/auth_repository.dart';
+import 'package:vibeat/features/domain/entities/user_entity.dart';
+import 'package:vibeat/features/domain/repositories/auth_repository.dart';
 import 'package:dio/dio.dart' as d;
 
 class AuthRepositoryImpl implements AuthRepository {
   final GoogleSignIn _googleSignIn;
   final FlutterSecureStorage _secureStorage;
-  final String _serverAuthEndpoint;
+  final ApiClient _apiClient;
 
   AuthRepositoryImpl({
     required GoogleSignIn googleSignIn,
     required FlutterSecureStorage secureStorage,
-    required String serverAuthEndpoint,
+    required ApiClient apiClient,
   })  : _googleSignIn = googleSignIn,
         _secureStorage = secureStorage,
-        _serverAuthEndpoint = serverAuthEndpoint;
+        _apiClient = apiClient;
 
   @override
   Future<UserEntity?> signInWithGoogle() async {
-    final dio = d.Dio();
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
@@ -31,8 +29,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      final response = await dio.post(
-        _serverAuthEndpoint,
+      final response = await _apiClient.post(
+        '/auth/google',
         options: d.Options(
           headers: {
             'Content-Type': 'application/json',
