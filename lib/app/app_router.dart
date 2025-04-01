@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -51,6 +49,10 @@ class AppRouter extends RootStackRouter {
               page: CartRoute.page,
             ),
           ],
+        ),
+        AutoRoute(
+          path: '/anketa',
+          page: AnketaRoute.page,
         ),
         AutoRoute(
           path: '/signIn',
