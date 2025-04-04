@@ -12,3 +12,5 @@ class GoogleSignInRequested extends AuthEvent {}
 class SignOutRequested extends AuthEvent {}
 
 class AuthCheckRequested extends AuthEvent {}
+
+class AnketaDataRequested extends AuthEvent {}

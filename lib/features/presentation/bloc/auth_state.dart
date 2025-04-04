@@ -20,6 +20,15 @@ class Authenticated extends AuthState {
   List<Object> get props => [user];
 }
 
+class RegisteredNewUser extends AuthState {
+  final UserEntity user;
+
+  const RegisteredNewUser({required this.user});
+
+  @override
+  List<Object> get props => [user];
+}
+
 class Unauthenticated extends AuthState {}
 
 class AuthError extends AuthState {
@@ -30,3 +39,5 @@ class AuthError extends AuthState {
   @override
   List<Object> get props => [message];
 }
+
+class AnketaDataSended extends AuthState {}

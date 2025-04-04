@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/custom_functions.dart';
 import 'package:vibeat/features/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/primary_button.dart';
@@ -19,68 +20,22 @@ class SignInScreen extends StatefulWidget {
   State<SignInScreen> createState() => _SignInScreenState();
 }
 
-// final GoogleSignIn googleSignIn = GoogleSignIn(
-//   clientId:
-//       '81758102489-02at57f056e9gr911upacte4llidj607.apps.googleusercontent.com',
-//   serverClientId:
-//       '81758102489-595rl6k8eiq65p06tipflgjk96llo7go.apps.googleusercontent.com',
-//   scopes: [
-//     'email',
-//     'profile',
-//     'openid',
-//   ],
-//   // hostedDomain: '',
-// );
-
 class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController textController1 = TextEditingController();
   final TextEditingController textController2 = TextEditingController();
   bool _isPasswordVisible = false;
 
-  // final dio = Dio();
-  // String _message = '';
-
-  // Future<void> _handleSignIn() async {
-  //   try {
-  //     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-  //     if (googleUser == null) return;
-
-  //     final GoogleSignInAuthentication googleAuth =
-  //         await googleUser.authentication;
-
-  //     final response = await dio.post(
-  //       'http://192.168.0.135:3000/auth/google',
-  //       options: Options(
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //       ),
-  //       data: {
-  //         'token': googleAuth.idToken,
-  //       },
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       final responseData = response.data;
-
-  //       log(responseData.toString());
-  //     }
-  //   } catch (error) {
-  //     print('Ошибка авторизации: $error');
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is Authenticated) {
-          // Переход на главный экран
+        if (state is RegisteredNewUser) {
+          context.router.push(const AnketaRoute());
+        } else if (state is Authenticated) {
           context.router.push(const SearchRoute());
         } else if (state is AuthError) {
-          // Показываем сообщение об ошибке
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            setupSnackBar(state.message),
           );
         }
       },
@@ -244,8 +199,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 16),
                       GestureDetector(
-                        onTap: () {
-                        },
+                        onTap: () {},
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
@@ -288,7 +242,6 @@ class _SignInScreenState extends State<SignInScreen> {
                         children: [
                           IconButton(
                             onPressed: () async {
-                              // await _handleSignIn();
                               context
                                   .read<AuthBloc>()
                                   .add(GoogleSignInRequested());

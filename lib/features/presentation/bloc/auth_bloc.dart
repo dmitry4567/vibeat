@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
+import 'package:tuple/tuple.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -14,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
     on<SignOutRequested>(_onSignOutRequested);
     on<AuthCheckRequested>(_onAuthCheckRequested);
+    on<AnketaDataRequested>(_onAnketaDataRequested);
   }
 
   Future<void> _onGoogleSignInRequested(
@@ -22,15 +24,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final user = await authRepository.signInWithGoogle();
-      
-      if (user != null) {
-        emit(Authenticated(user: user));
+      Tuple2<UserEntity?, bool> data = await authRepository.signInWithGoogle();
+
+      if (data.item2 == true) {
+        emit(RegisteredNewUser(user: data.item1!));
+      } else if (data.item1 != null) {
+        emit(Authenticated(user: data.item1!));
       } else {
+        emit(const AuthError(message: "Error"));
         emit(Unauthenticated());
       }
     } catch (_) {
-      emit(AuthError(message: 'Sign in failed'));
+      emit(const AuthError(message: 'Sign in failed'));
       emit(Unauthenticated());
     }
   }
@@ -59,6 +64,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (_) {
       emit(Unauthenticated());
+    }
+  }
+
+  Future<void> _onAnketaDataRequested(
+    AnketaDataRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      final data = await authRepository.sendDataAnketa();
+      if (data) {
+        emit(AnketaDataSended());
+      } else {
+        emit(const AuthError(message: 'Anketa sending failed'));
+      }
+    } catch (_) {
+      emit(const AuthError(message: 'Anketa sending failed'));
     }
   }
 }

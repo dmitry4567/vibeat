@@ -6,6 +6,7 @@ import 'package:vibeat/core/constants/strings.dart';
 import 'package:vibeat/features/domain/entities/user_entity.dart';
 import 'package:vibeat/features/domain/repositories/auth_repository.dart';
 import 'package:dio/dio.dart' as d;
+import 'package:tuple/tuple.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final GoogleSignIn _googleSignIn;
@@ -21,10 +22,10 @@ class AuthRepositoryImpl implements AuthRepository {
         _apiClient = apiClient;
 
   @override
-  Future<UserEntity?> signInWithGoogle() async {
+  Future<Tuple2<UserEntity?, bool>> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (googleUser == null) return const Tuple2(null, false);
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
@@ -41,7 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
         },
       );
 
-      if (response.statusCode != 200) return null;
+      if (response.statusCode != 200) return const Tuple2(null, false);
 
       final responseData = response.data;
 
@@ -53,10 +54,14 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       await cacheUser(user);
-      return user;
+
+      // Проверяем наличие параметра 'message' в responseData
+      final bool hasMessage = responseData.containsKey('message');
+
+      return Tuple2(user, hasMessage);
     } catch (e) {
       print('Error in signInWithGoogle: $e');
-      return null;
+      return const Tuple2(null, false);
     }
   }
 
@@ -99,5 +104,24 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> clearCache() async {
     await _secureStorage.delete(key: AppStrings.jwtTokenKey);
+  }
+
+  @override
+  Future<bool> sendDataAnketa() async {
+    final response = await _apiClient.post(
+      '/anketa',
+      options: d.Options(
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ),
+      data: {
+        'data': ["genre1", "genre2", "genre3"],
+      },
+    );
+
+    if (response.statusCode != 200) return false;
+
+    return true;
   }
 }
