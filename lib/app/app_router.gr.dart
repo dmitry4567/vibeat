@@ -10,7 +10,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i14;
 import 'package:flutter/material.dart' as _i15;
-import 'package:vibeat/anketa/anketa.dart' as _i1;
+import 'package:vibeat/features/anketa/presentation/pages/anketa.dart' as _i1;
 import 'package:vibeat/app/bottom_nav_bar.dart' as _i3;
 import 'package:vibeat/favorite.dart' as _i4;
 import 'package:vibeat/filter.dart' as _i6;
@@ -21,7 +21,7 @@ import 'package:vibeat/profile.dart' as _i9;
 import 'package:vibeat/result.dart' as _i10;
 import 'package:vibeat/search.dart' as _i11;
 import 'package:vibeat/settings.dart' as _i2;
-import 'package:vibeat/signIn.dart' as _i12;
+import 'package:vibeat/features/signIn/presentation/pages/signIn.dart' as _i12;
 import 'package:vibeat/signUp.dart' as _i13;
 
 /// generated route for

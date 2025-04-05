@@ -1,5 +1,5 @@
 import 'package:tuple/tuple.dart';
-import 'package:vibeat/features/domain/entities/user_entity.dart';
+import 'package:vibeat/features/signIn/domain/entities/user_entity.dart';
 
 abstract class AuthRepository {
   Future<Tuple2<UserEntity?, bool>> signInWithGoogle();

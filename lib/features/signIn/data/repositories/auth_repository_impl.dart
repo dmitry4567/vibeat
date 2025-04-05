@@ -3,8 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/core/constants/strings.dart';
-import 'package:vibeat/features/domain/entities/user_entity.dart';
-import 'package:vibeat/features/domain/repositories/auth_repository.dart';
+import 'package:vibeat/features/signIn/domain/entities/user_entity.dart';
+import 'package:vibeat/features/signIn/domain/repositories/auth_repository.dart';
 import 'package:dio/dio.dart' as d;
 import 'package:tuple/tuple.dart';
 

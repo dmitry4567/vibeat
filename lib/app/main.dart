@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/app_router.dart';
-import 'package:vibeat/features/presentation/bloc/auth_bloc.dart';
+import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
+import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/custom_error.dart';
@@ -38,6 +39,9 @@ Future<void> main() async {
         ),
         BlocProvider(
           create: (context) => di.sl<AuthBloc>(),
+        ),
+        BlocProvider(
+          create: (context) => di.sl<AnketaBloc>(),
         ),
       ],
       child: const MainApp(),

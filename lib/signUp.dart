@@ -8,7 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/custom_functions.dart';
-import 'package:vibeat/features/presentation/bloc/auth_bloc.dart';
+import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/toggle_icon_widget.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/primary_button.dart';

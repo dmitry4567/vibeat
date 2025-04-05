@@ -4,9 +4,16 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:vibeat/core/api/auth_interceptor.dart';
 import 'package:vibeat/core/api_client.dart';
-import 'package:vibeat/features/domain/repositories/auth_repository.dart';
-import 'package:vibeat/features/presentation/bloc/auth_bloc.dart';
-import '../features/data/repositories/auth_repository_impl.dart';
+import 'package:vibeat/core/network/network_info.dart';
+import 'package:vibeat/features/anketa/data/datasource/anketa_remote_data_sourse.dart';
+import 'package:vibeat/features/anketa/data/repositories/anketa_repository_impl.dart';
+import 'package:vibeat/features/anketa/domain/repositories/anketa_repositories.dart';
+import 'package:vibeat/features/anketa/domain/usecases/get_anketa.dart';
+import 'package:vibeat/features/anketa/domain/usecases/send_anketa_response.dart';
+import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
+import 'package:vibeat/features/signIn/domain/repositories/auth_repository.dart';
+import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
+import '../features/signIn/data/repositories/auth_repository_impl.dart';
 import 'package:dio/dio.dart';
 
 final sl = GetIt.instance;
@@ -31,6 +38,9 @@ Future<void> init() async {
     ),
   );
 
+// Core
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
+
   // API Client
   sl.registerLazySingleton(() => ApiClient(
         dio: sl(),
@@ -45,12 +55,17 @@ Future<void> init() async {
   // Initialize API Client
   final apiClient = sl<ApiClient>();
   await apiClient.initialize('http://192.168.0.135:3000');
+  // await apiClient.initialize('http://172.20.10.4:3000');
 
   // Add auth interceptor
   sl<Dio>().interceptors.add(sl<AuthInterceptor>());
 
   // BLoCs
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
+  sl.registerFactory(() => AnketaBloc(
+        getAnketa: sl(),
+        sendAnketaResponse: sl(),
+      ));
 
   // Repositories
   sl.registerLazySingleton<AuthRepository>(
@@ -59,5 +74,21 @@ Future<void> init() async {
       secureStorage: sl(),
       apiClient: sl(),
     ),
+  );
+
+  sl.registerLazySingleton<AnketaRepository>(
+    () => AnketaRepositoryImpl(
+      remoteDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetAnketa(sl()));
+  sl.registerLazySingleton(() => SendAnketaResponse(sl()));
+
+  // Data sources
+  sl.registerLazySingleton<AnketaRemoteDataSource>(
+    () => AnketaRemoteDataSourceImpl(apiClient: sl()),
   );
 }
