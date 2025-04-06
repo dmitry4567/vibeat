@@ -18,7 +18,7 @@ class AppRouter extends RootStackRouter {
             ),
             AutoRoute(
               path: 'search',
-              initial: true,
+              // initial: true,
               page: const EmptyShellRoute('search'),
               children: [
                 AutoRoute(
@@ -56,6 +56,15 @@ class AppRouter extends RootStackRouter {
         AutoRoute(
           path: '/signIn',
           page: SignInRoute.page,
+        ),
+        AutoRoute(
+          path: '/infoBeatmaker',
+          page: InfoBeatmaker.page,
+        ),
+        AutoRoute(
+          path: '/infoBeat',
+          initial: true,
+          page: InfoBeat.page,
         ),
         AutoRoute(
           path: '/profile',
@@ -96,7 +105,7 @@ class AuthGuard extends AutoRouteGuard {
     final isAuthenticated = false;
 
     if (!isAuthenticated) {
-      router.push(const AnketaRoute());
+      router.push(const InfoBeat());
     } else {
       resolver.next(true);
     }

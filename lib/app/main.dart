@@ -42,7 +42,7 @@ class _MainAppState extends State<MainApp> {
   void initState() {
     super.initState();
 
-    context.read<PlayerBloc>().add(GetRecommendEvent());
+    // context.read<PlayerBloc>().add(GetRecommendEvent());
   }
 
   @override
