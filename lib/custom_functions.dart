@@ -4,15 +4,20 @@ SnackBar setupSnackBar(String text) {
   return SnackBar(
     content: Row(
       children: [
-        const Icon(
-          Icons.error_outline,
-          color: Colors.white,
-          size: 24,
+        const Column(
+          children: [
+            SizedBox(height: 4),
+            Icon(
+              Icons.error_outline,
+              color: Colors.white,
+              size: 24,
+            ),
+          ],
         ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(
-              left: 12,
+              left: 10,
               top: 6,
             ),
             child: Text(

@@ -46,17 +46,24 @@ class AnketaBloc extends Bloc<AnketaEvent, AnketaState> {
     SendAnketaResponseEvent event,
     Emitter<AnketaState> emit,
   ) async {
+    emit(
+      state.copyWith(
+        status: AnketaStatus.initial,
+        errorMessage: null,
+      ),
+    );
+
     if (state.selectedGenres!.length < 3) {
       emit(state.copyWith(
         status: AnketaStatus.error,
-        errorMessage: 'Please select at least three genres',
+        errorMessage: 'Выберите не менее 3 жанров',
       ));
       return;
     }
     if (state.selectedGenres!.length > 5) {
       emit(state.copyWith(
         status: AnketaStatus.error,
-        errorMessage: 'Please select no more than five genres',
+        errorMessage: 'Выберите не более 5 жанров',
       ));
       return;
     }

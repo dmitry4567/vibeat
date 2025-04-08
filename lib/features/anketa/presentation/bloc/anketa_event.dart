@@ -13,6 +13,9 @@ class AddGenreEvent extends AnketaEvent {
   final AnketaEntity genre;
 
   const AddGenreEvent({required this.genre});
+
+  @override
+  List<Object> get props => [genre];
 }
 
 class SendAnketaResponseEvent extends AnketaEvent {

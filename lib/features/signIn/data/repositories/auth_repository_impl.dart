@@ -1,4 +1,5 @@
-import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:vibeat/core/api_client.dart';
@@ -22,6 +23,40 @@ class AuthRepositoryImpl implements AuthRepository {
         _apiClient = apiClient;
 
   @override
+  Future<Tuple2<UserEntity?, String?>> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      final response = await _apiClient.post(
+        '/login',
+        options: d.Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      final responseData = response.data;
+
+      final user =
+          UserEntity(jwtToken: responseData['token'], authType: AuthType.email);
+
+      await cacheUser(user, AuthType.email);
+
+      return Tuple2(user, null);
+    } on d.DioException catch (e) {
+      final responseData = e.response!.data;
+
+      return Tuple2(null, responseData['message']);
+    }
+  }
+
+  @override
   Future<Tuple2<UserEntity?, bool>> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -31,7 +66,7 @@ class AuthRepositoryImpl implements AuthRepository {
           await googleUser.authentication;
 
       final response = await _apiClient.post(
-        '/auth/google',
+        '/auth/google/getjwt',
         options: d.Options(
           headers: {
             'Content-Type': 'application/json',
@@ -47,16 +82,14 @@ class AuthRepositoryImpl implements AuthRepository {
       final responseData = response.data;
 
       final user = UserEntity(
-        id: responseData['id'],
-        email: responseData['email'],
-        name: responseData['name'],
         jwtToken: responseData['token'],
+        authType: AuthType.google,
       );
 
-      await cacheUser(user);
+      await cacheUser(user, AuthType.google);
 
       // Проверяем наличие параметра 'message' в responseData
-      final bool hasMessage = responseData.containsKey('message');
+      final bool hasMessage = responseData.containsKey('new_user');
 
       return Tuple2(user, hasMessage);
     } catch (e) {
@@ -73,55 +106,52 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserEntity?> getCurrentUser() async {
-    try {
+    final authType = await _secureStorage.read(key: AppStrings.authType);
+
+    if (authType == AuthType.email.name) {
       final jwtToken = await _secureStorage.read(key: AppStrings.jwtTokenKey);
       if (jwtToken == null) return null;
 
-      final account = await _googleSignIn.signInSilently();
-      if (account == null) return null;
-
       return UserEntity(
-        id: account.id,
-        email: account.email,
-        name: account.displayName,
-        photoUrl: account.photoUrl,
         jwtToken: jwtToken,
+        authType: AuthType.email,
       );
-    } catch (e) {
-      print('Error in getCurrentUser: $e');
-      return null;
+    } else if (authType == AuthType.google.name) {
+      try {
+        final account = await _googleSignIn.signInSilently();
+        if (account == null) return null;
+
+        final jwtToken = await _secureStorage.read(key: AppStrings.jwtTokenKey);
+        if (jwtToken == null) return null;
+
+        return UserEntity(
+          jwtToken: jwtToken,
+          authType: AuthType.google,
+        );
+      } catch (e) {
+        print('Error in _getCurrentUserFromGoogle: $e');
+        return null;
+      }
     }
+
+    return null;
   }
 
   @override
-  Future<void> cacheUser(UserEntity user) async {
+  Future<void> cacheUser(UserEntity user, AuthType authType) async {
     await _secureStorage.write(
       key: AppStrings.jwtTokenKey,
       value: user.jwtToken,
+    );
+    await _secureStorage.write(
+      key: AppStrings.authType,
+      value: authType.name,
     );
   }
 
   @override
   Future<void> clearCache() async {
     await _secureStorage.delete(key: AppStrings.jwtTokenKey);
-  }
-
-  @override
-  Future<bool> sendDataAnketa() async {
-    final response = await _apiClient.post(
-      '/anketa',
-      options: d.Options(
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      ),
-      data: {
-        'data': ["genre1", "genre2", "genre3"],
-      },
-    );
-
-    if (response.statusCode != 200) return false;
-
-    return true;
+    await _secureStorage.delete(key: AppStrings.authType);
   }
 }

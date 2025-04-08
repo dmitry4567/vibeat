@@ -33,10 +33,7 @@ class _AnketaScreenState extends State<AnketaScreen> {
       listener: (context, state) {
         if (state.status == AnketaStatus.error && state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: Colors.red,
-            ),
+            setupSnackBar(state.errorMessage!)
           );
         }
         if (state.isResponseSuccess == true) {

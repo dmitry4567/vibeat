@@ -1,20 +1,16 @@
 import 'package:equatable/equatable.dart';
 
+enum AuthType { email, google }
+
 class UserEntity extends Equatable {
-  final String id;
-  final String email;
-  final String? name;
-  final String? photoUrl;
   final String jwtToken;
+  final AuthType authType;
 
   const UserEntity({
-    required this.id,
-    required this.email,
     required this.jwtToken,
-    this.name,
-    this.photoUrl,
+    required this.authType,
   });
 
   @override
-  List<Object?> get props => [id, email, jwtToken, name, photoUrl];
+  List<Object?> get props => [jwtToken, authType];
 }

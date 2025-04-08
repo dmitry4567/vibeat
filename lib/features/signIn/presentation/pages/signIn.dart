@@ -219,7 +219,21 @@ class _SignInScreenState extends State<SignInScreen> {
                         width: double.infinity,
                         height: 56,
                         child: FFButtonWidget(
-                          onPressed: () async {},
+                          onPressed: () async {
+                            if (textController1.text.isEmpty ||
+                                textController2.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                setupSnackBar('Заполните все поля'),
+                              );
+                            } else {
+                              context.read<AuthBloc>().add(
+                                    EmailPasswordRequested(
+                                      email: textController1.text,
+                                      password: textController2.text,
+                                    ),
+                                  );
+                            }
+                          },
                           text: 'Войти',
                           options: FFButtonOptions(
                             width: double.infinity,
