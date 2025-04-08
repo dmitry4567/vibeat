@@ -22,7 +22,7 @@ import 'package:vibeat/result.dart' as _i10;
 import 'package:vibeat/search.dart' as _i11;
 import 'package:vibeat/settings.dart' as _i2;
 import 'package:vibeat/features/signIn/presentation/pages/signIn.dart' as _i12;
-import 'package:vibeat/signUp.dart' as _i13;
+import 'package:vibeat/features/signIn/presentation/pages/signUp.dart' as _i13;
 
 /// generated route for
 /// [_i1.AnketaScreen]

@@ -6,6 +6,11 @@ abstract class AuthRepository {
     String email,
     String password,
   );
+  Future<Tuple2<UserEntity?, String?>> signUpWithEmailAndPassword(
+    String email,
+    String password,
+  );
+  
   Future<Tuple2<UserEntity?, bool>> signInWithGoogle();
   Future<void> signOut();
   Future<UserEntity?> getCurrentUser();

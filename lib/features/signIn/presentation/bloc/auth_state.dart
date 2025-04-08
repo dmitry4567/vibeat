@@ -31,6 +31,8 @@ class RegisteredNewUser extends AuthState {
 
 class Unauthenticated extends AuthState {}
 
+class SignOut extends AuthState {}
+
 class AuthError extends AuthState {
   final String message;
 
@@ -39,5 +41,3 @@ class AuthError extends AuthState {
   @override
   List<Object> get props => [message];
 }
-
-class AnketaDataSended extends AuthState {}

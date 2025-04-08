@@ -38,7 +38,11 @@ class AnketaRemoteDataSourceImpl implements AnketaRemoteDataSource {
           .toList();
 
       return genres;
-    } catch (e) {
+    } on d.DioException catch (e) {
+      log('DioException in getAnketa: $e');
+      throw Exception('Failed to load anketa: $e');
+    } on Exception 
+    catch (e) {
       log('Error in getAnketa: $e');
       throw Exception('Failed to load anketa: $e');
     }

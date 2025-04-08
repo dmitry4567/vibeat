@@ -227,7 +227,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               );
                             } else {
                               context.read<AuthBloc>().add(
-                                    EmailPasswordRequested(
+                                    SignInEmailPasswordRequested(
                                       email: textController1.text,
                                       password: textController2.text,
                                     ),
@@ -275,7 +275,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       const SizedBox(height: 12),
                       GestureDetector(
                         onTap: () {
-                          context.pushRoute(const SignUpRoute());
+                          context.replaceRoute(const SignUpRoute());
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(

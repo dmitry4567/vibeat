@@ -53,6 +53,46 @@ class AuthRepositoryImpl implements AuthRepository {
       final responseData = e.response!.data;
 
       return Tuple2(null, responseData['message']);
+    } catch (e) {
+      log('Error in signInWithEmailAndPassword: $e');
+      return const Tuple2(null, 'Server error');
+    }
+  }
+
+  @override
+  Future<Tuple2<UserEntity?, String?>> signUpWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      final response = await _apiClient.post(
+        '/register',
+        options: d.Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      final responseData = response.data;
+
+      final user =
+          UserEntity(jwtToken: responseData['token'], authType: AuthType.email);
+
+      await cacheUser(user, AuthType.email);
+
+      return Tuple2(user, null);
+    } on d.DioException catch (e) {
+      final responseData = e.response!.data;
+
+      return Tuple2(null, responseData['message']);
+    } catch (e) {
+      log('Error in signUpWithEmailAndPassword: $e');
+      return const Tuple2(null, 'Server error');
     }
   }
 

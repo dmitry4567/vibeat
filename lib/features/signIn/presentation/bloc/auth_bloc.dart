@@ -14,14 +14,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
 
   AuthBloc({required this.authRepository}) : super(AuthInitial()) {
-    on<EmailPasswordRequested>(_onEmailPasswordRequested);
+    on<SignInEmailPasswordRequested>(_onEmailPasswordRequested);
+    on<SignUpEmailPasswordRequested>(_onSignUpEmailPasswordRequested);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
     on<SignOutRequested>(_onSignOutRequested);
     on<AuthCheckRequested>(_onAuthCheckRequested);
   }
 
   Future<void> _onEmailPasswordRequested(
-    EmailPasswordRequested event,
+    SignInEmailPasswordRequested event,
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
@@ -36,6 +37,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(Unauthenticated());
     } else if (data.item1 != null) {
       emit(Authenticated(user: data.item1!));
+    }
+  }
+
+  Future<void> _onSignUpEmailPasswordRequested(
+    SignUpEmailPasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    Tuple2<UserEntity?, String?> data =
+        await authRepository.signUpWithEmailAndPassword(
+      event.email,
+      event.password,
+    );
+
+    if (data.item2 != null) {
+      emit(AuthError(message: data.item2!));
+      emit(Unauthenticated());
+    } else if (data.item1 != null) {
+      emit(RegisteredNewUser(user: data.item1!));
     }
   }
 
@@ -67,7 +87,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     await authRepository.signOut();
-    emit(Unauthenticated());
+    emit(SignOut());
   }
 
   Future<void> _onAuthCheckRequested(
