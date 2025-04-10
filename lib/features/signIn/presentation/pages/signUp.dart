@@ -56,6 +56,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       listener: (context, state) {
         if (state is RegisteredNewUser) {
           context.router.push(const AnketaRoute());
+        } else if (state is Authenticated) {
+          context.router.push(const SearchRoute());
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             setupSnackBar(state.message),
