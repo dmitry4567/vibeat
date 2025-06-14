@@ -9,18 +9,24 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i16;
+import 'package:flutter/material.dart' as _i17;
 import 'package:vibeat/app/bottom_nav_bar.dart' as _i2;
 import 'package:vibeat/favorite.dart' as _i3;
 import 'package:vibeat/filter/filter.dart' as _i8;
+import 'package:vibeat/filter/result.dart' as _i13;
 import 'package:vibeat/filter/screen/filter_bpm/filter_bpm.dart' as _i4;
 import 'package:vibeat/filter/screen/filter_genre/filter_genre.dart' as _i5;
+import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart'
+    as _i18;
 import 'package:vibeat/filter/screen/filter_key/filter_key.dart' as _i6;
+import 'package:vibeat/filter/screen/filter_key/model/key_model.dart' as _i20;
 import 'package:vibeat/filter/screen/filter_mood/filter_mood.dart' as _i7;
+import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart' as _i21;
 import 'package:vibeat/filter/screen/filter_tag/filter_tag.dart' as _i9;
+import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart' as _i19;
 import 'package:vibeat/home.dart' as _i10;
 import 'package:vibeat/player/player_widget.dart' as _i11;
 import 'package:vibeat/profile.dart' as _i12;
-import 'package:vibeat/result.dart' as _i13;
 import 'package:vibeat/search.dart' as _i14;
 import 'package:vibeat/settings.dart' as _i1;
 import 'package:vibeat/signIn/signIn.dart' as _i15;
@@ -255,10 +261,27 @@ class ProfileRoute extends _i16.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i13.ResultScreen]
-class ResultRoute extends _i16.PageRouteInfo<void> {
-  const ResultRoute({List<_i16.PageRouteInfo>? children})
-      : super(
+class ResultRoute extends _i16.PageRouteInfo<ResultRouteArgs> {
+  ResultRoute({
+    _i17.Key? key,
+    List<_i18.GenreModel>? genres,
+    List<_i19.TagModel>? tags,
+    List<_i20.KeyModel>? keys,
+    List<_i21.MoodModel>? moods,
+    int? bpmFrom,
+    int? bpmTo,
+    List<_i16.PageRouteInfo>? children,
+  }) : super(
           ResultRoute.name,
+          args: ResultRouteArgs(
+            key: key,
+            genres: genres,
+            tags: tags,
+            keys: keys,
+            moods: moods,
+            bpmFrom: bpmFrom,
+            bpmTo: bpmTo,
+          ),
           initialChildren: children,
         );
 
@@ -267,9 +290,50 @@ class ResultRoute extends _i16.PageRouteInfo<void> {
   static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
-      return const _i13.ResultScreen();
+      final args =
+          data.argsAs<ResultRouteArgs>(orElse: () => const ResultRouteArgs());
+      return _i13.ResultScreen(
+        key: args.key,
+        genres: args.genres,
+        tags: args.tags,
+        keys: args.keys,
+        moods: args.moods,
+        bpmFrom: args.bpmFrom,
+        bpmTo: args.bpmTo,
+      );
     },
   );
+}
+
+class ResultRouteArgs {
+  const ResultRouteArgs({
+    this.key,
+    this.genres,
+    this.tags,
+    this.keys,
+    this.moods,
+    this.bpmFrom,
+    this.bpmTo,
+  });
+
+  final _i17.Key? key;
+
+  final List<_i18.GenreModel>? genres;
+
+  final List<_i19.TagModel>? tags;
+
+  final List<_i20.KeyModel>? keys;
+
+  final List<_i21.MoodModel>? moods;
+
+  final int? bpmFrom;
+
+  final int? bpmTo;
+
+  @override
+  String toString() {
+    return 'ResultRouteArgs{key: $key, genres: $genres, tags: $tags, keys: $keys, moods: $moods, bpmFrom: $bpmFrom, bpmTo: $bpmTo}';
+  }
 }
 
 /// generated route for

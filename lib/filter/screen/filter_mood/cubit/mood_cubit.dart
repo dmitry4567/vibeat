@@ -17,16 +17,17 @@ class MoodCubit extends Cubit<MoodState> {
     try {
       emit(MoodLoading());
 
-      final response = await http
-          .get(Uri.parse('http://192.168.0.140:3000/music/filters/moods'));
+      final response = await http.get(
+        Uri.parse('http://192.168.0.135:7772/api/metadata/moods'),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 500));
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = json.decode(response.body)['data'];
+
         _originalMoods = data.map((json) => MoodModel.fromJson(json)).toList();
-        emit(MoodLoaded(
-          moods: _originalMoods,
-          selectedMoods: const [],
-        ));
+        emit(MoodLoaded(moods: _originalMoods, selectedMoods: const []));
       }
     } catch (e) {
       emit(MoodError());
@@ -38,40 +39,48 @@ class MoodCubit extends Cubit<MoodState> {
       final currentState = state as MoodLoaded;
 
       if (query.isEmpty) {
-        emit(MoodLoaded(
-          moods: _originalMoods.map((mood) {
-            final isSelected = currentState.selectedMoods
-                .any((selected) => selected.name == mood.name);
-            return mood.copyWith(isSelected: isSelected);
-          }).toList(),
-          selectedMoods: currentState.selectedMoods,
-          searchQuery: '',
-        ));
+        emit(
+          MoodLoaded(
+            moods: _originalMoods.map((mood) {
+              final isSelected = currentState.selectedMoods.any(
+                (selected) => selected.name == mood.name,
+              );
+              return mood.copyWith(isSelected: isSelected);
+            }).toList(),
+            selectedMoods: currentState.selectedMoods,
+            searchQuery: '',
+          ),
+        );
         return;
       }
 
       final filteredMoods = _originalMoods
           .where(
-              (mood) => mood.name.toLowerCase().contains(query.toLowerCase()))
+        (mood) => mood.name.toLowerCase().contains(query.toLowerCase()),
+      )
           .map((mood) {
-        final isSelected = currentState.selectedMoods
-            .any((selected) => selected.name == mood.name);
+        final isSelected = currentState.selectedMoods.any(
+          (selected) => selected.name == mood.name,
+        );
         return mood.copyWith(isSelected: isSelected);
       }).toList();
 
-      emit(MoodLoaded(
-        moods: filteredMoods,
-        selectedMoods: currentState.selectedMoods,
-        searchQuery: query,
-      ));
+      emit(
+        MoodLoaded(
+          moods: filteredMoods,
+          selectedMoods: currentState.selectedMoods,
+          searchQuery: query,
+        ),
+      );
     }
   }
 
   void toggleMoodSelection(MoodModel mood) {
     if (state is MoodLoaded) {
       final currentState = state as MoodLoaded;
-      final isAlreadySelected = currentState.selectedMoods
-          .any((selectedMood) => selectedMood.name == mood.name);
+      final isAlreadySelected = currentState.selectedMoods.any(
+        (selectedMood) => selectedMood.name == mood.name,
+      );
 
       List<MoodModel> updatedSelected = List.from(currentState.selectedMoods);
       List<MoodModel> updatedMoods = currentState.moods.map((m) {
@@ -87,11 +96,13 @@ class MoodCubit extends Cubit<MoodState> {
         updatedSelected.add(mood.copyWith(isSelected: true));
       }
 
-      emit(MoodLoaded(
-        moods: updatedMoods,
-        selectedMoods: updatedSelected,
-        searchQuery: currentState.searchQuery,
-      ));
+      emit(
+        MoodLoaded(
+          moods: updatedMoods,
+          selectedMoods: updatedSelected,
+          searchQuery: currentState.searchQuery,
+        ),
+      );
     }
   }
 
@@ -104,11 +115,13 @@ class MoodCubit extends Cubit<MoodState> {
           .map((mood) => mood.copyWith(isSelected: false))
           .toList();
 
-      emit(MoodLoaded(
-        moods: clearedMoods,
-        selectedMoods: const [], // Clear selected Moods
-        searchQuery: currentState.searchQuery,
-      ));
+      emit(
+        MoodLoaded(
+          moods: clearedMoods,
+          selectedMoods: const [], // Clear selected Moods
+          searchQuery: currentState.searchQuery,
+        ),
+      );
     }
   }
 }

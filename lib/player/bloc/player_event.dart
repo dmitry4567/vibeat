@@ -59,3 +59,8 @@ class LoadNextTrackEvent extends PlayerEvent {
   @override
   List<Object?> get props => [trackUrl];
 }
+
+class UpdatePlayerBottomEvent extends PlayerEvent {
+  final bool value;
+  UpdatePlayerBottomEvent(this.value);
+}

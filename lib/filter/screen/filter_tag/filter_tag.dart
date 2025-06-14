@@ -1,11 +1,10 @@
-import 'dart:math';
-
+import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:vibeat/filter/screen/filter_genre/cubit/genre_cubit.dart';
-import 'package:vibeat/filter/screen/filter_tag/cubit/tag_cubit.dart';
+import 'package:vibeat/filter/bloc/filter_bloc.dart';
+import 'package:vibeat/filter/screen/filter_tag/bloc/tag_bloc.dart';
 import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart';
 import 'package:vibeat/filter/screen/filter_tag/widgets/tag_card.dart';
 import 'package:vibeat/utils/random_word_generator.dart';
@@ -14,8 +13,20 @@ import 'package:vibeat/utils/theme.dart';
 import '../widgets/error_placeholder.dart';
 
 @RoutePage()
-class FilterTagScreen extends StatelessWidget {
+class FilterTagScreen extends StatefulWidget {
   const FilterTagScreen({super.key});
+
+  @override
+  State<FilterTagScreen> createState() => _FilterTagScreenState();
+}
+
+class _FilterTagScreenState extends State<FilterTagScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<TagBloc>().add(GetTrendTags());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,18 +47,18 @@ class FilterTagScreen extends StatelessWidget {
                     pinned: true,
                     delegate: _FilterHeaderDelegate(),
                   ),
-                  BlocBuilder<TagCubit, TagState>(
+                  BlocBuilder<TagBloc, TagState>(
                     buildWhen: (previous, current) =>
                         previous.selectedTags != current.selectedTags ||
                         previous.tags != current.tags,
                     builder: (context, state) {
-                      if (state is TagError) {
+                      if (state.error) {
                         return const SliverFillRemaining(
                           child: ErrorPlaceholder(),
                         );
                       }
 
-                      if (state is TagLoading) {
+                      if (state.loading) {
                         return SliverToBoxAdapter(
                           child: Wrap(
                             spacing: 8.0,
@@ -60,6 +71,7 @@ class FilterTagScreen extends StatelessWidget {
                                   child: TagCard(
                                     index: index,
                                     tag: TagModel(
+                                      id: '1',
                                       name: RandomWordGenerator.getRandomWord(),
                                       isSelected: false,
                                     ),
@@ -70,34 +82,34 @@ class FilterTagScreen extends StatelessWidget {
                             ),
                           ),
                         );
-                      }
-
-                      return SliverToBoxAdapter(
-                        child: Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: List.generate(
-                            state.tags.length,
-                            (index) {
-                              return Skeletonizer(
-                                enabled: false,
-                                child: TagCard(
-                                  index: index,
-                                  tag: TagModel(
-                                    name: state.tags[index].name,
-                                    isSelected: state.tags[index].isSelected,
+                      } else {
+                        return SliverToBoxAdapter(
+                          child: Wrap(
+                            spacing: 8.0,
+                            runSpacing: 8.0,
+                            children: List.generate(
+                              state.tags.length,
+                              (index) {
+                                return Skeletonizer(
+                                  enabled: false,
+                                  child: TagCard(
+                                    index: index,
+                                    tag: TagModel(
+                                      id: state.tags[index].id,
+                                      name: state.tags[index].name,
+                                      isSelected: state.tags[index].isSelected,
+                                    ),
+                                    onToggle: () {
+                                      context.read<TagBloc>().add(
+                                          ChooseTag(tag: state.tags[index]));
+                                    },
                                   ),
-                                  onToggle: () {
-                                    context
-                                        .read<TagCubit>()
-                                        .toggleTagSelection(state.tags[index]);
-                                  },
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     },
                   )
                 ],
@@ -109,6 +121,10 @@ class FilterTagScreen extends StatelessWidget {
             color: AppColors.background,
             child: ElevatedButton(
               onPressed: () {
+                if (context.read<TagBloc>().state.selectedTags.isNotEmpty) {
+                  context.read<FilterBloc>().add(const ToggleFilter(1));
+                }
+
                 context.router.back();
               },
               style: ElevatedButton.styleFrom(
@@ -143,61 +159,13 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         children: [
-          TextFormField(
-            textAlignVertical: TextAlignVertical.center,
-            // controller: textController1,
-            obscureText: false,
-            autofocus: false,
-            decoration: InputDecoration(
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: AppColors.iconSecondary,
-                ),
-                hintText: 'Тэги',
-                hintStyle: AppTextStyles.filterTextField,
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                    color: Colors.transparent,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppColors.focusedBorderTextField,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                    color: Color(0x00000000),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                    color: Color(0x00000000),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                filled: true,
-                fillColor: AppColors.backgroundFilterTextField,
-                contentPadding: const EdgeInsets.only(
-                  left: 12,
-                  right: 12,
-                  top: 7,
-                  bottom: 7,
-                )),
-            onChanged: (value) => context.read<TagCubit>().searchTags(value),
-            style: AppTextStyles.filterTextField,
-            keyboardType: TextInputType.text,
+          DebounceTextField(
+            hintText: 'Тэги',
+            onDebouncedTextChanged: (text) {
+              context.read<TagBloc>().add(SearchQuery(query: text));
+            },
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -208,15 +176,16 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
               MaterialButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {
-                  context.read<TagCubit>().clearSelection();
+                  // context.read<TagBloc>().clearSelection();
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   "Очистить все",
-                  style: AppTextStyles.bodyPrice1
-                      .copyWith(color: AppColors.primary),
+                  style: AppTextStyles.bodyPrice1.copyWith(
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ],
@@ -235,4 +204,98 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
       false;
+}
+
+class DebounceTextField extends StatefulWidget {
+  final ValueChanged<String>? onDebouncedTextChanged;
+  final String hintText;
+
+  const DebounceTextField({
+    super.key,
+    this.onDebouncedTextChanged,
+    required this.hintText,
+  });
+
+  @override
+  _DebounceTextFieldState createState() => _DebounceTextFieldState();
+}
+
+class _DebounceTextFieldState extends State<DebounceTextField> {
+  final TextEditingController _textController = TextEditingController();
+  Timer? _debounceTimer;
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onTextChanged(String text) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 0), () {
+      if (widget.onDebouncedTextChanged != null) {
+        widget.onDebouncedTextChanged!(text);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      textAlignVertical: TextAlignVertical.center,
+      obscureText: false,
+      autofocus: false,
+      decoration: InputDecoration(
+        prefixIcon: Icon(
+          Icons.search,
+          color: AppColors.iconSecondary,
+        ),
+        hintText: widget.hintText,
+        hintStyle: AppTextStyles.filterTextField,
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Colors.transparent,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: AppColors.focusedBorderTextField,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Color(0x00000000),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Color(0x00000000),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        filled: true,
+        fillColor: AppColors.backgroundFilterTextField,
+        contentPadding: const EdgeInsets.only(
+          left: 12,
+          right: 12,
+          top: 7,
+          bottom: 7,
+        ),
+      ),
+      controller: _textController,
+      onChanged: _onTextChanged,
+      onFieldSubmitted: (value) =>
+          context.read<TagBloc>().add(SearchQuery(query: value)),
+      style: AppTextStyles.filterTextField,
+      keyboardType: TextInputType.text,
+    );
+  }
 }

@@ -26,16 +26,21 @@ class TagCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.transparent,
           border: Border.all(
-            color: tag.isSelected ? AppColors.primary : const Color(0xff1E1E1E),
+            width: 0.5,
+            color: tag.isSelected
+                ? AppColors.primary
+                : Colors.white.withOpacity(0.3),
           ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
           '#${tag.name}',
           style: TextStyle(
+            fontSize: 14,
+            fontFamily: "Poppins",
             color: tag.isSelected
                 ? AppColors.primary
-                : Colors.white.withOpacity(0.3),
+                : Colors.white.withOpacity(0.4),
           ),
         ),
       ),

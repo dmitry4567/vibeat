@@ -24,7 +24,7 @@ class MoodModel {
   factory MoodModel.fromJson(Map<String, dynamic> json) {
     return MoodModel(
       name: json['name'],
-      key: json['key'],
+      key: json['id'].toString(),
       isSelected: false,
     );
   }

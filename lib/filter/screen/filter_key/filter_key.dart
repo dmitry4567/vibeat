@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:vibeat/filter/bloc/filter_bloc.dart';
 import 'package:vibeat/filter/screen/filter_key/cubit/key_cubit.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_key/widgets/key_card.dart';
@@ -85,6 +86,9 @@ class FilterKeyScreen extends StatelessWidget {
             color: AppColors.background,
             child: ElevatedButton(
               onPressed: () {
+                if (context.read<KeyCubit>().state.selectedKeys.isNotEmpty) {
+                  context.read<FilterBloc>().add(const ToggleFilter(3));
+                }
                 context.router.back();
               },
               style: ElevatedButton.styleFrom(

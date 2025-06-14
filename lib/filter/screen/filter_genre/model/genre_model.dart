@@ -32,9 +32,9 @@ class GenreModel {
   factory GenreModel.fromJson(Map<String, dynamic> json) {
     return GenreModel(
       name: json['name'],
-      countOfBeats: json['countOfBeats'],
-      key: json['key'],
-      photoUrl: json['photoUrl'],
+      countOfBeats: json['countOfBeats'] ?? 300,
+      key: json['id'].toString(),
+      photoUrl: json['photoUrl'] ?? '',
       isSelected: false,
     );
   }

@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vibeat/filter/bloc/filter_bloc.dart';
 import 'package:vibeat/filter/screen/filter_bpm/cubit/bpm_cubit.dart';
 import 'package:vibeat/utils/theme.dart';
 
@@ -11,12 +14,15 @@ class FilterBpmScreen extends StatefulWidget {
 }
 
 class _FilterBpmScreenState extends State<FilterBpmScreen> {
-  final TextEditingController _fromController = TextEditingController();
-  final TextEditingController _toController = TextEditingController();
+  late TextEditingController _fromController;
+  late TextEditingController _toController;
 
   @override
   void initState() {
     super.initState();
+    _fromController = TextEditingController();
+    _toController = TextEditingController();
+
     final state = context.read<BpmCubit>().state;
 
     if (state.from != 0) _fromController.text = state.from.toString();
@@ -53,7 +59,7 @@ class _FilterBpmScreenState extends State<FilterBpmScreen> {
               style: AppTextStyles.headline2,
             ),
             const SizedBox(
-              height: 20,
+              height: 24,
             ),
             Row(
               children: [
@@ -182,16 +188,24 @@ class _FilterBpmScreenState extends State<FilterBpmScreen> {
               color: AppColors.background,
               child: ElevatedButton(
                 onPressed: () {
-                  if (_fromController.text.isEmpty ||
+                  if (_fromController.text.isEmpty &&
                       _toController.text.isEmpty) {
                     return;
                   }
 
-                  final from = int.parse(_fromController.text);
-                  final to = int.parse(_toController.text);
-                  context.read<BpmCubit>().updateBpm(from, to);
+                  final from = int.parse(
+                      _fromController.text != "" ? _fromController.text : "0");
+                  final to = int.parse(
+                      _toController.text != "" ? _toController.text : "0");
 
-                  context.router.back();
+                  if (from < to) {
+                    context.read<BpmCubit>().updateBpm(from, to);
+                    context.read<FilterBloc>().add(const ToggleFilter(2));
+
+                    context.router.back();
+                  } else {
+                    log("from < to");
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

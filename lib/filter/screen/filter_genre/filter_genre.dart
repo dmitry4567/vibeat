@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:vibeat/filter/bloc/filter_bloc.dart';
 import 'package:vibeat/filter/screen/filter_genre/cubit/genre_cubit.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
 import 'package:vibeat/filter/screen/filter_genre/widgets/genre_card.dart';
@@ -15,7 +16,6 @@ class FilterGenreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const double paddingWidth = 18.0;
-
     final size = MediaQuery.of(context).size;
 
     final textController1 = TextEditingController();
@@ -38,13 +38,13 @@ class FilterGenreScreen extends StatelessWidget {
                     delegate: _FilterHeaderDelegate(),
                   ),
                   BlocBuilder<GenreCubit, GenreState>(
-                    buildWhen: (previous, current) =>
-                        previous.selectedGenres != current.selectedGenres ||
-                        previous.genres != current.genres,
+                    // buildWhen: (previous, current) =>
+                    // previous.selectedGenres != current.selectedGenres ||
+                    // previous.genres != current.genres,
                     builder: (context, state) {
                       if (state is GenreError) {
                         return const SliverFillRemaining(
-                          child: ErrorPlaceholder()
+                          child: ErrorPlaceholder(),
                         );
                       } else if (state is GenreLoading) {
                         return SliverGrid.builder(
@@ -79,21 +79,18 @@ class FilterGenreScreen extends StatelessWidget {
                           mainAxisExtent:
                               (size.width - (paddingWidth * 2) - 10) / 3,
                         ),
-                        itemBuilder: (_, index) => Skeletonizer(
-                          enabled: false,
-                          child: GenreCard(
-                            index: index,
-                            genre: state.genres[index],
-                            onToggle: () {
-                              context
-                                  .read<GenreCubit>()
-                                  .toggleGenreSelection(state.genres[index]);
-                            },
-                          ),
+                        itemBuilder: (_, index) => GenreCard(
+                          index: index,
+                          genre: state.genres[index],
+                          onToggle: () {
+                            context.read<GenreCubit>().toggleGenreSelection(
+                                  state.genres[index],
+                                );
+                          },
                         ),
                       );
                     },
-                  )
+                  ),
                 ],
               ),
             ),
@@ -103,6 +100,13 @@ class FilterGenreScreen extends StatelessWidget {
             color: AppColors.background,
             child: ElevatedButton(
               onPressed: () {
+                if (context
+                    .read<GenreCubit>()
+                    .state
+                    .selectedGenres
+                    .isNotEmpty) {
+                  context.read<FilterBloc>().add(const ToggleFilter(0));
+                }
                 context.router.back();
               },
               style: ElevatedButton.styleFrom(
@@ -131,7 +135,10 @@ class FilterGenreScreen extends StatelessWidget {
 class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: AppColors.background,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -143,63 +150,56 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
             obscureText: false,
             autofocus: false,
             decoration: InputDecoration(
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: AppColors.iconSecondary,
+              prefixIcon: Icon(Icons.search, color: AppColors.iconSecondary),
+              hintText: 'Жанры',
+              hintStyle: AppTextStyles.filterTextField,
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: Colors.transparent,
+                  width: 1,
                 ),
-                hintText: 'Жанры',
-                hintStyle: AppTextStyles.filterTextField,
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                    color: Colors.transparent,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: AppColors.focusedBorderTextField,
+                  width: 1,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppColors.focusedBorderTextField,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: Color(0x00000000),
+                  width: 1,
                 ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                    color: Color(0x00000000),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: Color(0x00000000),
+                  width: 1,
                 ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                    color: Color(0x00000000),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                filled: true,
-                fillColor: AppColors.backgroundFilterTextField,
-                contentPadding: const EdgeInsets.only(
-                  left: 12,
-                  right: 12,
-                  top: 7,
-                  bottom: 7,
-                )),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              filled: true,
+              fillColor: AppColors.backgroundFilterTextField,
+              contentPadding: const EdgeInsets.only(
+                left: 12,
+                right: 12,
+                top: 7,
+                bottom: 7,
+              ),
+            ),
             onChanged: (value) =>
                 context.read<GenreCubit>().searchGenres(value),
             style: AppTextStyles.filterTextField,
             keyboardType: TextInputType.text,
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Выберите жанры",
-                style: AppTextStyles.headline2,
-              ),
+              const Text("Выберите жанры", style: AppTextStyles.headline2),
               MaterialButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {
@@ -210,8 +210,9 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
                 child: Text(
                   "Очистить все",
-                  style: AppTextStyles.bodyPrice1
-                      .copyWith(color: AppColors.primary),
+                  style: AppTextStyles.bodyPrice1.copyWith(
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ],

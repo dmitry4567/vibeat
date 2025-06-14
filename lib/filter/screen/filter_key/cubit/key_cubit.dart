@@ -18,10 +18,13 @@ class KeyCubit extends Cubit<KeyState> {
       emit(KeyLoading());
 
       final response = await http
-          .get(Uri.parse('http://192.168.0.140:3000/music/filters/keys'));
+          .get(Uri.parse('http://192.168.0.135:7772/api/metadata/keynotes'));
+
+      await Future.delayed(const Duration(milliseconds: 500));
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = json.decode(response.body)['data'];
+
         _originalKeys = data.map((json) => KeyModel.fromJson(json)).toList();
         emit(KeyLoaded(
           keys: _originalKeys,

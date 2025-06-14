@@ -20,5 +20,31 @@ class FilterBloc extends Bloc<FilterEvent, FilterState> {
 
   FilterBloc() : super(FilterState.initial()) {
     on<FilterEvent>((event, emit) async {});
+
+    on<ToggleFilter>((event, emit) async {
+      final updatedFilters = List<FilterItem>.from(state.filters);
+
+      final currentItem = updatedFilters[event.index];
+      updatedFilters[event.index] = currentItem.copyWith(
+        choose: true,
+      );
+
+      emit(state.copyWith(filters: updatedFilters));
+    });
+
+    on<CleanFilter>(
+      (event, emit) {
+        final updatedFilters = List<FilterItem>.from(state.filters);
+
+        for (var i = 0; i < state.filters.length; i++) {
+          final currentItem = updatedFilters[i];
+          updatedFilters[i] = currentItem.copyWith(
+            choose: false,
+          );
+        }
+
+        emit(state.copyWith(filters: updatedFilters));
+      },
+    );
   }
 }
