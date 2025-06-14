@@ -13,41 +13,25 @@ class AppRouter extends RootStackRouter {
           page: DashboardRoute.page,
           guards: [AuthGuard()],
           children: [
-            AutoRoute(
-              path: 'home',
-              page: HomeRoute.page,
-            ),
+            AutoRoute(path: 'home', page: HomeRoute.page),
             AutoRoute(
               path: 'search',
-              initial: true,
               page: const EmptyShellRoute('search'),
               children: [
+                AutoRoute(path: '', page: SearchRoute.page),
+                AutoRoute(path: 'search/filter', page: FilterRoute.page),
                 AutoRoute(
-                  path: '',
-                  page: SearchRoute.page,
-                ),
+                    path: 'search/filter_genre', page: FilterGenreRoute.page),
+                AutoRoute(path: 'search/filter_tag', page: FilterTagRoute.page),
+                AutoRoute(path: 'search/filter_bpm', page: FilterBpmRoute.page),
+                AutoRoute(path: 'search/filter_key', page: FilterKeyRoute.page),
                 AutoRoute(
-                  path: 'search/filter',
-                  page: FilterRoute.page,
-                ),
-                AutoRoute(
-                  path: 'search/filter_genre',
-                  page: FilterGenreRoute.page,
-                ),
-                AutoRoute(
-                  path: 'search/result',
-                  page: ResultRoute.page,
-                ),
+                    path: 'search/filter_mood', page: FilterMoodRoute.page),
+                AutoRoute(path: 'search/result', page: ResultRoute.page),
               ],
             ),
-            AutoRoute(
-              path: 'favorite',
-              page: FavoriteRoute.page,
-            ),
-            AutoRoute(
-              path: 'cart',
-              page: CartRoute.page,
-            ),
+            AutoRoute(path: 'favorite', page: FavoriteRoute.page),
+            AutoRoute(path: 'cart', page: CartRoute.page),
           ],
         ),
         AutoRoute(
@@ -56,11 +40,11 @@ class AppRouter extends RootStackRouter {
         ),
         AutoRoute(
           path: '/signIn',
+          initial: true,
           page: SignInRoute.page,
         ),
         AutoRoute(
           path: '/signUp',
-          initial: true,
           page: SignUpRoute.page,
         ),
         AutoRoute(
@@ -70,8 +54,11 @@ class AppRouter extends RootStackRouter {
         CustomRoute(
           path: '/player',
           page: PlayerRoute.page,
-          customRouteBuilder:
-              <T>(BuildContext context, Widget child, AutoRoutePage<T> page) {
+          customRouteBuilder: <T>(
+            BuildContext context,
+            Widget child,
+            AutoRoutePage<T> page,
+          ) {
             return PageRouteBuilder<T>(
               fullscreenDialog: page.fullscreenDialog,
               transitionsBuilder:
@@ -85,7 +72,9 @@ class AppRouter extends RootStackRouter {
                 );
 
                 return SlideTransition(
-                    position: tween.animate(curvedAnimation), child: child);
+                  position: tween.animate(curvedAnimation),
+                  child: child,
+                );
               },
               transitionDuration: const Duration(milliseconds: 400),
               settings: page,
