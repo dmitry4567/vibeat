@@ -115,9 +115,10 @@ class _FilterMoodScreenState extends State<FilterMoodScreen> {
             child: ElevatedButton(
               onPressed: () {
                 if (context.read<MoodCubit>().state.selectedMoods.isNotEmpty) {
-                  context.read<FilterBloc>().add(const ToggleFilter(4));
+                  context.read<FilterBloc>().add(const ToggleFilter(4, true));
                 }
-                context.router.back();
+
+                context.maybePop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -219,6 +220,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                 padding: EdgeInsets.zero,
                 onPressed: () {
                   context.read<MoodCubit>().clearSelection();
+                  context.read<FilterBloc>().add(const ToggleFilter(4, false));
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

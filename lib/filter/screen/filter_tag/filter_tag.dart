@@ -122,10 +122,10 @@ class _FilterTagScreenState extends State<FilterTagScreen> {
             child: ElevatedButton(
               onPressed: () {
                 if (context.read<TagBloc>().state.selectedTags.isNotEmpty) {
-                  context.read<FilterBloc>().add(const ToggleFilter(1));
+                  context.read<FilterBloc>().add(const ToggleFilter(1, true));
                 }
 
-                context.router.back();
+                context.maybePop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -176,7 +176,9 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
               MaterialButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {
-                  // context.read<TagBloc>().clearSelection();
+                  context.read<TagBloc>().add(CleanTags());
+                  
+                  context.read<FilterBloc>().add(const ToggleFilter(1, false));
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

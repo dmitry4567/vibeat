@@ -126,15 +126,15 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               currentTrackIndex: player.currentIndex!,
               colorsOfBackground: _trackColors,
               waveformData: initialWaveform,
-            ),
-          );
-        } else {
-          throw Exception("Failed to load new track");
+            ));
+          } else {
+            throw Exception("Failed to load new track");
+          }
+        } catch (e) {
+          print(e);
         }
-      } catch (e) {
-        print(e);
-      }
-    });
+      },
+    );
 
     on<PlayAudioEvent>((event, emit) async {
       // final cachePath = (await LockCachingAudioSource.getCacheFile(

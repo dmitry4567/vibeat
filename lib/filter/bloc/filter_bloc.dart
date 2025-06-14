@@ -26,7 +26,7 @@ class FilterBloc extends Bloc<FilterEvent, FilterState> {
 
       final currentItem = updatedFilters[event.index];
       updatedFilters[event.index] = currentItem.copyWith(
-        choose: true,
+        choose: event.value,
       );
 
       emit(state.copyWith(filters: updatedFilters));

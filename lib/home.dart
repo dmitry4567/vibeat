@@ -1,6 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 
 @RoutePage()
 class HomeScreen extends StatelessWidget {
@@ -8,24 +11,31 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Home')),
-      body: Center(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text("This is Home screen"),
-          const SizedBox(
-            height: 40,
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.pushRoute(const ProfileRoute());
-            },
-            child: const Text('Go to Profile'),
-          ),
-        ],
-      )),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is SignOut) {
+          context.router.replaceAll([const SignInRoute()]);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Home')),
+        body: Center(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("This is Home screen"),
+            const SizedBox(
+              height: 40,
+            ),
+            ElevatedButton(
+              onPressed: () {
+                context.read<AuthBloc>().add(SignOutRequested());
+              },
+              child: const Text('Go to Profile'),
+            ),
+          ],
+        )),
+      ),
     );
   }
 }

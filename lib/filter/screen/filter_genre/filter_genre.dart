@@ -105,9 +105,10 @@ class FilterGenreScreen extends StatelessWidget {
                     .state
                     .selectedGenres
                     .isNotEmpty) {
-                  context.read<FilterBloc>().add(const ToggleFilter(0));
+                  context.read<FilterBloc>().add(const ToggleFilter(0, true));
                 }
-                context.router.back();
+
+                context.maybePop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -204,6 +205,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                 padding: EdgeInsets.zero,
                 onPressed: () {
                   context.read<GenreCubit>().clearSelection();
+                  context.read<FilterBloc>().add(const ToggleFilter(0, false));
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

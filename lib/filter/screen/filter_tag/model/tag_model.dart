@@ -1,9 +1,9 @@
 class TagModel {
   final String id;
   final String name;
-  final bool isSelected;
+  bool isSelected;
 
-  const TagModel({
+  TagModel({
     required this.id,
     required this.name,
     required this.isSelected,

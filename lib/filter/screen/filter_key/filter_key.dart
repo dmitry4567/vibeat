@@ -87,9 +87,10 @@ class FilterKeyScreen extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {
                 if (context.read<KeyCubit>().state.selectedKeys.isNotEmpty) {
-                  context.read<FilterBloc>().add(const ToggleFilter(3));
+                  context.read<FilterBloc>().add(const ToggleFilter(3, true));
                 }
-                context.router.back();
+                
+                context.maybePop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -189,6 +190,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                 padding: EdgeInsets.zero,
                 onPressed: () {
                   context.read<KeyCubit>().clearSelection();
+                  context.read<FilterBloc>().add(const ToggleFilter(3, false));
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

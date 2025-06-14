@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'dart:convert';
 import 'package:equatable/equatable.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart';
 
@@ -72,8 +72,8 @@ class TagBloc extends Bloc<TagEvent, TagState> {
         return;
       }
 
-      final response = await http.get(
-          Uri.parse('http://192.168.0.135:7772/api/metadata/tagsByName/${event.query}'));
+      final response = await http.get(Uri.parse(
+          'http://192.168.0.135:7772/api/metadata/tagsByName/${event.query}'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body)['data'];
@@ -99,16 +99,15 @@ class TagBloc extends Bloc<TagEvent, TagState> {
     });
 
     on<CleanTags>((event, emit) async {
-      emit(
-        const TagState(
-          tags: [],
-          selectedTags: [],
-          searchQuery: '',
-          loading: true,
-          error: false,
-          errorString: '',
-        ),
-      );
+      List<TagModel> updatedTags = state.tags.map((g) {
+        g.isSelected = false;
+        return g;
+      }).toList();
+
+      emit(state.copyWith(
+        tags: updatedTags,
+        selectedTags: const [],
+      ));
     });
   }
 }

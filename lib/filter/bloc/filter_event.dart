@@ -6,11 +6,12 @@ abstract class FilterEvent extends Equatable {
 
 class ToggleFilter extends FilterEvent {
   final int index;
+  final bool value;
 
-  const ToggleFilter(this.index);
+  const ToggleFilter(this.index, this.value);
 
   @override
-  List<Object?> get props => [index];
+  List<Object?> get props => [index, value];
 }
 
 class CleanFilter extends FilterEvent {
