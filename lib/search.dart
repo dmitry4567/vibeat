@@ -173,7 +173,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text("Новые релизы", style: AppTextStyles.headline2),
+                    const Text(
+                      "Новые релизы",
+                      style: AppTextStyles.headline2,
+                    ),
                     MaterialButton(
                       padding: EdgeInsets.zero,
                       onPressed: () {

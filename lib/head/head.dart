@@ -114,7 +114,7 @@ class _HeadScreenState extends State<HeadScreen> {
                 child: Text(
                   'Главная',
                   style: TextStyle(
-                    fontSize: 30,
+                    fontSize: 34,
                     fontFamily: "Helvetica",
                     fontWeight: FontWeight.w600,
                   ),
@@ -125,11 +125,7 @@ class _HeadScreenState extends State<HeadScreen> {
                 sliver: SliverToBoxAdapter(
                   child: Text(
                     'Специально для вас',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: "Helvetica",
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.headline2,
                   ),
                 ),
               ),
@@ -137,19 +133,66 @@ class _HeadScreenState extends State<HeadScreen> {
                 child: Container(
                   padding: const EdgeInsets.only(top: 20),
                   height: 177,
-                  child: ListView.builder(
+                  child: ListView(
                     scrollDirection: Axis.horizontal,
-                    itemCount: 20,
-                    itemBuilder: (context, index) {
-                      return Container(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              const Color(0xff8D40FF).withOpacity(0.9),
+                              const Color(0xff8D40FF).withOpacity(0.4),
+                            ],
+                          ),
+                        ),
                         margin: const EdgeInsets.only(right: 10),
                         width: 177,
-                        color: Colors.red,
-                        child: Center(
-                          child: Text('Item $index'),
+                        child: const Center(
+                          child: Text(
+                            "Моя волна",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontFamily: "Helvetica",
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      );
-                    },
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              const Color.fromARGB(255, 197, 84, 2)
+                                  .withOpacity(0.9),
+                              const Color.fromARGB(255, 197, 84, 2)
+                                  .withOpacity(0.4),
+                            ],
+                          ),
+                        ),
+                        margin: const EdgeInsets.only(right: 10),
+                        width: 177,
+                        child: const Center(
+                          child: Text(
+                            "Новинки\nваших\nбитмарей",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              height: 1.2,
+                              fontFamily: "Helvetica",
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -158,11 +201,7 @@ class _HeadScreenState extends State<HeadScreen> {
                 sliver: SliverToBoxAdapter(
                   child: Text(
                     'По настроению',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: "Helvetica",
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.headline2,
                   ),
                 ),
               ),
@@ -276,11 +315,7 @@ class _HeadScreenState extends State<HeadScreen> {
                 sliver: SliverToBoxAdapter(
                   child: Text(
                     'Теги в тренде',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: "Helvetica",
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.headline2,
                   ),
                 ),
               ),
@@ -295,290 +330,290 @@ class _HeadScreenState extends State<HeadScreen> {
                   ),
                 ),
               ),
-              const SliverPadding(
-                padding: EdgeInsets.only(top: 32),
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    'Новые биты популярных авторов',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: "Helvetica",
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 20),
-                sliver: SliverToBoxAdapter(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                        6,
-                        (index) {
-                          return Skeletonizer(
-                            enabled: false,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(6),
-                              ),
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                  width: width,
-                                  margin:
-                                      const EdgeInsets.only(right: marginRight),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Image.asset(
-                                        fit: BoxFit.fitWidth,
-                                        width: width,
-                                        "assets/images/image1.png",
-                                      ),
-                                      const SizedBox(
-                                        height: 6,
-                                      ),
-                                      const Text(
-                                        "1000 RUB",
-                                        style: AppTextStyles.bodyPrice2,
-                                      ),
-                                      const Text(
-                                        "Detroit type beat sefsef sef",
-                                        style: AppTextStyles.headline1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(
-                                        height: 8,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              children: [
-                                                const SizedBox(
-                                                  width: 12,
-                                                  height: 12,
-                                                  child: CircleAvatar(
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                      'https://static-cse.canva.com/blob/191106/00_verzosa_winterlandscapes_jakob-owens-tb-2640x1485.jpg',
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  width: 4,
-                                                ),
-                                                Expanded(
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                      right: 5,
-                                                    ),
-                                                    child: Column(
-                                                      children: [
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
-                                                          style: AppTextStyles
-                                                              .bodyText2,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.volume_down_outlined,
-                                                size: 12,
-                                                color: AppColors
-                                                    .unselectedItemColor,
-                                              ),
-                                              Column(
-                                                children: [
-                                                  const SizedBox(
-                                                    height: 1,
-                                                  ),
-                                                  Text(
-                                                    "100k",
-                                                    style: AppTextStyles
-                                                        .bodyText2
-                                                        .copyWith(fontSize: 10),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SliverPadding(
-                padding: EdgeInsets.only(top: 32),
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    'Биты новоприбывших авторов',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: "Helvetica",
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 20),
-                sliver: SliverToBoxAdapter(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                        6,
-                        (index) {
-                          return Skeletonizer(
-                            enabled: false,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(6),
-                              ),
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                  width: width,
-                                  margin:
-                                      const EdgeInsets.only(right: marginRight),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Image.asset(
-                                        fit: BoxFit.fitWidth,
-                                        width: width,
-                                        "assets/images/image1.png",
-                                      ),
-                                      const SizedBox(
-                                        height: 6,
-                                      ),
-                                      const Text(
-                                        "1000 RUB",
-                                        style: AppTextStyles.bodyPrice2,
-                                      ),
-                                      const Text(
-                                        "Detroit type beat sefsef sef",
-                                        style: AppTextStyles.headline1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(
-                                        height: 8,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              children: [
-                                                const SizedBox(
-                                                  width: 12,
-                                                  height: 12,
-                                                  child: CircleAvatar(
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                      'https://static-cse.canva.com/blob/191106/00_verzosa_winterlandscapes_jakob-owens-tb-2640x1485.jpg',
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  width: 4,
-                                                ),
-                                                Expanded(
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                      right: 5,
-                                                    ),
-                                                    child: Column(
-                                                      children: [
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
-                                                          style: AppTextStyles
-                                                              .bodyText2,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.volume_down_outlined,
-                                                size: 12,
-                                                color: AppColors
-                                                    .unselectedItemColor,
-                                              ),
-                                              Column(
-                                                children: [
-                                                  const SizedBox(
-                                                    height: 1,
-                                                  ),
-                                                  Text(
-                                                    "100k",
-                                                    style: AppTextStyles
-                                                        .bodyText2
-                                                        .copyWith(fontSize: 10),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              //   const SliverPadding(
+              //     padding: EdgeInsets.only(top: 32),
+              //     sliver: SliverToBoxAdapter(
+              //       child: Text(
+              //         'Новые биты популярных авторов',
+              //         style: TextStyle(
+              //           fontSize: 20,
+              //           fontFamily: "Helvetica",
+              //           fontWeight: FontWeight.w600,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              //   SliverPadding(
+              //     padding: const EdgeInsets.only(top: 20),
+              //     sliver: SliverToBoxAdapter(
+              //       child: SingleChildScrollView(
+              //         scrollDirection: Axis.horizontal,
+              //         child: Row(
+              //           children: List.generate(
+              //             6,
+              //             (index) {
+              //               return Skeletonizer(
+              //                 enabled: false,
+              //                 child: ClipRRect(
+              //                   borderRadius: const BorderRadius.all(
+              //                     Radius.circular(6),
+              //                   ),
+              //                   child: GestureDetector(
+              //                     onTap: () {},
+              //                     child: Container(
+              //                       width: width,
+              //                       margin:
+              //                           const EdgeInsets.only(right: marginRight),
+              //                       child: Column(
+              //                         crossAxisAlignment:
+              //                             CrossAxisAlignment.start,
+              //                         children: [
+              //                           Image.asset(
+              //                             fit: BoxFit.fitWidth,
+              //                             width: width,
+              //                             "assets/images/image1.png",
+              //                           ),
+              //                           const SizedBox(
+              //                             height: 6,
+              //                           ),
+              //                           const Text(
+              //                             "1000 RUB",
+              //                             style: AppTextStyles.bodyPrice2,
+              //                           ),
+              //                           const Text(
+              //                             "Detroit type beat sefsef sef",
+              //                             style: AppTextStyles.headline1,
+              //                             overflow: TextOverflow.ellipsis,
+              //                           ),
+              //                           const SizedBox(
+              //                             height: 8,
+              //                           ),
+              //                           Row(
+              //                             mainAxisAlignment:
+              //                                 MainAxisAlignment.spaceBetween,
+              //                             children: [
+              //                               Expanded(
+              //                                 child: Row(
+              //                                   children: [
+              //                                     const SizedBox(
+              //                                       width: 12,
+              //                                       height: 12,
+              //                                       child: CircleAvatar(
+              //                                         backgroundImage:
+              //                                             NetworkImage(
+              //                                           'https://static-cse.canva.com/blob/191106/00_verzosa_winterlandscapes_jakob-owens-tb-2640x1485.jpg',
+              //                                         ),
+              //                                       ),
+              //                                     ),
+              //                                     const SizedBox(
+              //                                       width: 4,
+              //                                     ),
+              //                                     Expanded(
+              //                                       child: Container(
+              //                                         padding:
+              //                                             const EdgeInsets.only(
+              //                                           right: 5,
+              //                                         ),
+              //                                         child: Column(
+              //                                           children: [
+              //                                             const SizedBox(
+              //                                               height: 2,
+              //                                             ),
+              //                                             Text(
+              //                                               "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
+              //                                               style: AppTextStyles
+              //                                                   .bodyText2,
+              //                                               overflow: TextOverflow
+              //                                                   .ellipsis,
+              //                                             ),
+              //                                           ],
+              //                                         ),
+              //                                       ),
+              //                                     ),
+              //                                   ],
+              //                                 ),
+              //                               ),
+              //                               Row(
+              //                                 children: [
+              //                                   Icon(
+              //                                     Icons.volume_down_outlined,
+              //                                     size: 12,
+              //                                     color: AppColors
+              //                                         .unselectedItemColor,
+              //                                   ),
+              //                                   Column(
+              //                                     children: [
+              //                                       const SizedBox(
+              //                                         height: 1,
+              //                                       ),
+              //                                       Text(
+              //                                         "100k",
+              //                                         style: AppTextStyles
+              //                                             .bodyText2
+              //                                             .copyWith(fontSize: 10),
+              //                                         overflow:
+              //                                             TextOverflow.ellipsis,
+              //                                       ),
+              //                                     ],
+              //                                   ),
+              //                                 ],
+              //                               ),
+              //                             ],
+              //                           ),
+              //                         ],
+              //                       ),
+              //                     ),
+              //                   ),
+              //                 ),
+              //               );
+              //             },
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              //   const SliverPadding(
+              //     padding: EdgeInsets.only(top: 32),
+              //     sliver: SliverToBoxAdapter(
+              //       child: Text(
+              //         'Биты новоприбывших авторов',
+              //         style: TextStyle(
+              //           fontSize: 20,
+              //           fontFamily: "Helvetica",
+              //           fontWeight: FontWeight.w600,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              //   SliverPadding(
+              //     padding: const EdgeInsets.only(top: 20),
+              //     sliver: SliverToBoxAdapter(
+              //       child: SingleChildScrollView(
+              //         scrollDirection: Axis.horizontal,
+              //         child: Row(
+              //           children: List.generate(
+              //             6,
+              //             (index) {
+              //               return Skeletonizer(
+              //                 enabled: false,
+              //                 child: ClipRRect(
+              //                   borderRadius: const BorderRadius.all(
+              //                     Radius.circular(6),
+              //                   ),
+              //                   child: GestureDetector(
+              //                     onTap: () {},
+              //                     child: Container(
+              //                       width: width,
+              //                       margin:
+              //                           const EdgeInsets.only(right: marginRight),
+              //                       child: Column(
+              //                         crossAxisAlignment:
+              //                             CrossAxisAlignment.start,
+              //                         children: [
+              //                           Image.asset(
+              //                             fit: BoxFit.fitWidth,
+              //                             width: width,
+              //                             "assets/images/image1.png",
+              //                           ),
+              //                           const SizedBox(
+              //                             height: 6,
+              //                           ),
+              //                           const Text(
+              //                             "1000 RUB",
+              //                             style: AppTextStyles.bodyPrice2,
+              //                           ),
+              //                           const Text(
+              //                             "Detroit type beat sefsef sef",
+              //                             style: AppTextStyles.headline1,
+              //                             overflow: TextOverflow.ellipsis,
+              //                           ),
+              //                           const SizedBox(
+              //                             height: 8,
+              //                           ),
+              //                           Row(
+              //                             mainAxisAlignment:
+              //                                 MainAxisAlignment.spaceBetween,
+              //                             children: [
+              //                               Expanded(
+              //                                 child: Row(
+              //                                   children: [
+              //                                     const SizedBox(
+              //                                       width: 12,
+              //                                       height: 12,
+              //                                       child: CircleAvatar(
+              //                                         backgroundImage:
+              //                                             NetworkImage(
+              //                                           'https://static-cse.canva.com/blob/191106/00_verzosa_winterlandscapes_jakob-owens-tb-2640x1485.jpg',
+              //                                         ),
+              //                                       ),
+              //                                     ),
+              //                                     const SizedBox(
+              //                                       width: 4,
+              //                                     ),
+              //                                     Expanded(
+              //                                       child: Container(
+              //                                         padding:
+              //                                             const EdgeInsets.only(
+              //                                           right: 5,
+              //                                         ),
+              //                                         child: Column(
+              //                                           children: [
+              //                                             const SizedBox(
+              //                                               height: 2,
+              //                                             ),
+              //                                             Text(
+              //                                               "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
+              //                                               style: AppTextStyles
+              //                                                   .bodyText2,
+              //                                               overflow: TextOverflow
+              //                                                   .ellipsis,
+              //                                             ),
+              //                                           ],
+              //                                         ),
+              //                                       ),
+              //                                     ),
+              //                                   ],
+              //                                 ),
+              //                               ),
+              //                               Row(
+              //                                 children: [
+              //                                   Icon(
+              //                                     Icons.volume_down_outlined,
+              //                                     size: 12,
+              //                                     color: AppColors
+              //                                         .unselectedItemColor,
+              //                                   ),
+              //                                   Column(
+              //                                     children: [
+              //                                       const SizedBox(
+              //                                         height: 1,
+              //                                       ),
+              //                                       Text(
+              //                                         "100k",
+              //                                         style: AppTextStyles
+              //                                             .bodyText2
+              //                                             .copyWith(fontSize: 10),
+              //                                         overflow:
+              //                                             TextOverflow.ellipsis,
+              //                                       ),
+              //                                     ],
+              //                                   ),
+              //                                 ],
+              //                               ),
+              //                             ],
+              //                           ),
+              //                         ],
+              //                       ),
+              //                     ),
+              //                   ),
+              //                 ),
+              //               );
+              //             },
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
         ),

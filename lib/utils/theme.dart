@@ -42,7 +42,7 @@ class AppTextStyles {
   );
 
   static const TextStyle headline2 = TextStyle(
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: "Helvetica",
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
