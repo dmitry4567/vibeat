@@ -5,9 +5,11 @@ import 'dart:ui';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
+import 'dart:developer' as d;
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/player/model/model_track.dart';
 import 'package:vibeat/utils/image_extractor.dart';
 
@@ -15,7 +17,7 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  static String host = "192.168.0.135";
+  static String host = "192.168.43.60";
   // static String host = "192.168.0.136";
 
   final AudioPlayer player = AudioPlayer();
@@ -33,6 +35,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       // else if (index < state.currentTrackIndex) {
       //   add(PreviousTrackEvent());
       // }
+      // state.copyWith(playerBottom: true);
       if (index != null && index != state.currentTrackIndex) {
         add(UpdateCurrentTrackEvent(index));
       }
@@ -54,11 +57,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       }
     });
 
+    on<UpdatePlayerBottomEvent>((event, emit) {
+      emit(state.copyWith(playerBottom: event.value));
+    });
+
     on<GetRecommendEvent>(
       (event, emit) async {
         try {
-          final response =
-              await http.get(Uri.parse("http://$host:3000/music/rec/rec"));
+          final response = await http.get(
+            Uri.parse("http://$host:3000/music/rec/rec"),
+          );
 
           if (response.statusCode == 200) {
             final trackData = jsonDecode(response.body);
@@ -102,8 +110,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               children: audioSources,
             );
 
-            await player.setAudioSource(playlist,
-                initialIndex: 0, initialPosition: Duration.zero);
+            await player.setAudioSource(
+              playlist,
+              initialIndex: 0,
+              initialPosition: Duration.zero,
+            );
 
             // Set initial waveform data
             final initialWaveform = _trackWaveforms[trackList[0].trackUrl] ??
@@ -123,6 +134,64 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         }
       },
     );
+
+    on<PlayCurrentBeatEvent>((event, emit) async {
+      player.stop();
+
+      List<Track> trackList = [];
+
+      final track = Track(
+        id: event.beat.id,
+        name: event.beat.name,
+        bitmaker: "bitmaker",
+        price: event.beat.price,
+        trackUrl: 'http://storage.yandexcloud.net/mp3beats/${event.beat.url}',
+        photoUrl: event.beat.picture,
+      );
+      trackList.add(track);
+
+      _generateWaveformForTrack(track);
+
+      List<AudioSource> audioSources = trackList
+          .map(
+            (track) => AudioSource.uri(
+              Uri.parse(track.trackUrl),
+              tag: MediaItem(
+                id: track.id,
+                album: "Album name",
+                artist: track.bitmaker,
+                title: track.name,
+                artUri: Uri.parse(track.photoUrl),
+              ),
+            ),
+          )
+          .toList();
+
+      playlist = ConcatenatingAudioSource(
+        useLazyPreparation: true,
+        shuffleOrder: DefaultShuffleOrder(),
+        children: audioSources,
+      );
+
+      await player.setAudioSource(
+        playlist,
+        initialIndex: 0,
+        initialPosition: Duration.zero,
+      );
+
+      // Set initial waveform data
+      final initialWaveform =
+          _trackWaveforms[trackList[0].trackUrl] ?? _generateDefaultWaveform();
+      
+      player.play();
+
+      emit(state.copyWith(
+        trackList: trackList,
+        currentTrackIndex: player.currentIndex!,
+        colorsOfBackground: _trackColors,
+        waveformData: initialWaveform,
+      ));
+    });
 
     on<PlayAudioEvent>((event, emit) async {
       // final cachePath = (await LockCachingAudioSource.getCacheFile(
@@ -145,12 +214,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     on<UpdateCurrentTrackEvent>((event, emit) async {
       if (event.index >= 0 && event.index < state.trackList.length) {
-        emit(state.copyWith(
-          currentTrackIndex: event.index,
-          waveformData:
-              _trackWaveforms[state.trackList[event.index].trackUrl] ??
-                  _generateDefaultWaveform(),
-        ));
+        emit(
+          state.copyWith(
+            currentTrackIndex: event.index,
+            waveformData:
+                _trackWaveforms[state.trackList[event.index].trackUrl] ??
+                    _generateDefaultWaveform(),
+          ),
+        );
 
         await player.seek(Duration.zero, index: state.currentTrackIndex);
         await player.stop();
@@ -161,8 +232,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     on<NextTrackEvent>((event, emit) async {
       // Load more tracks if we're near the end
-      final response =
-          await http.get(Uri.parse("http://$host:3000/music/rec/rec2"));
+      final response = await http.get(
+        Uri.parse("http://$host:3000/music/rec/rec2"),
+      );
 
       if (response.statusCode == 200) {
         final t = jsonDecode(response.body);
@@ -268,16 +340,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           // Если вышли за пределы текущего фрагмента
           if (currentSeconds >= currentFragmentEnd) {
             await player.seek(Duration(seconds: currentFragmentStart));
-            emit(state.copyWith(
-                position: Duration(seconds: currentFragmentStart)));
+            emit(
+              state.copyWith(position: Duration(seconds: currentFragmentStart)),
+            );
             return;
           }
         }
 
-        emit(state.copyWith(
-          position: event.position,
-          indexFragment: newIndexFragment,
-        ));
+        emit(
+          state.copyWith(
+            position: event.position,
+            indexFragment: newIndexFragment,
+          ),
+        );
       }
     });
 
@@ -288,12 +363,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<LoadNextTrackEvent>((event, emit) async {
       try {
         final newTrack = Track(
-            id: "2",
-            name: "name",
-            bitmaker: "bitmaker",
-            price: 2000,
-            trackUrl: "http://$host:3000/music/2.wav",
-            photoUrl: "http://$host:3000/photo/2.png");
+          id: "2",
+          name: "name",
+          bitmaker: "bitmaker",
+          price: 2000,
+          trackUrl: "http://$host:3000/music/2.wav",
+          photoUrl: "http://$host:3000/photo/2.png",
+        );
 
         // Generate waveform for new track
         _generateWaveformForTrack(newTrack);
@@ -302,13 +378,15 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         final updatedTrackList = List<Track>.from(state.trackList)
           ..add(newTrack);
 
-        emit(state.copyWith(
-          trackList: updatedTrackList,
-          currentTrackIndex: state.currentTrackIndex + 1,
-          colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
-          waveformData:
-              _trackWaveforms[newTrack.trackUrl] ?? _generateDefaultWaveform(),
-        ));
+        emit(
+          state.copyWith(
+            trackList: updatedTrackList,
+            currentTrackIndex: state.currentTrackIndex + 1,
+            colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
+            waveformData: _trackWaveforms[newTrack.trackUrl] ??
+                _generateDefaultWaveform(),
+          ),
+        );
       } catch (e) {
         print("Error loading track: $e");
       }
@@ -354,8 +432,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   Future<void> _getColorsBackground(Track track) async {
-    List<Color> colors =
-        await ImageExtractor().extractTopAndBottomCenterColors(track.photoUrl);
+    List<Color> colors = await ImageExtractor().extractTopAndBottomCenterColors(
+      track.photoUrl,
+    );
 
     _trackColors.add(colors);
   }

@@ -1,18 +1,54 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/core/api_client.dart';
+import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
+import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:http/http.dart' as http;
 
 @RoutePage()
 class InfoBeat extends StatefulWidget {
-  const InfoBeat({super.key});
+  const InfoBeat({super.key, required this.beatId});
+
+  final String beatId;
 
   @override
   State<InfoBeat> createState() => _InfoBeatState();
 }
 
 class _InfoBeatState extends State<InfoBeat> {
+  BeatEntity beat = const BeatEntity(
+    id: "",
+    name: "",
+    description: "",
+    picture: "",
+    beatmakerName: "",
+    url: "",
+    price: 1000,
+    plays: 1000,
+    genres: [],
+    moods: [],
+    tags: [],
+    key: KeyModel(
+      name: "",
+      key: "",
+      isSelected: false,
+    ),
+    bpm: 0,
+    createAt: 0,
+  );
+
+  int countLikes = 0;
+  bool isLike = false;
+
   final List<String> tags = [
     '#hardstyle',
     '#lo-fi',
@@ -27,6 +63,80 @@ class _InfoBeatState extends State<InfoBeat> {
     '#winter',
     '#detroit',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    initializeDateFormatting('ru');
+
+    getLikesCountByBeat();
+    getBeatInfo();
+  }
+
+  Future<void> postNewLike() async {
+    final apiClient = sl<ApiClient>().dio;
+
+    final responseLike = await apiClient.post(
+      "http://192.168.43.60:7771/api/activity/postNewLike",
+      data: {
+        'beatId': widget.beatId,
+      },
+    );
+
+    if (responseLike.statusCode == 205) {
+      final responseDelete = await apiClient
+          .delete("http://192.168.43.60:7771/api/activity/${widget.beatId}");
+
+      if (responseDelete.statusCode == 200) {
+        setState(() {
+          // countLikes -= 1;
+          isLike = false;
+        });
+      }
+      return;
+    }
+
+    if (responseLike.statusCode == 201) {
+      setState(() {
+        isLike = true;
+      });
+      // setState(() {
+      //                                 isLike = !isLike;
+      //                                 countLikes += isLike ? 1 : -1;
+      //                               });
+    } else {}
+  }
+
+  void getLikesCountByBeat() async {
+    final response = await http.get(
+      Uri.parse(
+          "http://192.168.43.60:7771/api/activity/viewLikesCountByBeatId/${widget.beatId}"),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      dynamic data = json.decode(response.body)['data'];
+
+      setState(() {
+        countLikes = data['count'];
+      });
+    }
+  }
+
+  void getBeatInfo() async {
+    final response = await http.get(
+      Uri.parse("http://192.168.43.60:7771/api/beat/byBeatId/${widget.beatId}"),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      dynamic data = json.decode(response.body)['data'];
+
+      setState(() {
+        beat = BeatEntity.fromJson(data);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +160,14 @@ class _InfoBeatState extends State<InfoBeat> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    'https://sun9-63.userapi.com/impg/I_VmpgvyUNSas3TeQcD9cMpEsWtV6LDXOjDM0A/IG8fKJyhALQ.jpg?size=270x270&quality=95&sign=dfd23dbdcb75df2ba50bee0db00e3633&c_uniq_tag=kGLLQ5z1e3ezZUsn-MBxtz4nfWH3lHV3twPptGaJq8U&type=audio&quot',
-                    fit: BoxFit.cover,
-                  ),
+                  beat.picture != ""
+                      ? Image.network(
+                          beat.picture,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          color: AppColors.appbar,
+                        ),
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Container(
@@ -78,7 +192,7 @@ class _InfoBeatState extends State<InfoBeat> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      'Jerky Beats',
+                      beat.name,
                       style: AppTextStyles.bodyAppbar.copyWith(
                         fontSize: 26,
                       ),
@@ -94,19 +208,23 @@ class _InfoBeatState extends State<InfoBeat> {
                               Container(
                                 alignment: AlignmentDirectional.topCenter,
                                 child: MaterialButton(
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    await postNewLike();
+                                  },
                                   color: Colors.white.withOpacity(0.1),
                                   textColor: Colors.white,
                                   shape: const CircleBorder(),
-                                  child: const Icon(
-                                    Icons.favorite,
+                                  child: Icon(
+                                    isLike
+                                        ? Icons.favorite
+                                        : Icons.favorite_outline,
                                     size: 18,
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                "200",
+                                countLikes.toString(),
                                 style: AppTextStyles.bodyAppbar.copyWith(
                                   fontSize: 10,
                                 ),
@@ -200,7 +318,9 @@ class _InfoBeatState extends State<InfoBeat> {
                         ),
                       ),
                       Text(
-                        "Jerk",
+                        beat.genres.isNotEmpty
+                            ? beat.genres.map((e) => e.name).join(", ")
+                            : "-",
                         style: AppTextStyles.bodyText1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -219,7 +339,7 @@ class _InfoBeatState extends State<InfoBeat> {
                         ),
                       ),
                       Text(
-                        "C#",
+                        beat.key.name.isNotEmpty ? beat.key.name : "-",
                         style: AppTextStyles.bodyPrice1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -238,7 +358,7 @@ class _InfoBeatState extends State<InfoBeat> {
                         ),
                       ),
                       Text(
-                        "120",
+                        beat.bpm > 0 ? beat.bpm.toString() : "-",
                         style: AppTextStyles.bodyPrice1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -257,7 +377,9 @@ class _InfoBeatState extends State<InfoBeat> {
                         ),
                       ),
                       Text(
-                        "Грустное",
+                        beat.moods.isNotEmpty
+                            ? beat.moods.map((e) => e.name).join(", ")
+                            : "-",
                         style: AppTextStyles.bodyPrice1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -276,7 +398,11 @@ class _InfoBeatState extends State<InfoBeat> {
                         ),
                       ),
                       Text(
-                        "10 января 2023 г.",
+                        DateFormat('d MMMM yyyy г.', 'ru').format(
+                          DateTime.fromMillisecondsSinceEpoch(
+                            beat.createAt * 1000,
+                          ),
+                        ),
                         style: AppTextStyles.bodyText1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -310,13 +436,13 @@ class _InfoBeatState extends State<InfoBeat> {
               child: Wrap(
                 spacing: 8.0,
                 runSpacing: 8.0,
-                children: tags
+                children: beat.tags
                     .asMap()
                     .entries
                     .map(
                       (entry) => TagCard(
                         index: entry.key,
-                        text: entry.value,
+                        text: entry.value.name,
                       ),
                     )
                     .toList(),
@@ -346,7 +472,7 @@ class _InfoBeatState extends State<InfoBeat> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    "ыушгршгыуа ыуграгшыгуп ашыпуа шыпуш ашынпуагнып уагып уагнып уагнпы уга ыгнупа гын агны агап ышгуп аыушап гыу апыгупа шыупашы пуша ышупашыуаш ыпшуаышупашы уаыш уашыгупашг",
+                    beat.description.isNotEmpty ? beat.description : "-",
                     style: AppTextStyles.bodyText1.copyWith(
                       fontSize: 16,
                     ),
@@ -431,7 +557,7 @@ class _InfoBeatState extends State<InfoBeat> {
                                                   child: CircleAvatar(
                                                     backgroundImage:
                                                         NetworkImage(
-                                                      'https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp',
+                                                      'https://upload.wikimedia.org/wikipedia/commons/b/b6/Image_created_with_a_mobile_phone.png',
                                                     ),
                                                   ),
                                                 ),

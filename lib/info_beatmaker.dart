@@ -217,7 +217,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                   height: 12,
                                   child: CircleAvatar(
                                     backgroundImage: NetworkImage(
-                                      'https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp',
+                                      'https://upload.wikimedia.org/wikipedia/commons/b/b6/Image_created_with_a_mobile_phone.png',
                                     ),
                                   ),
                                 ),

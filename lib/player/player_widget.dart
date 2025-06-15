@@ -447,41 +447,53 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
                             BlocBuilder<PlayerBloc, PlayerState>(
                                 buildWhen: (previous, current) =>
-                                    previous.currentTrackIndex !=
-                                    current.currentTrackIndex,
+                                    previous.trackList != current.trackList,
                                 builder: (context, state) {
-                                  return ConditionalMarquee(
-                                    text: state
-                                        .trackList[state.currentTrackIndex]
-                                        .name,
-                                    style: AppTextStyles.headline1,
-                                  );
+                                  if (state.trackList.isNotEmpty) {
+                                    // return ConditionalMarquee(
+                                    //   text: state
+                                    //       .trackList[state.currentTrackIndex].name,
+                                    //   style: AppTextStyles.headline1,
+                                    // );
+                                    return Text(
+                                      state.trackList[state.currentTrackIndex]
+                                          .name,
+                                      style: AppTextStyles.headline1,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    );
+                                  }
+                                  return Container();
                                 }),
 
                             const SizedBox(
                               height: 2,
                             ),
                             BlocBuilder<PlayerBloc, PlayerState>(
-                              buildWhen: (previous, current) =>
-                                  previous.currentTrackIndex !=
-                                  current.currentTrackIndex,
+                              // buildWhen: (previous, current) =>
+                              //     previous.currentTrackIndex !=
+                              //     current.currentTrackIndex,
                               builder: (context, state) {
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 1),
-                                      child: Text(
-                                        "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
-                                        style: AppTextStyles.bodyText1,
+                                if (state.trackList.isNotEmpty) {
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 1),
+                                        child: Text(
+                                          "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
+                                          style: AppTextStyles.bodyText1,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      "₽${state.trackList[state.currentTrackIndex].price}",
-                                      style: AppTextStyles.bodyPrice1,
-                                    ),
-                                  ],
-                                );
+                                      Text(
+                                        "₽${state.trackList[state.currentTrackIndex].price}",
+                                        style: AppTextStyles.bodyPrice1,
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return Text("null");
                               },
                             ),
                           ],
@@ -698,7 +710,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                       previous.duration != current.duration,
                                   builder: (context, state) {
                                     final totalSeconds =
-                                        state.duration?.inSeconds ?? 0;
+                                        state.duration.inSeconds ?? 0;
 
                                     return Text(
                                       "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",

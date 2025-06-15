@@ -1,6 +1,7 @@
 part of 'player_bloc.dart';
 
 class PlayerState extends Equatable {
+  final bool playerBottom;
   final bool isPlaying;
   final bool isRepeat;
   final bool loopCurrentFragment;
@@ -17,9 +18,13 @@ class PlayerState extends Equatable {
   final double? dragProgress;
 
   double get progress =>
-      dragProgress ?? (duration.inMilliseconds > 0 ? position.inMilliseconds / duration.inMilliseconds : 0.0);
+      dragProgress ??
+      (duration.inMilliseconds > 0
+          ? position.inMilliseconds / duration.inMilliseconds
+          : 0.0);
 
   const PlayerState({
+    required this.playerBottom,
     required this.isPlaying,
     required this.isRepeat,
     required this.loopCurrentFragment,
@@ -38,6 +43,7 @@ class PlayerState extends Equatable {
 
   factory PlayerState.initial() {
     return const PlayerState(
+      playerBottom: true,
       isPlaying: false,
       isRepeat: false,
       loopCurrentFragment: false,
@@ -55,6 +61,7 @@ class PlayerState extends Equatable {
   }
 
   PlayerState copyWith({
+    bool? playerBottom,
     bool? isPlaying,
     bool? isRepeat,
     bool? loopCurrentFragment,
@@ -71,6 +78,7 @@ class PlayerState extends Equatable {
     double? dragProgress,
   }) {
     return PlayerState(
+      playerBottom: playerBottom ?? this.playerBottom,
       isPlaying: isPlaying ?? this.isPlaying,
       isRepeat: isRepeat ?? this.isRepeat,
       loopCurrentFragment: loopCurrentFragment ?? this.loopCurrentFragment,
@@ -90,19 +98,20 @@ class PlayerState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isPlaying,
-        isRepeat,
-        loopCurrentFragment,
-        currentTrackIndex,
-        pathTrack,
-        position,
-        duration,
-        colorsOfBackground,
-        fragmentsMusic,
-        fragmentsNames,
-        indexFragment,
-        trackList,
-        waveformData,
-        dragProgress,
-      ];
+    playerBottom,
+    isPlaying,
+    isRepeat,
+    loopCurrentFragment,
+    currentTrackIndex,
+    pathTrack,
+    position,
+    duration,
+    colorsOfBackground,
+    fragmentsMusic,
+    fragmentsNames,
+    indexFragment,
+    trackList,
+    waveformData,
+    dragProgress,
+  ];
 }

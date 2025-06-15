@@ -1,7 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:vibeat/anketa/anketa.dart';
+import 'package:get_it/get_it.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
@@ -13,40 +14,33 @@ class AppRouter extends RootStackRouter {
           guards: [AuthGuard()],
           children: [
             AutoRoute(
-              path: 'home',
-              page: HomeRoute.page,
-            ),
-            AutoRoute(
-              path: 'search',
-              // initial: true,
-              page: const EmptyShellRoute('search'),
+              path: 'head',
+              page: const EmptyShellRoute('head'),
               children: [
-                AutoRoute(
-                  path: '',
-                  page: SearchRoute.page,
-                ),
-                AutoRoute(
-                  path: 'search/filter',
-                  page: FilterRoute.page,
-                ),
-                AutoRoute(
-                  path: 'search/filter_genre',
-                  page: FilterGenreRoute.page,
-                ),
-                AutoRoute(
-                  path: 'search/result',
-                  page: ResultRoute.page,
-                ),
+                AutoRoute(path: '', page: HeadRoute.page),
+                AutoRoute(path: 'head/playlistMood', page: PlaylistMoodRoute.page),
               ],
             ),
             AutoRoute(
-              path: 'favorite',
-              page: FavoriteRoute.page,
+              path: 'search',
+              initial: true,
+              page: const EmptyShellRoute('search'),
+              children: [
+                AutoRoute(path: '', page: SearchRoute.page),
+                AutoRoute(path: 'head/playlist', page: PlaylistRoute.page),
+                AutoRoute(path: 'search/filter', page: FilterRoute.page),
+                AutoRoute(
+                    path: 'search/filter_genre', page: FilterGenreRoute.page),
+                AutoRoute(path: 'search/filter_tag', page: FilterTagRoute.page),
+                AutoRoute(path: 'search/filter_bpm', page: FilterBpmRoute.page),
+                AutoRoute(path: 'search/filter_key', page: FilterKeyRoute.page),
+                AutoRoute(
+                    path: 'search/filter_mood', page: FilterMoodRoute.page),
+                AutoRoute(path: 'search/result', page: ResultRoute.page),
+              ],
             ),
-            AutoRoute(
-              path: 'cart',
-              page: CartRoute.page,
-            ),
+            AutoRoute(path: 'favorite', page: FavoriteRoute.page),
+            AutoRoute(path: 'cart', page: CartRoute.page),
           ],
         ),
         AutoRoute(
@@ -67,14 +61,21 @@ class AppRouter extends RootStackRouter {
           page: InfoBeat.page,
         ),
         AutoRoute(
+          path: '/signUp',
+          page: SignUpRoute.page,
+        ),
+        AutoRoute(
           path: '/profile',
           page: ProfileRoute.page,
         ),
         CustomRoute(
           path: '/player',
           page: PlayerRoute.page,
-          customRouteBuilder:
-              <T>(BuildContext context, Widget child, AutoRoutePage<T> page) {
+          customRouteBuilder: <T>(
+            BuildContext context,
+            Widget child,
+            AutoRoutePage<T> page,
+          ) {
             return PageRouteBuilder<T>(
               fullscreenDialog: page.fullscreenDialog,
               transitionsBuilder:
@@ -88,7 +89,9 @@ class AppRouter extends RootStackRouter {
                 );
 
                 return SlideTransition(
-                    position: tween.animate(curvedAnimation), child: child);
+                  position: tween.animate(curvedAnimation),
+                  child: child,
+                );
               },
               transitionDuration: const Duration(milliseconds: 400),
               settings: page,
@@ -102,12 +105,26 @@ class AppRouter extends RootStackRouter {
 class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
-    final isAuthenticated = false;
+    final authBloc = GetIt.I<AuthBloc>();
 
-    if (!isAuthenticated) {
-      router.push(const InfoBeat());
+    // Проверяем текущее состояние авторизации
+    final currentState = authBloc.state;
+    if (currentState is Authenticated) {
+      resolver.next(); // Продолжаем навигацию без анимации
     } else {
-      resolver.next(true);
+      authBloc.add(AuthCheckRequested());
+
+      // Подписываемся на изменения состояния
+      authBloc.stream
+          .firstWhere(
+              (state) => state is Authenticated || state is Unauthenticated)
+          .then((state) {
+        if (state is Authenticated) {
+          resolver.next();
+        } else {
+          router.replace(const SignInRoute());
+        }
+      });
     }
   }
 }
