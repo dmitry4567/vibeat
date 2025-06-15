@@ -1,14 +1,72 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
+import 'package:http/http.dart' as http;
 
 @RoutePage()
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
+
+  @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  List<BeatEntity> beatData = [];
+  List<BeatEntity> placeholderData = List.generate(
+    5,
+    (index) => const BeatEntity(
+        name: "",
+        picture: "",
+        beatmakerName: "",
+        url: "",
+        price: 1000,
+        plays: 1000),
+  );
+
+  final TextEditingController textController1 = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    getNewBeats();
+  }
+
+  void getNewBeats() async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    final response = await http.get(
+      Uri.parse('http://192.168.0.135:7771/api/beat/beatsByDate/0/$now'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body)['data'];
+
+      log(data.toString());
+
+      setState(() {
+        beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
+      });
+    }
+    if (response.statusCode == 500) {
+      beatData = [];
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    textController1.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +75,7 @@ class SearchScreen extends StatelessWidget {
 
     final size = MediaQuery.of(context).size;
     final width = size.width * 0.38;
-
-    final textController1 = TextEditingController();
+    final gridItemWidth = (size.width - paddingWidth * 2 - 20) / 2;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -27,13 +84,13 @@ class SearchScreen extends StatelessWidget {
         elevation: 0,
         forceMaterialTransparency: true,
         backgroundColor: AppColors.appbar,
-        title: const Text(
-          'Поиск',
-          style: AppTextStyles.bodyAppbar,
-        ),
+        title: const Text('Поиск', style: AppTextStyles.bodyAppbar),
       ),
       body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+        onTap: () {
+          FocusScope.of(context).unfocus();
+          context.read<PlayerBloc>().add(UpdatePlayerBottomEvent(true));
+        },
         child: SingleChildScrollView(
           // physics: const ClampingScrollPhysics(),
           child: Padding(
@@ -42,228 +99,142 @@ class SearchScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextFormField(
-                  textAlignVertical: TextAlignVertical.center,
                   controller: textController1,
+                  onTap: () {
+                    context.read<PlayerBloc>().add(
+                          UpdatePlayerBottomEvent(false),
+                        );
+                  },
+                  onTapOutside: (event) {
+                    context.read<PlayerBloc>().add(
+                          UpdatePlayerBottomEvent(true),
+                        );
+                  },
+                  textAlignVertical: TextAlignVertical.center,
                   obscureText: false,
                   autofocus: false,
                   decoration: InputDecoration(
-                      prefixIcon: Icon(
-                        Icons.search,
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColors.iconSecondary,
+                    ),
+                    suffixIcon: GestureDetector(
+                      onTap: () {
+                        context.pushRoute(const FilterRoute());
+                      },
+                      child: Icon(
+                        Icons.filter_alt_outlined,
                         color: AppColors.iconSecondary,
                       ),
-                      suffixIcon: GestureDetector(
-                        onTap: () {
-                          context.pushRoute(FilterRoute());
-                        },
-                        child: Icon(
-                          Icons.filter_alt_outlined,
-                          color: AppColors.iconSecondary,
-                        ),
+                    ),
+                    hintText: 'Type beat',
+                    hintStyle: AppTextStyles.filterTextField,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.transparent,
+                        width: 1,
                       ),
-                      hintText: 'Type beat',
-                      hintStyle: AppTextStyles.filterTextField,
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: Colors.transparent,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: AppColors.focusedBorderTextField,
+                        width: 1,
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: AppColors.focusedBorderTextField,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Color(0x00000000),
+                        width: 1,
                       ),
-                      errorBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: Color(0x00000000),
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Color(0x00000000),
+                        width: 1,
                       ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: Color(0x00000000),
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.backgroundFilterTextField,
-                      contentPadding: const EdgeInsets.only(
-                        left: 12,
-                        right: 12,
-                        top: 7,
-                        bottom: 7,
-                      )),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    filled: true,
+                    fillColor: AppColors.backgroundFilterTextField,
+                    contentPadding: const EdgeInsets.only(
+                      left: 12,
+                      right: 12,
+                      top: 7,
+                      bottom: 7,
+                    ),
+                  ),
                   style: AppTextStyles.filterTextField,
                   keyboardType: TextInputType.text,
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      "Новые релизы",
-                      style: AppTextStyles.headline2,
-                    ),
+                    const Text("Новые релизы", style: AppTextStyles.headline2),
                     MaterialButton(
                       padding: EdgeInsets.zero,
-                      onPressed: () {},
+                      onPressed: () {
+                        context.router.push(
+                          PlaylistRoute(
+                            title: "Новые релизы",
+                            beats: beatData,
+                          ),
+                        );
+                      },
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         "Посмотреть",
-                        style: AppTextStyles.bodyPrice1
-                            .copyWith(color: AppColors.primary),
+                        style: AppTextStyles.bodyPrice1.copyWith(
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 8,
-                ),
+                const SizedBox(height: 8),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: List.generate(
-                      6,
-                      (index) {
-                        return Skeletonizer(
-                          enabled: false,
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(6),
-                            ),
-                            child: GestureDetector(
-                              onTap: () {
-                                context
-                                    .read<PlayerBloc>()
-                                    .add(PlayAudioEvent());
-                                context.router.push(const PlayerRoute());
-                              },
-                              child: Container(
+                    children: beatData.isNotEmpty
+                        ? List.generate(beatData.length, (index) {
+                            return Skeletonizer(
+                              enabled: false,
+                              child: NewBeatWidget(
+                                beat: beatData[index],
                                 width: width,
-                                margin:
-                                    const EdgeInsets.only(right: marginRight),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Image.asset(
-                                      fit: BoxFit.fitWidth,
-                                      width: width,
-                                      "assets/images/image1.png",
-                                    ),
-                                    const SizedBox(
-                                      height: 6,
-                                    ),
-                                    const Text(
-                                      "1000 RUB",
-                                      style: AppTextStyles.bodyPrice2,
-                                    ),
-                                    const Text(
-                                      "Detroit type beat sefsef sef",
-                                      style: AppTextStyles.headline1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            children: [
-                                              const SizedBox(
-                                                width: 12,
-                                                height: 12,
-                                                child: CircleAvatar(
-                                                  backgroundImage: NetworkImage(
-                                                    'https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp',
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                width: 4,
-                                              ),
-                                              Expanded(
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    right: 5,
-                                                  ),
-                                                  child: Column(
-                                                    children: [
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      Text(
-                                                        "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
-                                                        style: AppTextStyles
-                                                            .bodyText2,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.volume_down_outlined,
-                                              size: 12,
-                                              color:
-                                                  AppColors.unselectedItemColor,
-                                            ),
-                                            Column(
-                                              children: [
-                                                const SizedBox(
-                                                  height: 1,
-                                                ),
-                                                Text(
-                                                  "100k",
-                                                  style: AppTextStyles.bodyText2
-                                                      .copyWith(fontSize: 10),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                marginRight: marginRight,
+                                gridItemWidth: gridItemWidth,
+                              ),
+                            );
+                          })
+                        : List.generate(placeholderData.length, (index) {
+                            return Skeletonizer(
+                              enabled: true,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.only(right: marginRight),
+                                  width: gridItemWidth,
+                                  height: gridItemWidth,
+                                  color: Colors.black,
                                 ),
                               ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                            );
+                          }),
                   ),
                 ),
-                const SizedBox(
-                  height: 32,
-                ),
-                const Text(
-                  "Горячие жанры",
-                  style: AppTextStyles.headline2,
-                ),
-                const SizedBox(
-                  height: 25,
-                ),
+                const SizedBox(height: 32),
+                const Text("Горячие жанры", style: AppTextStyles.headline2),
+                const SizedBox(height: 25),
+
                 // GridView.builder(
                 //   shrinkWrap: true,
                 //   physics: const BouncingScrollPhysics(),
@@ -341,7 +312,6 @@ class SearchScreen extends StatelessWidget {
                 //     ),
                 //   ),
                 // ),
-
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const BouncingScrollPhysics(),
@@ -370,8 +340,9 @@ class SearchScreen extends StatelessWidget {
                           ),
                         ),
                         child: ClipRRect(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(6)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(6),
+                          ),
                           child: Stack(
                             children: [
                               Positioned.fill(
@@ -454,6 +425,128 @@ class SearchScreen extends StatelessWidget {
                 // ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NewBeatWidget extends StatelessWidget {
+  final BeatEntity beat;
+  final double width;
+  final double marginRight;
+  final double gridItemWidth;
+
+  const NewBeatWidget({
+    super.key,
+    required this.beat,
+    required this.width,
+    required this.marginRight,
+    required this.gridItemWidth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(
+        Radius.circular(6),
+      ),
+      child: GestureDetector(
+        onTap: () {
+          context.read<PlayerBloc>().add(PlayAudioEvent());
+          context.router.push(const PlayerRoute());
+        },
+        child: Container(
+          width: width,
+          margin: EdgeInsets.only(right: marginRight),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image.asset(
+              //   fit: BoxFit.fitWidth,
+              //   width: width,
+              //   "assets/images/image1.png",
+              // ),
+              Image.network(
+                fit: BoxFit.fitHeight,
+                width: gridItemWidth,
+                height: gridItemWidth,
+                beat.picture,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "${beat.price} RUB",
+                style: AppTextStyles.bodyPrice2,
+              ),
+              Text(
+                beat.name,
+                style: AppTextStyles.headline1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              'https://upload.wikimedia.org/wikipedia/commons/b/b6/Image_created_with_a_mobile_phone.png',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.only(
+                              right: 5,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 2),
+                                Text(
+                                  beat.beatmakerName == ''
+                                      ? "beatmaker1"
+                                      : beat.beatmakerName,
+                                  style: AppTextStyles.bodyText2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.volume_down_outlined,
+                        size: 12,
+                        color: AppColors.unselectedItemColor,
+                      ),
+                      Column(
+                        children: [
+                          const SizedBox(height: 1),
+                          Text(
+                            beat.plays.toString(),
+                            style:
+                                AppTextStyles.bodyText2.copyWith(fontSize: 10),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
