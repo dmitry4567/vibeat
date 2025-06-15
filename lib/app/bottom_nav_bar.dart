@@ -23,7 +23,7 @@ class _DashboardPageState extends State<DashboardPage> {
           AutoTabsScaffold(
             backgroundColor: AppColors.background,
             routes: const [
-              HomeRoute(),
+              HeadRoute(),
               SearchRoute(),
               FavoriteRoute(),
               CartRoute(),
@@ -51,10 +51,9 @@ class _DashboardPageState extends State<DashboardPage> {
                         tabsRouter.activeIndex == 0
                             ? Icons.home
                             : Icons.home_outlined,
-                        color:
-                            tabsRouter.activeIndex == 0
-                                ? Colors.white
-                                : const Color(0xff666666),
+                        color: tabsRouter.activeIndex == 0
+                            ? Colors.white
+                            : const Color(0xff666666),
                       ),
                       label: '',
                     ),
@@ -63,10 +62,9 @@ class _DashboardPageState extends State<DashboardPage> {
                         tabsRouter.activeIndex == 0
                             ? Icons.search
                             : Icons.search_outlined,
-                        color:
-                            tabsRouter.activeIndex == 1
-                                ? Colors.white
-                                : const Color(0xff666666),
+                        color: tabsRouter.activeIndex == 1
+                            ? Colors.white
+                            : const Color(0xff666666),
                       ),
                       label: '',
                     ),
@@ -75,10 +73,9 @@ class _DashboardPageState extends State<DashboardPage> {
                         tabsRouter.activeIndex == 2
                             ? Icons.favorite
                             : Icons.favorite_outline,
-                        color:
-                            tabsRouter.activeIndex == 2
-                                ? Colors.white
-                                : const Color(0xff666666),
+                        color: tabsRouter.activeIndex == 2
+                            ? Colors.white
+                            : const Color(0xff666666),
                       ),
                       label: '',
                     ),
@@ -87,10 +84,9 @@ class _DashboardPageState extends State<DashboardPage> {
                         tabsRouter.activeIndex == 3
                             ? Icons.shopping_cart
                             : Icons.shopping_cart_outlined,
-                        color:
-                            tabsRouter.activeIndex == 3
-                                ? Colors.white
-                                : const Color(0xff666666),
+                        color: tabsRouter.activeIndex == 3
+                            ? Colors.white
+                            : const Color(0xff666666),
                       ),
                       label: '',
                     ),
@@ -104,15 +100,14 @@ class _DashboardPageState extends State<DashboardPage> {
             right: 0,
             bottom: 96,
             child: BlocBuilder<PlayerBloc, PlayerState>(
-              buildWhen:
-                  (previous, current) =>
-                      previous.playerBottom != current.playerBottom ||
-                      previous.trackList != current.trackList ||
-                      previous.isPlaying != current.isPlaying,
+              buildWhen: (previous, current) =>
+                  previous.playerBottom != current.playerBottom ||
+                  previous.trackList != current.trackList ||
+                  previous.isPlaying != current.isPlaying,
               builder: (context, state) {
                 if (state.trackList.isNotEmpty && state.playerBottom) {
                   final track = state.trackList[state.currentTrackIndex];
-      
+
                   return GestureDetector(
                     onTap: () {
                       context.router.push(const PlayerRoute());
@@ -156,7 +151,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Text(
                                           track.name,
@@ -172,7 +168,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                         Text(
                                           track.bitmaker,
                                           style: TextStyle(
-                                            color: Colors.white.withOpacity(0.5),
+                                            color:
+                                                Colors.white.withOpacity(0.5),
                                             fontSize: 12,
                                             fontWeight: FontWeight.w400,
                                             fontFamily: "Helvetica",
@@ -205,12 +202,12 @@ class _DashboardPageState extends State<DashboardPage> {
                                         onPressed: () {
                                           if (state.isPlaying) {
                                             context.read<PlayerBloc>().add(
-                                              PauseAudioEvent(),
-                                            );
+                                                  PauseAudioEvent(),
+                                                );
                                           } else {
                                             context.read<PlayerBloc>().add(
-                                              PlayAudioEvent(),
-                                            );
+                                                  PlayAudioEvent(),
+                                                );
                                           }
                                         },
                                       ),

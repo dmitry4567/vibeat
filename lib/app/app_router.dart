@@ -13,12 +13,20 @@ class AppRouter extends RootStackRouter {
           page: DashboardRoute.page,
           guards: [AuthGuard()],
           children: [
-            AutoRoute(path: 'home', page: HomeRoute.page),
+            AutoRoute(
+              path: 'head',
+              page: const EmptyShellRoute('head'),
+              children: [
+                AutoRoute(path: '', page: HeadRoute.page),
+                AutoRoute(path: 'head/playlistMood', page: PlaylistMoodRoute.page),
+              ],
+            ),
             AutoRoute(
               path: 'search',
               page: const EmptyShellRoute('search'),
               children: [
                 AutoRoute(path: '', page: SearchRoute.page),
+                AutoRoute(path: 'head/playlist', page: PlaylistRoute.page),
                 AutoRoute(path: 'search/filter', page: FilterRoute.page),
                 AutoRoute(
                     path: 'search/filter_genre', page: FilterGenreRoute.page),

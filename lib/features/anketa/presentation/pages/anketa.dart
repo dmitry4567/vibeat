@@ -37,7 +37,7 @@ class _AnketaScreenState extends State<AnketaScreen> {
           );
         }
         if (state.isResponseSuccess == true) {
-          context.router.replaceAll([const HomeRoute()]);
+          context.router.replaceAll([const HeadRoute()]);
         }
       },
       builder: (context, state) {
