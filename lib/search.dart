@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
+import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:http/http.dart' as http;
@@ -20,31 +22,82 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   List<BeatEntity> beatData = [];
-  List<BeatEntity> placeholderData = List.generate(
+  List<GenreModel> genresData = [];
+  List<BeatEntity> placeholderBeat = List.generate(
     5,
     (index) => const BeatEntity(
+      id: "",
+      name: "",
+      description: "",
+      picture: "",
+      beatmakerName: "",
+      url: "",
+      price: 1000,
+      plays: 1000,
+      genres: [],
+      moods: [],
+      tags: [],
+      key: KeyModel(
         name: "",
-        picture: "",
-        beatmakerName: "",
-        url: "",
-        price: 1000,
-        plays: 1000),
+        key: "",
+        isSelected: false,
+      ),
+      bpm: 0,
+      createAt: 0,
+    ),
+  );
+  List<GenreModel> placeholderGenre = List.generate(
+    4,
+    (index) => const GenreModel(
+        name: "", countOfBeats: 300, key: "", photoUrl: "", isSelected: false),
   );
 
   final TextEditingController textController1 = TextEditingController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    ModalRoute.of(context)?.addScopedWillPopCallback(() {
+      getNewBeats();
+      getGenres();
+      return Future.value(true);
+    });
+  }
 
   @override
   void initState() {
     super.initState();
 
     getNewBeats();
+    getGenres();
   }
 
   void getNewBeats() async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final response = await http.get(
-      Uri.parse('http://192.168.0.135:7771/api/beat/beatsByDate/0/$now'),
+      Uri.parse('http://192.168.43.60:7771/api/beat/beatsByDate/0/$now'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body)['data'];
+
+      // log(data.toString());
+
+      setState(() {
+        beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
+      });
+      beatData = beatData.take(100).toList();
+    }
+    if (response.statusCode == 500) {
+      beatData = [];
+    }
+  }
+
+  void getGenres() async {
+    final response = await http.get(
+      Uri.parse('http://192.168.43.60:7771/api/metadata/genres'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -54,11 +107,8 @@ class _SearchScreenState extends State<SearchScreen> {
       log(data.toString());
 
       setState(() {
-        beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
+        genresData = data.map((json) => GenreModel.fromJson(json)).toList();
       });
-    }
-    if (response.statusCode == 500) {
-      beatData = [];
     }
   }
 
@@ -100,6 +150,13 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 TextFormField(
                   controller: textController1,
+                  onFieldSubmitted: (value) {
+                    if (value != "") {
+                      context.router.push(ResultRoute(
+                        query: value,
+                      ));
+                    }
+                  },
                   onTap: () {
                     context.read<PlayerBloc>().add(
                           UpdatePlayerBottomEvent(false),
@@ -204,7 +261,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: beatData.isNotEmpty
-                        ? List.generate(beatData.length, (index) {
+                        ? List.generate(100, (index) {
                             return Skeletonizer(
                               enabled: false,
                               child: NewBeatWidget(
@@ -215,7 +272,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             );
                           })
-                        : List.generate(placeholderData.length, (index) {
+                        : List.generate(placeholderBeat.length, (index) {
                             return Skeletonizer(
                               enabled: true,
                               child: ClipRRect(
@@ -315,87 +372,38 @@ class _SearchScreenState extends State<SearchScreen> {
                 //     ),
                 //   ),
                 // ),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: 4,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisExtent: (size.width - (paddingWidth * 2) - 10) / 3,
-                  ),
-                  itemBuilder: (_, index) => Skeletonizer(
-                    enabled: false,
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        margin: EdgeInsets.only(
-                          right: (index + 1) % 2 != 0 ? 15 : 0,
-                          bottom: 20,
+                genresData.isNotEmpty
+                    ? GridView.builder(
+                        shrinkWrap: true,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: genresData.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisExtent:
+                              (size.width - (paddingWidth * 2) - 10) / 3,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
-                            width: 1,
-                          ),
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(6),
-                          ),
+                        itemBuilder: (_, index) => GenreWidget(
+                          index: index % 4,
+                          genre: genresData[index],
                         ),
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(6),
-                          ),
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: Image.asset(
-                                  "assets/images/genre${(index + 1)}.png",
-                                  fit: BoxFit.fitWidth,
-                                ),
-                              ),
-                              Positioned.fill(
-                                child: Container(
-                                  color: Colors.black.withOpacity(0.4),
-                                ),
-                              ),
-                              const Positioned(
-                                top: 9,
-                                left: 9,
-                                child: Text(
-                                  "Detroit",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontFamily: "Poppins",
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textPrimary,
-                                    letterSpacing: -0.41,
-                                    height: 0.81,
-                                  ),
-                                ),
-                              ),
-                              const Positioned(
-                                bottom: 9,
-                                right: 9,
-                                child: Text(
-                                  "5000 битов",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: "Poppins",
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.textPrimary,
-                                    letterSpacing: -0.41,
-                                    height: 0.54,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      )
+                    : GridView.builder(
+                        shrinkWrap: true,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: placeholderGenre.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisExtent:
+                              (size.width - (paddingWidth * 2) - 10) / 3,
+                        ),
+                        itemBuilder: (_, index) => Skeletonizer(
+                          enabled: true,
+                          child: GenreWidget(
+                            index: index,
+                            genre: placeholderGenre[index],
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
 
                 // GridView.count(
                 //   crossAxisCount: 2,
@@ -435,6 +443,90 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
+class GenreWidget extends StatelessWidget {
+  const GenreWidget({super.key, required this.index, required this.genre});
+
+  final int index;
+  final GenreModel genre;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        context.router.push(ResultRoute(
+          genres: [genre],
+        ));
+      },
+      child: Container(
+        margin: EdgeInsets.only(
+          right: (index + 1) % 2 != 0 ? 15 : 0,
+          bottom: 20,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(6),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(6),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  "assets/images/genre${(index + 1)}.png",
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.4),
+                ),
+              ),
+              Positioned(
+                top: 9,
+                left: 9,
+                child: Text(
+                  genre.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.41,
+                    height: 0.81,
+                  ),
+                ),
+              ),
+              const Positioned(
+                bottom: 9,
+                right: 9,
+                child: Text(
+                  "5000 битов",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.41,
+                    height: 0.54,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class NewBeatWidget extends StatelessWidget {
   final BeatEntity beat;
   final double width;
@@ -457,7 +549,8 @@ class NewBeatWidget extends StatelessWidget {
       ),
       child: GestureDetector(
         onTap: () {
-          context.read<PlayerBloc>().add(PlayAudioEvent());
+          context.read<PlayerBloc>().add(PlayCurrentBeatEvent(beat));
+
           context.router.push(const PlayerRoute());
         },
         child: Container(
@@ -476,6 +569,18 @@ class NewBeatWidget extends StatelessWidget {
                 width: gridItemWidth,
                 height: gridItemWidth,
                 beat.picture,
+                // loadingBuilder: (context, child, loadingProgress) =>
+                //     Skeletonizer(
+                //   enabled: true,
+                //   child: ClipRRect(
+                //     borderRadius: const BorderRadius.all(Radius.circular(6)),
+                //     child: Container(
+                //       width: gridItemWidth,
+                //       height: gridItemWidth,
+                //       color: Colors.red,
+                //     ),
+                //   ),
+                // ),
               ),
               const SizedBox(height: 6),
               Text(

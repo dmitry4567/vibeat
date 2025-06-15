@@ -202,7 +202,7 @@ class _FilterBpmScreenState extends State<FilterBpmScreen> {
                     context.read<BpmCubit>().updateBpm(from, to);
                     context.read<FilterBloc>().add(const ToggleFilter(2, true));
 
-                    context.router.back();
+                    context.maybePop();
                   } else {
                     log("from < to");
                   }

@@ -9,6 +9,7 @@ import 'dart:developer' as d;
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/player/model/model_track.dart';
 import 'package:vibeat/utils/image_extractor.dart';
 
@@ -16,7 +17,7 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  static String host = "192.168.0.135";
+  static String host = "192.168.43.60";
   // static String host = "192.168.0.136";
 
   final AudioPlayer player = AudioPlayer();
@@ -60,68 +61,66 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       emit(state.copyWith(playerBottom: event.value));
     });
 
-    on<GetRecommendEvent>((event, emit) async {
-      try {
-        final response = await http.get(
-          Uri.parse("http://$host:3000/music/rec/rec"),
-        );
+    on<GetRecommendEvent>(
+      (event, emit) async {
+        try {
+          final response = await http.get(
+            Uri.parse("http://$host:3000/music/rec/rec"),
+          );
 
-        if (response.statusCode == 200) {
-          final trackData = jsonDecode(response.body);
+          if (response.statusCode == 200) {
+            final trackData = jsonDecode(response.body);
 
-          List<Track> trackList = [];
+            List<Track> trackList = [];
 
-          for (var t in trackData) {
-            final track = Track(
-              id: t["id"],
-              name: t["name"],
-              bitmaker: t["bitmaker"],
-              price: int.parse(t["price"]),
-              trackUrl: t["trackUrl"],
-              photoUrl: t["photoUrl"],
+            for (var t in trackData) {
+              final track = Track(
+                id: t["id"],
+                name: t["name"],
+                bitmaker: t["bitmaker"],
+                price: int.parse(t["price"]),
+                trackUrl: t["trackUrl"],
+                photoUrl: t["photoUrl"],
+              );
+
+              trackList.add(track);
+              // Generate waveform data for each track
+              _generateWaveformForTrack(track);
+              // await _getColorsBackground(track);
+            }
+
+            List<AudioSource> audioSources = trackList
+                .map(
+                  (track) => AudioSource.uri(
+                    Uri.parse(track.trackUrl),
+                    tag: MediaItem(
+                      id: track.id,
+                      album: "Album name",
+                      artist: track.bitmaker,
+                      title: track.name,
+                      artUri: Uri.parse(track.photoUrl),
+                    ),
+                  ),
+                )
+                .toList();
+
+            playlist = ConcatenatingAudioSource(
+              useLazyPreparation: true,
+              shuffleOrder: DefaultShuffleOrder(),
+              children: audioSources,
             );
 
-            trackList.add(track);
-            // Generate waveform data for each track
-            _generateWaveformForTrack(track);
-            // await _getColorsBackground(track);
-          }
+            await player.setAudioSource(
+              playlist,
+              initialIndex: 0,
+              initialPosition: Duration.zero,
+            );
 
-          List<AudioSource> audioSources =
-              trackList
-                  .map(
-                    (track) => AudioSource.uri(
-                      Uri.parse(track.trackUrl),
-                      tag: MediaItem(
-                        id: track.id,
-                        album: "Album name",
-                        artist: track.bitmaker,
-                        title: track.name,
-                        artUri: Uri.parse(track.photoUrl),
-                      ),
-                    ),
-                  )
-                  .toList();
+            // Set initial waveform data
+            final initialWaveform = _trackWaveforms[trackList[0].trackUrl] ??
+                _generateDefaultWaveform();
 
-          playlist = ConcatenatingAudioSource(
-            useLazyPreparation: true,
-            shuffleOrder: DefaultShuffleOrder(),
-            children: audioSources,
-          );
-
-          await player.setAudioSource(
-            playlist,
-            initialIndex: 0,
-            initialPosition: Duration.zero,
-          );
-
-          // Set initial waveform data
-          final initialWaveform =
-              _trackWaveforms[trackList[0].trackUrl] ??
-              _generateDefaultWaveform();
-
-          emit(
-            state.copyWith(
+            emit(state.copyWith(
               trackList: trackList,
               currentTrackIndex: player.currentIndex!,
               colorsOfBackground: _trackColors,
@@ -135,6 +134,64 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         }
       },
     );
+
+    on<PlayCurrentBeatEvent>((event, emit) async {
+      player.stop();
+
+      List<Track> trackList = [];
+
+      final track = Track(
+        id: event.beat.id,
+        name: event.beat.name,
+        bitmaker: "bitmaker",
+        price: event.beat.price,
+        trackUrl: 'http://storage.yandexcloud.net/mp3beats/${event.beat.url}',
+        photoUrl: event.beat.picture,
+      );
+      trackList.add(track);
+
+      _generateWaveformForTrack(track);
+
+      List<AudioSource> audioSources = trackList
+          .map(
+            (track) => AudioSource.uri(
+              Uri.parse(track.trackUrl),
+              tag: MediaItem(
+                id: track.id,
+                album: "Album name",
+                artist: track.bitmaker,
+                title: track.name,
+                artUri: Uri.parse(track.photoUrl),
+              ),
+            ),
+          )
+          .toList();
+
+      playlist = ConcatenatingAudioSource(
+        useLazyPreparation: true,
+        shuffleOrder: DefaultShuffleOrder(),
+        children: audioSources,
+      );
+
+      await player.setAudioSource(
+        playlist,
+        initialIndex: 0,
+        initialPosition: Duration.zero,
+      );
+
+      // Set initial waveform data
+      final initialWaveform =
+          _trackWaveforms[trackList[0].trackUrl] ?? _generateDefaultWaveform();
+      
+      player.play();
+
+      emit(state.copyWith(
+        trackList: trackList,
+        currentTrackIndex: player.currentIndex!,
+        colorsOfBackground: _trackColors,
+        waveformData: initialWaveform,
+      ));
+    });
 
     on<PlayAudioEvent>((event, emit) async {
       // final cachePath = (await LockCachingAudioSource.getCacheFile(
@@ -162,7 +219,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             currentTrackIndex: event.index,
             waveformData:
                 _trackWaveforms[state.trackList[event.index].trackUrl] ??
-                _generateDefaultWaveform(),
+                    _generateDefaultWaveform(),
           ),
         );
 
@@ -326,8 +383,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             trackList: updatedTrackList,
             currentTrackIndex: state.currentTrackIndex + 1,
             colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
-            waveformData:
-                _trackWaveforms[newTrack.trackUrl] ??
+            waveformData: _trackWaveforms[newTrack.trackUrl] ??
                 _generateDefaultWaveform(),
           ),
         );

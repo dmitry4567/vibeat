@@ -64,3 +64,12 @@ class UpdatePlayerBottomEvent extends PlayerEvent {
   final bool value;
   UpdatePlayerBottomEvent(this.value);
 }
+
+class PlayCurrentBeatEvent extends PlayerEvent {
+  final BeatEntity beat;
+
+  PlayCurrentBeatEvent(this.beat);
+
+    @override
+  List<Object?> get props => [beat];
+}

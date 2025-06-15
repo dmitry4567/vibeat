@@ -23,6 +23,7 @@ class AppRouter extends RootStackRouter {
             ),
             AutoRoute(
               path: 'search',
+              initial: true,
               page: const EmptyShellRoute('search'),
               children: [
                 AutoRoute(path: '', page: SearchRoute.page),
@@ -48,8 +49,16 @@ class AppRouter extends RootStackRouter {
         ),
         AutoRoute(
           path: '/signIn',
-          initial: true,
           page: SignInRoute.page,
+        ),
+        AutoRoute(
+          path: '/infoBeatmaker',
+          page: InfoBeatmaker.page,
+        ),
+        AutoRoute(
+          path: '/infoBeat',
+          initial: true,
+          page: InfoBeat.page,
         ),
         AutoRoute(
           path: '/signUp',
