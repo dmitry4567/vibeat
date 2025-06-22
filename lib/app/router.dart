@@ -39,6 +39,11 @@ class MyAutoRouterObserver extends AutoRouterObserver {
     super.didChangeTabRoute(route, previousRoute);
     d.log("change " + route.path);
 
+    if (route.path == "search") {
+      bloc.add(UpdatePlayerBottomEvent(true));
+      return;
+    }
+
     // d.log("didChangeTabRoute  " + route.name.toString());
     // здесь прописать открытие снизу виджета плеера
   }
@@ -60,11 +65,15 @@ class MyAutoRouterObserver extends AutoRouterObserver {
       return;
     }
 
-    if (!startsWithLowerCase(route.settings.name.toString()) &&
-        (route.settings.name != "DashboardRoute")) {
+    if (route.settings.name == "FilterRoute") {
       bloc.add(UpdatePlayerBottomEvent(false));
       return;
     }
+
+    // if (route.settings.name != "DashboardRoute") {
+    //   bloc.add(UpdatePlayerBottomEvent(false));
+    //   return;
+    // }
 
     // if (route.settings is AutoRoutePage) {
     //   final routeData = (route.settings as AutoRoutePage).routeData;
@@ -74,14 +83,15 @@ class MyAutoRouterObserver extends AutoRouterObserver {
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
+    d.log("pop prev " + previousRoute!.settings.name.toString());
     d.log("pop " + route.settings.name.toString());
 
     final routeData = (route.settings as AutoRoutePage).routeData;
 
-    if (route.settings.name == "ResultRoute") {
-      bloc.add(UpdatePlayerBottomEvent(false));
-      return;
-    }
+    // if (route.settings.name == "ResultRoute") {
+    //   bloc.add(UpdatePlayerBottomEvent(false));
+    //   return;
+    // }
 
     if (route.settings.name == "FilterRoute" ||
         route.settings.name == "ProfileRoute") {
@@ -89,7 +99,14 @@ class MyAutoRouterObserver extends AutoRouterObserver {
       return;
     }
 
-    if (startsWithLowerCase(route.settings.name.toString())) {
+    if (startsWithLowerCase(route.settings.name.toString()) ||
+        route.settings.name == "PlayerRoute") {
+      bloc.add(UpdatePlayerBottomEvent(true));
+      return;
+    }
+
+    if (previousRoute.settings.name == "SearchRoute" ||
+        route.settings.name == "PlaylistRoute") {
       bloc.add(UpdatePlayerBottomEvent(true));
       return;
     }

@@ -41,7 +41,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
     try {
       final response = await apiClient.get(
-        "http://192.168.43.60:7771/api/activity/viewMyLikes",
+        "http://192.168.0.135:8080/activityBeat/viewMyLikes",
       );
 
       if (response.statusCode == 200) {

@@ -20,8 +20,9 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
+List<BeatEntity> beatData = [];
+
 class _SearchScreenState extends State<SearchScreen> {
-  List<BeatEntity> beatData = [];
   List<GenreModel> genresData = [];
   List<BeatEntity> placeholderBeat = List.generate(
     5,
@@ -76,7 +77,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final response = await http.get(
-      Uri.parse('http://192.168.43.60:7771/api/beat/beatsByDate/0/$now'),
+      Uri.parse('http://192.168.0.135:8080/beat/beatsByDate/0/$now'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -88,7 +89,7 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() {
         beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
       });
-      beatData = beatData.take(100).toList();
+      // beatData = beatData.toList();
     }
     if (response.statusCode == 500) {
       beatData = [];
@@ -97,7 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void getGenres() async {
     final response = await http.get(
-      Uri.parse('http://192.168.43.60:7771/api/metadata/genres'),
+      Uri.parse('http://192.168.0.135:8080/metadata/genres'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -265,6 +266,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             return Skeletonizer(
                               enabled: false,
                               child: NewBeatWidget(
+                                index: index,
                                 beat: beatData[index],
                                 width: width,
                                 marginRight: marginRight,
@@ -529,6 +531,7 @@ class GenreWidget extends StatelessWidget {
 
 class NewBeatWidget extends StatelessWidget {
   final BeatEntity beat;
+  final int index;
   final double width;
   final double marginRight;
   final double gridItemWidth;
@@ -536,6 +539,7 @@ class NewBeatWidget extends StatelessWidget {
   const NewBeatWidget({
     super.key,
     required this.beat,
+    required this.index,
     required this.width,
     required this.marginRight,
     required this.gridItemWidth,
@@ -549,7 +553,7 @@ class NewBeatWidget extends StatelessWidget {
       ),
       child: GestureDetector(
         onTap: () {
-          context.read<PlayerBloc>().add(PlayCurrentBeatEvent(beat));
+          context.read<PlayerBloc>().add(PlayCurrentBeatEvent(beatData, index));
 
           context.router.push(const PlayerRoute());
         },
@@ -569,18 +573,36 @@ class NewBeatWidget extends StatelessWidget {
                 width: gridItemWidth,
                 height: gridItemWidth,
                 beat.picture,
-                // loadingBuilder: (context, child, loadingProgress) =>
-                //     Skeletonizer(
-                //   enabled: true,
-                //   child: ClipRRect(
-                //     borderRadius: const BorderRadius.all(Radius.circular(6)),
-                //     child: Container(
-                //       width: gridItemWidth,
-                //       height: gridItemWidth,
-                //       color: Colors.red,
-                //     ),
-                //   ),
-                // ),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) {
+                    return ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
+                      child: child,
+                    );
+                  }
+                  return Skeletonizer(
+                    enabled: true,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
+                      child: Container(
+                        width: gridItemWidth,
+                        height: gridItemWidth,
+                        color: Colors.red,
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(6)),
+                    child: Container(
+                      width: gridItemWidth,
+                      height: gridItemWidth,
+                      color: Colors.grey,
+                      child: const Icon(Icons.error),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 6),
               Text(
@@ -604,7 +626,7 @@ class NewBeatWidget extends StatelessWidget {
                           height: 12,
                           child: CircleAvatar(
                             backgroundImage: NetworkImage(
-                              'https://upload.wikimedia.org/wikipedia/commons/b/b6/Image_created_with_a_mobile_phone.png',
+                              'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
                             ),
                           ),
                         ),

@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:audio_waveforms/audio_waveforms.dart' as af;
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/player/widgets/player_control_widget.dart';
@@ -368,9 +371,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             itemCount: state.trackList.length,
                             onPageChanged: (value) {
                               if (value > state.currentTrackIndex) {
+                                // context
+                                //     .read<PlayerBloc>()
+                                //     .add(NextTrackEvent());
+
                                 context
                                     .read<PlayerBloc>()
-                                    .add(NextTrackEvent());
+                                    .add(NextBeatInPlaylistEvent());
                               } else {
                                 context
                                     .read<PlayerBloc>()
@@ -832,14 +839,32 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           ],
                         ),
                       ),
-                      Positioned(
-                        right: 4,
-                        bottom: 2,
-                        child: IconButton(
-                          onPressed: () async {},
-                          icon: const Icon(Icons.info_outline),
-                          color: AppColors.iconPrimary,
-                        ),
+                      BlocBuilder<PlayerBloc, PlayerState>(
+                        builder: (context, state) {
+                          return Positioned(
+                            right: 4,
+                            bottom: 2,
+                            child: IconButton(
+                              onPressed: () {
+                                context.maybePop().then((_) {
+                                  Future.delayed(
+                                          const Duration(milliseconds: 300))
+                                      .then((_) {
+                                    context.router.push(
+                                      InfoBeat(
+                                        beatId: state
+                                            .trackList[state.currentTrackIndex]
+                                            .id,
+                                      ),
+                                    );
+                                  });
+                                });
+                              },
+                              icon: const Icon(Icons.info_outline),
+                              color: AppColors.iconPrimary,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

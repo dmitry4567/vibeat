@@ -47,7 +47,8 @@ class PlayerControlWidget extends StatelessWidget {
         ),
         IconButton(
           onPressed: () {
-            context.read<PlayerBloc>().add(NextTrackEvent());
+            // context.read<PlayerBloc>().add(NextTrackEvent());
+            context.read<PlayerBloc>().add(NextBeatInPlaylistEvent());
 
             pageController.nextPage(
               duration: const Duration(milliseconds: 500),

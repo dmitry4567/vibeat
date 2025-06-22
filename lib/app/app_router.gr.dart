@@ -11,6 +11,7 @@
 import 'package:auto_route/auto_route.dart' as _i22;
 import 'package:flutter/material.dart' as _i23;
 import 'package:vibeat/app/bottom_nav_bar.dart' as _i3;
+import 'package:vibeat/cart.dart' as _i2;
 import 'package:vibeat/favorite.dart' as _i4;
 import 'package:vibeat/features/anketa/presentation/pages/anketa.dart' as _i1;
 import 'package:vibeat/features/signIn/presentation/pages/signIn.dart' as _i20;
@@ -35,7 +36,6 @@ import 'package:vibeat/playlist/playlist_widget.dart' as _i16;
 import 'package:vibeat/playlist/playlistMood_widget.dart' as _i15;
 import 'package:vibeat/profile.dart' as _i17;
 import 'package:vibeat/search.dart' as _i19;
-import 'package:vibeat/settings.dart' as _i2;
 
 /// generated route for
 /// [_i1.AnketaScreen]

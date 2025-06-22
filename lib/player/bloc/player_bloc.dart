@@ -9,8 +9,11 @@ import 'dart:developer' as d;
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/player/model/model_track.dart';
+import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/image_extractor.dart';
 
 part 'player_event.dart';
@@ -25,6 +28,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   StreamSubscription<Duration>? _positionSubscription;
   final Map<String, List<double>> _trackWaveforms = {};
   final List<List<Color>> _trackColors = [];
+  final apiClient = sl<ApiClient>().dio;
+
+  bool isListened = false;
+  Duration _lastPosition = Duration.zero;
+  Timer? _listeningTimer;
+  int listenedSeconds = 0;
+
+  Future<void> listenTrack() async {
+    final response = await apiClient.post(
+      "beatActivity/listened",
+      data: {"beatId": beatData[state.currentTrackIndex].id},
+    );
+  }
 
   PlayerBloc() : super(PlayerState.initial()) {
     // Initialize position stream subscription
@@ -41,8 +57,21 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       }
     });
 
-    player.positionStream.listen((position) {
+    player.positionStream.listen((position) async {
       add(UpdatePositionEvent(position));
+
+      if (player.playing) {
+        final diff = position.inSeconds - _lastPosition.inSeconds;
+        if (diff > 0) {
+          listenedSeconds += diff;
+
+          d.log('Total listened seconds: $listenedSeconds');
+          if (listenedSeconds == 5) {
+            await listenTrack();
+          }
+        }
+        _lastPosition = position;
+      }
     });
 
     player.playerStateStream.listen((playerState) {
@@ -85,7 +114,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
               trackList.add(track);
               // Generate waveform data for each track
-              _generateWaveformForTrack(track);
+              // _generateWaveformForTrack(track);
               // await _getColorsBackground(track);
             }
 
@@ -140,17 +169,21 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
       List<Track> trackList = [];
 
-      final track = Track(
-        id: event.beat.id,
-        name: event.beat.name,
-        bitmaker: "bitmaker",
-        price: event.beat.price,
-        trackUrl: 'http://storage.yandexcloud.net/mp3beats/${event.beat.url}',
-        photoUrl: event.beat.picture,
-      );
-      trackList.add(track);
+      for (var t in event.beats) {
+        final track = Track(
+          id: t.id,
+          name: t.name,
+          bitmaker: "bitmaker",
+          price: t.price,
+          trackUrl: 'http://storage.yandexcloud.net/mp3beats/${t.url}',
+          photoUrl: t.picture,
+        );
 
-      _generateWaveformForTrack(track);
+        trackList.add(track);
+        // Generate waveform data for each track
+        _generateWaveformForTrack(track);
+        // await _getColorsBackground(track);
+      }
 
       List<AudioSource> audioSources = trackList
           .map(
@@ -175,14 +208,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
       await player.setAudioSource(
         playlist,
-        initialIndex: 0,
+        initialIndex: event.index,
         initialPosition: Duration.zero,
       );
 
       // Set initial waveform data
       final initialWaveform =
           _trackWaveforms[trackList[0].trackUrl] ?? _generateDefaultWaveform();
-      
+
       player.play();
 
       emit(state.copyWith(
@@ -191,6 +224,40 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         colorsOfBackground: _trackColors,
         waveformData: initialWaveform,
       ));
+    });
+
+    on<NextBeatInPlaylistEvent>((event, emit) async {
+      player.stop();
+
+      final beat = state.trackList[state.currentTrackIndex + 1];
+
+      _generateWaveformForTrack(beat);
+      // await _getColorsBackground(beat);
+
+      final updatedTrackList = List<Track>.from(state.trackList)..add(beat);
+
+      final newChild = AudioSource.uri(
+        Uri.parse(beat.trackUrl),
+        tag: MediaItem(
+          id: beat.id,
+          album: "Album name",
+          artist: beat.bitmaker,
+          title: beat.name,
+          artUri: Uri.parse(beat.photoUrl),
+        ),
+      );
+
+      await playlist.add(newChild);
+
+      final nextIndex = state.currentTrackIndex + 1;
+
+      await player.seek(Duration.zero, index: nextIndex);
+      await player.play();
+
+      _lastPosition = Duration.zero;
+      listenedSeconds = 0;
+
+      emit(state.copyWith(trackList: updatedTrackList));
     });
 
     on<PlayAudioEvent>((event, emit) async {
@@ -373,7 +440,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
         // Generate waveform for new track
         _generateWaveformForTrack(newTrack);
-        await _getColorsBackground(newTrack);
+        // await _getColorsBackground(newTrack);
 
         final updatedTrackList = List<Track>.from(state.trackList)
           ..add(newTrack);
@@ -441,6 +508,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   @override
   Future<void> close() {
+    _listeningTimer?.cancel();
     _positionSubscription?.cancel();
     player.dispose();
     return super.close();

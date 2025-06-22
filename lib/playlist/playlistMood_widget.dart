@@ -55,7 +55,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
   void getBeatByMood() async {
     final response = await http.get(
       Uri.parse(
-          'http://192.168.43.60:7771/api/beat/beatsByMoodId/${widget.mood.key}'),
+          'http://192.168.0.135:8080/beat/beatsByMoodId/${widget.mood.key}'),
       headers: {'Content-Type': 'application/json'},
     );
 

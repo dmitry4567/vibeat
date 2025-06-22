@@ -107,15 +107,13 @@ class _ResultScreenState extends State<ResultScreen> {
     log(filters.toString());
 
     final response = await http.post(
-      Uri.parse('http://192.168.43.60:7771/api/beat/filteredBeats'),
+      Uri.parse('http://192.168.0.135:8080/beat/filteredBeats'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(filters),
     );
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['data'];
-
-      log(data.toString());
 
       setState(() {
         beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
@@ -372,7 +370,7 @@ class BeatWidget extends StatelessWidget {
                             height: 12,
                             child: CircleAvatar(
                               backgroundImage: NetworkImage(
-                                'https://upload.wikimedia.org/wikipedia/commons/b/b6/Image_created_with_a_mobile_phone.png',
+                                'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
                               ),
                             ),
                           ),

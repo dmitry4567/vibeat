@@ -43,7 +43,7 @@ class _HeadScreenState extends State<HeadScreen> {
 
   void getMoodData() async {
     final response = await http.get(
-      Uri.parse('http://192.168.43.60:7771/api/metadata/moods'),
+      Uri.parse('http://192.168.0.135:8080/metadata/moods'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -58,7 +58,7 @@ class _HeadScreenState extends State<HeadScreen> {
 
   void getTrendTagsData() async {
     final response = await http.get(
-      Uri.parse('http://192.168.43.60:7771/api/metadata/tags/in_trend'),
+      Uri.parse('http://192.168.0.135:8080/metadataBeat/tags/in_trend'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -703,18 +703,12 @@ class TagItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // context.router.push(
-        //   ResultRoute(tags: [tag]),
+        // context.tabsRouter.setActiveIndex(1);
+        // context.pushRoute(
+        //   ResultRoute(
+        //     tags: [tag],
+        //   ),
         // );
-        context.router.push(
-          SearchRoute(
-            children: [
-              ResultRoute(
-                tags: [tag],
-              ),
-            ],
-          ),
-        );
       },
       child: Container(
         padding: const EdgeInsets.symmetric(

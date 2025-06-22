@@ -22,7 +22,7 @@ class TagBloc extends Bloc<TagEvent, TagState> {
     on<GetTrendTags>((event, emit) async {
       try {
         final response = await http
-            .get(Uri.parse('http://192.168.43.60:7772/api/metadata/tags'));
+            .get(Uri.parse('http://192.168.0.135:8080/metadata/tags'));
 
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body)['data'];
@@ -73,7 +73,7 @@ class TagBloc extends Bloc<TagEvent, TagState> {
       }
 
       final response = await http.get(Uri.parse(
-          'http://192.168.43.60:7772/api/metadata/tagsByName/${event.query}'));
+          'http://192.168.0.135:8080/metadata/tagsByName/${event.query}'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body)['data'];

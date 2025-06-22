@@ -10,6 +10,7 @@ import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
+import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:http/http.dart' as http;
@@ -77,7 +78,7 @@ class _InfoBeatState extends State<InfoBeat> {
     final apiClient = sl<ApiClient>().dio;
 
     final responseLike = await apiClient.post(
-      "http://192.168.43.60:7771/api/activity/postNewLike",
+      "http://192.168.0.135:8080/activityBeat/postNewLike",
       data: {
         'beatId': widget.beatId,
       },
@@ -85,7 +86,7 @@ class _InfoBeatState extends State<InfoBeat> {
 
     if (responseLike.statusCode == 205) {
       final responseDelete = await apiClient
-          .delete("http://192.168.43.60:7771/api/activity/${widget.beatId}");
+          .delete("http://192.168.0.135:8080/activityBeat/${widget.beatId}");
 
       if (responseDelete.statusCode == 200) {
         setState(() {
@@ -110,7 +111,7 @@ class _InfoBeatState extends State<InfoBeat> {
   void getLikesCountByBeat() async {
     final response = await http.get(
       Uri.parse(
-          "http://192.168.43.60:7771/api/activity/viewLikesCountByBeatId/${widget.beatId}"),
+          "http://192.168.0.135:8080/activityBeat/viewLikesCountByBeatId/${widget.beatId}"),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -125,7 +126,7 @@ class _InfoBeatState extends State<InfoBeat> {
 
   void getBeatInfo() async {
     final response = await http.get(
-      Uri.parse("http://192.168.43.60:7771/api/beat/byBeatId/${widget.beatId}"),
+      Uri.parse("http://192.168.0.135:8080/beat/byBeatId/${widget.beatId}"),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -557,7 +558,7 @@ class _InfoBeatState extends State<InfoBeat> {
                                                   child: CircleAvatar(
                                                     backgroundImage:
                                                         NetworkImage(
-                                                      'https://upload.wikimedia.org/wikipedia/commons/b/b6/Image_created_with_a_mobile_phone.png',
+                                                      'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
                                                     ),
                                                   ),
                                                 ),

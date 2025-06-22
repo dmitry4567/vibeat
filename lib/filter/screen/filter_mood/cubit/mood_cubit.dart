@@ -18,7 +18,7 @@ class MoodCubit extends Cubit<MoodState> {
       emit(MoodLoading());
 
       final response = await http.get(
-        Uri.parse('http://192.168.43.60:7772/api/metadata/moods'),
+        Uri.parse('http://192.168.0.135:8080/metadata/moods'),
       );
 
       await Future.delayed(const Duration(milliseconds: 500));

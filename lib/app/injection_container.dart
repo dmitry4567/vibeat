@@ -54,7 +54,7 @@ Future<void> init() async {
 
   // Initialize API Client
   final apiClient = sl<ApiClient>();
-  await apiClient.initialize('http://192.168.43.60:7773/api');
+  await apiClient.initialize('http://192.168.0.135:8080/');
   // await apiClient.initialize('http://172.20.10.4:3000');
 
   // Add auth interceptor

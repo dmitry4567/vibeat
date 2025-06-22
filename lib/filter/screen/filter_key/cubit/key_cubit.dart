@@ -18,7 +18,7 @@ class KeyCubit extends Cubit<KeyState> {
       emit(KeyLoading());
 
       final response = await http
-          .get(Uri.parse('http://192.168.43.60:7772/api/metadata/keynotes'));
+          .get(Uri.parse('http://192.168.0.135:8080/metadata/keynotes'));
 
       await Future.delayed(const Duration(milliseconds: 500));
 
