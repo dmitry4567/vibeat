@@ -111,13 +111,18 @@ class _HeadScreenState extends State<HeadScreen> {
                 backgroundColor: AppColors.background,
                 surfaceTintColor: Colors.transparent,
               ),
-              const SliverToBoxAdapter(
-                child: Text(
-                  'Главная',
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontFamily: "Helvetica",
-                    fontWeight: FontWeight.w600,
+              SliverToBoxAdapter(
+                child: GestureDetector(
+                  onTap: () {
+                    context.read<AuthBloc>().add(SignOutRequested());
+                  },
+                  child: Text(
+                    'Главная',
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontFamily: "Helvetica",
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -293,8 +298,6 @@ class _HeadScreenState extends State<HeadScreen> {
                             // Random().nextInt(0x777777) + 0x888888;
                             return GestureDetector(
                               onTap: () {
-                                // context.read<AuthBloc>().add(SignOutRequested());
-
                                 context.router.push(PlaylistMoodRoute(
                                   mood: moodData[index],
                                 ));

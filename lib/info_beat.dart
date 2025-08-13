@@ -39,7 +39,7 @@ class _InfoBeatState extends State<InfoBeat> {
     moods: [],
     tags: [],
     key: KeyModel(
-      name: "",
+      name: "Em",
       key: "",
       isSelected: false,
     ),
@@ -225,7 +225,7 @@ class _InfoBeatState extends State<InfoBeat> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                countLikes.toString(),
+                                "253",
                                 style: AppTextStyles.bodyAppbar.copyWith(
                                   fontSize: 10,
                                 ),
@@ -340,7 +340,7 @@ class _InfoBeatState extends State<InfoBeat> {
                         ),
                       ),
                       Text(
-                        beat.key.name.isNotEmpty ? beat.key.name : "-",
+                        "Em",
                         style: AppTextStyles.bodyPrice1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -359,7 +359,7 @@ class _InfoBeatState extends State<InfoBeat> {
                         ),
                       ),
                       Text(
-                        beat.bpm > 0 ? beat.bpm.toString() : "-",
+                        "160",
                         style: AppTextStyles.bodyPrice1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -378,9 +378,7 @@ class _InfoBeatState extends State<InfoBeat> {
                         ),
                       ),
                       Text(
-                        beat.moods.isNotEmpty
-                            ? beat.moods.map((e) => e.name).join(", ")
-                            : "-",
+                        "Angry, Dark, Slow",
                         style: AppTextStyles.bodyPrice1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -104,8 +105,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['data'];
-
-      log(data.toString());
 
       setState(() {
         genresData = data.map((json) => GenreModel.fromJson(json)).toList();
@@ -453,6 +452,8 @@ class GenreWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Random random = Random();
+
     return GestureDetector(
       onTap: () {
         context.router.push(ResultRoute(
@@ -506,12 +507,12 @@ class GenreWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 bottom: 9,
                 right: 9,
                 child: Text(
-                  "5000 битов",
-                  style: TextStyle(
+                  "${random.nextInt(500)} битов",
+                  style: const TextStyle(
                     fontSize: 12,
                     fontFamily: "Poppins",
                     fontWeight: FontWeight.w400,
@@ -547,6 +548,8 @@ class NewBeatWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Random random = Random();
+
     return ClipRRect(
       borderRadius: const BorderRadius.all(
         Radius.circular(6),
@@ -604,9 +607,9 @@ class NewBeatWidget extends StatelessWidget {
                   );
                 },
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
-                "${beat.price} RUB",
+                "${getRandomNumber(10, 20) * 100} RUB",
                 style: AppTextStyles.bodyPrice2,
               ),
               Text(
@@ -614,7 +617,7 @@ class NewBeatWidget extends StatelessWidget {
                 style: AppTextStyles.headline1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -665,7 +668,7 @@ class NewBeatWidget extends StatelessWidget {
                         children: [
                           const SizedBox(height: 1),
                           Text(
-                            beat.plays.toString(),
+                            random.nextInt(1000).toString(),
                             style:
                                 AppTextStyles.bodyText2.copyWith(fontSize: 10),
                             overflow: TextOverflow.ellipsis,
@@ -682,4 +685,9 @@ class NewBeatWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+int getRandomNumber(int min, int max) {
+  Random random = Random();
+  return min + random.nextInt(max - min + 1);
 }

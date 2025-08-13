@@ -36,7 +36,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     getFavoriteBeats();
   }
 
-  void getFavoriteBeats() async {
+  Future<void> getFavoriteBeats() async {
     final apiClient = sl<ApiClient>().dio;
 
     try {
@@ -96,34 +96,39 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           style: AppTextStyles.bodyAppbar,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.only(top: 8, bottom: 80),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  childCount: beatData.length,
-                  (context, index) {
-                    return Skeletonizer(
-                      enabled: false,
-                      child: BeatWidget(
-                        gridItemWidth: gridItemWidth,
-                        beat: beatData[index],
-                      ),
-                    );
-                  },
-                ),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisExtent: gridItemWidth + 67,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          getFavoriteBeats();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8, bottom: 80),
+                sliver: SliverGrid(
+                  delegate: SliverChildBuilderDelegate(
+                    childCount: beatData.length,
+                    (context, index) {
+                      return Skeletonizer(
+                        enabled: false,
+                        child: BeatWidget(
+                          gridItemWidth: gridItemWidth,
+                          beat: beatData[index],
+                        ),
+                      );
+                    },
+                  ),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisExtent: gridItemWidth + 67,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

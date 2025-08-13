@@ -53,7 +53,7 @@ class PlayerState extends Equatable {
       duration: Duration.zero,
       colorsOfBackground: [],
       fragmentsMusic: [0, 3, 10],
-      fragmentsNames: ['Verse', 'Chorus', 'ver2'],
+      fragmentsNames: ['Verse', 'Chorus', 'Chorus'],
       indexFragment: 0,
       trackList: [],
       waveformData: [],

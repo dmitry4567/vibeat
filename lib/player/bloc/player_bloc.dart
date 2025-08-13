@@ -36,10 +36,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   int listenedSeconds = 0;
 
   Future<void> listenTrack() async {
-    final response = await apiClient.post(
-      "beatActivity/listened",
-      data: {"beatId": beatData[state.currentTrackIndex].id},
-    );
+    // final response = await apiClient.post(
+    //   "beatActivity/listened",
+    //   data: {"beatId": beatData[state.currentTrackIndex].id},
+    // );
   }
 
   PlayerBloc() : super(PlayerState.initial()) {
@@ -173,7 +173,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         final track = Track(
           id: t.id,
           name: t.name,
-          bitmaker: "bitmaker",
+          bitmaker: "icantluvv",
           price: t.price,
           trackUrl: 'http://storage.yandexcloud.net/mp3beats/${t.url}',
           photoUrl: t.picture,
@@ -252,7 +252,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       final nextIndex = state.currentTrackIndex + 1;
 
       await player.seek(Duration.zero, index: nextIndex);
-      await player.play();
+      // await player.play();
 
       _lastPosition = Duration.zero;
       listenedSeconds = 0;
@@ -432,7 +432,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         final newTrack = Track(
           id: "2",
           name: "name",
-          bitmaker: "bitmaker",
+          bitmaker: "icantluvv",
           price: 2000,
           trackUrl: "http://$host:3000/music/2.wav",
           photoUrl: "http://$host:3000/photo/2.png",

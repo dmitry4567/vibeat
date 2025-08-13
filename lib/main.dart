@@ -87,6 +87,7 @@ class _MainAppState extends State<MainApp> {
         navigatorObservers: () =>
             [MyAutoRouterObserver(context.read<PlayerBloc>())],
       ),
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
