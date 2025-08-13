@@ -38,7 +38,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     letterSpacing: -0.41,
-    height: 1.22,
+    // height: 1.22,
   );
 
   static const TextStyle headline2 = TextStyle(

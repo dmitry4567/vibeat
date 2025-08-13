@@ -26,6 +26,14 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _isPasswordVisible = false;
 
   @override
+  void dispose() {
+    super.dispose();
+
+    textController1.dispose();
+    textController2.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {

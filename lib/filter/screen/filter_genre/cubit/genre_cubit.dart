@@ -20,13 +20,14 @@ class GenreCubit extends Cubit<GenreState> {
       emit(GenreLoading());
 
       final response = await http.get(
-        Uri.parse('http://192.168.0.135:7772/api/metadata/genres'),
+        Uri.parse('http://192.168.0.135:8080/metadata/genres'),
       );
 
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body)['data'];
+        
         _originalGenres =
             data.map((json) => GenreModel.fromJson(json)).toList();
         emit(GenreLoaded(genres: _originalGenres, selectedGenres: const []));

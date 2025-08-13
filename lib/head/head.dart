@@ -43,7 +43,7 @@ class _HeadScreenState extends State<HeadScreen> {
 
   void getMoodData() async {
     final response = await http.get(
-      Uri.parse('http://192.168.0.135:7771/api/metadata/moods'),
+      Uri.parse('http://192.168.0.135:8080/metadata/moods'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -58,7 +58,7 @@ class _HeadScreenState extends State<HeadScreen> {
 
   void getTrendTagsData() async {
     final response = await http.get(
-      Uri.parse('http://192.168.0.135:7771/api/metadata/tags/in_trend'),
+      Uri.parse('http://192.168.0.135:8080/metadataBeat/tags/in_trend'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -67,6 +67,7 @@ class _HeadScreenState extends State<HeadScreen> {
 
       setState(() {
         tagData = data.map((json) => TagModel.fromJson(json)).toList();
+        tagData = tagData.take(20).toList();
       });
     }
   }
@@ -110,13 +111,18 @@ class _HeadScreenState extends State<HeadScreen> {
                 backgroundColor: AppColors.background,
                 surfaceTintColor: Colors.transparent,
               ),
-              const SliverToBoxAdapter(
-                child: Text(
-                  'Главная',
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontFamily: "Helvetica",
-                    fontWeight: FontWeight.w600,
+              SliverToBoxAdapter(
+                child: GestureDetector(
+                  onTap: () {
+                    context.read<AuthBloc>().add(SignOutRequested());
+                  },
+                  child: Text(
+                    'Главная',
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontFamily: "Helvetica",
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -130,64 +136,67 @@ class _HeadScreenState extends State<HeadScreen> {
                 ),
               ),
               SliverToBoxAdapter(
-                child: Container(
+                child: Padding(
                   padding: const EdgeInsets.only(top: 20),
-                  height: 177,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
+                  child: Row(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              const Color(0xff8D40FF).withOpacity(0.9),
-                              const Color(0xff8D40FF).withOpacity(0.4),
-                            ],
+                      Expanded(
+                        child: Container(
+                          width: size.width / 2 - 36 + 10,
+                          height: size.width / 2 - 36 + 10,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color(0xff8D40FF).withOpacity(0.9),
+                                const Color(0xff8D40FF).withOpacity(0.4),
+                              ],
+                            ),
                           ),
-                        ),
-                        margin: const EdgeInsets.only(right: 10),
-                        width: 177,
-                        child: const Center(
-                          child: Text(
-                            "Моя волна",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontFamily: "Helvetica",
-                              fontWeight: FontWeight.bold,
+                          margin: const EdgeInsets.only(right: 10),
+                          child: const Center(
+                            child: Text(
+                              "Моя волна",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontFamily: "Helvetica",
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              const Color.fromARGB(255, 197, 84, 2)
-                                  .withOpacity(0.9),
-                              const Color.fromARGB(255, 197, 84, 2)
-                                  .withOpacity(0.4),
-                            ],
+                      Expanded(
+                        child: Container(
+                          width: size.width / 2 - 36 + 10,
+                          height: size.width / 2 - 36 + 10,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color.fromARGB(255, 231, 100, 0)
+                                    .withOpacity(0.9),
+                                const Color.fromARGB(255, 231, 100, 0)
+                                    .withOpacity(0.4),
+                              ],
+                            ),
                           ),
-                        ),
-                        margin: const EdgeInsets.only(right: 10),
-                        width: 177,
-                        child: const Center(
-                          child: Text(
-                            "Новинки\nваших\nбитмарей",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              height: 1.2,
-                              fontFamily: "Helvetica",
-                              fontWeight: FontWeight.bold,
+                          child: const Center(
+                            child: Text(
+                              "Новинки\nваших\nбитмейкеров",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                height: 1.2,
+                                fontFamily: "Helvetica",
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -196,6 +205,73 @@ class _HeadScreenState extends State<HeadScreen> {
                   ),
                 ),
               ),
+              // SliverToBoxAdapter(
+              //   child: Container(
+              //     padding: const EdgeInsets.only(top: 20),
+              //     height: 177,
+              //     child: ListView(
+              //       scrollDirection: Axis.horizontal,
+              //       children: [
+              //         Container(
+              //           decoration: BoxDecoration(
+              //             borderRadius: BorderRadius.circular(6),
+              //             gradient: LinearGradient(
+              //               begin: Alignment.topLeft,
+              //               end: Alignment.bottomRight,
+              //               colors: [
+              //                 const Color(0xff8D40FF).withOpacity(0.9),
+              //                 const Color(0xff8D40FF).withOpacity(0.4),
+              //               ],
+              //             ),
+              //           ),
+              //           margin: const EdgeInsets.only(right: 10),
+              //           width: 177,
+              //           child: const Center(
+              //             child: Text(
+              //               "Моя волна",
+              //               style: TextStyle(
+              //                 color: Colors.white,
+              //                 fontSize: 24,
+              //                 fontFamily: "Helvetica",
+              //                 fontWeight: FontWeight.bold,
+              //               ),
+              //             ),
+              //           ),
+              //         ),
+              //         Container(
+              //           decoration: BoxDecoration(
+              //             borderRadius: BorderRadius.circular(6),
+              //             gradient: LinearGradient(
+              //               begin: Alignment.topLeft,
+              //               end: Alignment.bottomRight,
+              //               colors: [
+              //                 const Color.fromARGB(255, 231, 100, 0)
+              //                     .withOpacity(0.9),
+              //                 const Color.fromARGB(255, 231, 100, 0)
+              //                     .withOpacity(0.4),
+              //               ],
+              //             ),
+              //           ),
+              //           margin: const EdgeInsets.only(right: 10),
+              //           width: 177,
+              //           child: const Center(
+              //             child: Text(
+              //               "Новинки\nваших\nбитмейкеров",
+              //               textAlign: TextAlign.center,
+              //               style: TextStyle(
+              //                 color: Colors.white,
+              //                 fontSize: 24,
+              //                 height: 1.2,
+              //                 fontFamily: "Helvetica",
+              //                 fontWeight: FontWeight.bold,
+              //               ),
+              //             ),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
               const SliverPadding(
                 padding: EdgeInsets.only(top: 32),
                 sliver: SliverToBoxAdapter(
@@ -208,7 +284,8 @@ class _HeadScreenState extends State<HeadScreen> {
               SliverToBoxAdapter(
                 child: Container(
                   padding: const EdgeInsets.only(top: 20),
-                  height: 177,
+                  width: size.width / 2 - 36 + 10,
+                  height: size.width / 2 - 36 + 10,
                   child: moodData.isNotEmpty
                       ? ListView.builder(
                           scrollDirection: Axis.horizontal,
@@ -221,8 +298,6 @@ class _HeadScreenState extends State<HeadScreen> {
                             // Random().nextInt(0x777777) + 0x888888;
                             return GestureDetector(
                               onTap: () {
-                                // context.read<AuthBloc>().add(SignOutRequested());
-
                                 context.router.push(PlaylistMoodRoute(
                                   mood: moodData[index],
                                 ));
@@ -240,7 +315,8 @@ class _HeadScreenState extends State<HeadScreen> {
                                     ],
                                   ),
                                 ),
-                                width: 177,
+                                width: size.width / 2 - 36 + 10,
+                                height: size.width / 2 - 36 + 10,
                                 child: Center(
                                   child: Text(
                                     moodData[index].name,
@@ -325,8 +401,7 @@ class _HeadScreenState extends State<HeadScreen> {
                   child: Wrap(
                     spacing: 8.0,
                     runSpacing: 8.0,
-                    children:
-                        tagData.map((tag) => TagItem(tag: tag.name)).toList(),
+                    children: tagData.map((tag) => TagItem(tag: tag)).toList(),
                   ),
                 ),
               ),
@@ -623,33 +698,43 @@ class _HeadScreenState extends State<HeadScreen> {
 }
 
 class TagItem extends StatelessWidget {
-  final String tag;
+  final TagModel tag;
 
   const TagItem({super.key, required this.tag});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xff6E4985),
-            Color(0xff44255C),
-          ],
+    return GestureDetector(
+      onTap: () {
+        // context.tabsRouter.setActiveIndex(1);
+        // context.pushRoute(
+        //   ResultRoute(
+        //     tags: [tag],
+        //   ),
+        // );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 6,
         ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        tag,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w400,
-          fontFamily: "Poppins",
-          fontSize: 16,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xff6E4985),
+              Color(0xff44255C),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          tag.name,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Poppins",
+            fontSize: 16,
+          ),
         ),
       ),
     );

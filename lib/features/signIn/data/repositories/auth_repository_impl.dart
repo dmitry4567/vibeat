@@ -29,7 +29,7 @@ class AuthRepositoryImpl implements AuthRepository {
   ) async {
     try {
       final response = await _apiClient.post(
-        '/login',
+        '/user/login',
         options: d.Options(
           headers: {
             'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ class AuthRepositoryImpl implements AuthRepository {
           await googleUser.authentication;
 
       final response = await _apiClient.post(
-        '/auth/google/getjwt',
+        '/auth/getjwt',
         options: d.Options(
           headers: {
             'Content-Type': 'application/json',

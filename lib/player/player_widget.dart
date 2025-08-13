@@ -1,9 +1,15 @@
+import 'dart:developer';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'dart:math';
+import 'package:http/http.dart' as http;
 import 'package:audio_waveforms/audio_waveforms.dart' as af;
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/player/widgets/player_control_widget.dart';
@@ -278,6 +284,96 @@ class _PlayerScreenState extends State<PlayerScreen> {
   //   super.dispose();
   // }
 
+  String? imageUrl;
+  Color primaryColor = const Color(0xFFF5F5F5);
+  Color secondaryColor = const Color(0xFFE0E0E0);
+  bool isLoadingImage = false;
+  Uint8List? imageBytes;
+
+  Future<void> loadImageAndColors(String url) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        final image = await decodeImageFromList(bytes);
+        final byteData = await image.toByteData();
+        final pixels = byteData!.buffer.asUint8List();
+
+        // Анализируем цвета изображения
+        final colors = _analyzeImageColors(pixels, image.width, image.height);
+
+        setState(() {
+          imageBytes = bytes;
+          primaryColor = colors['primary']!;
+          secondaryColor = colors['secondary']!;
+          isLoadingImage = false;
+        });
+      } else {
+        setState(() {
+          isLoadingImage = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка загрузки: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoadingImage = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка: $e')),
+      );
+    }
+  }
+
+  Map<String, Color> _analyzeImageColors(
+      Uint8List pixels, int width, int height) {
+    final colorMap = <Color, int>{};
+    final sampleStep = 10; // Шаг выборки пикселей для ускорения анализа
+
+    // Собираем статистику по цветам
+    for (int y = 0; y < height; y += sampleStep) {
+      for (int x = 0; x < width; x += sampleStep) {
+        final offset = (y * width + x) * 4;
+        final color = Color.fromARGB(
+          255,
+          pixels[offset],
+          pixels[offset + 1],
+          pixels[offset + 2],
+        );
+        colorMap[color] = (colorMap[color] ?? 0) + 1;
+      }
+    }
+
+    // Сортируем цвета по частоте встречаемости
+    final sortedColors = colorMap.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    // Выбираем два наиболее часто встречающихся, но контрастных цвета
+    Color primary = sortedColors.first.key;
+    Color secondary = primary;
+
+    for (final entry in sortedColors) {
+      if (_colorDistance(primary, entry.key) > 100) {
+        secondary = entry.key;
+        break;
+      }
+    }
+
+    return {'primary': primary, 'secondary': secondary};
+  }
+
+  double _colorDistance(Color c1, Color c2) {
+    // Вычисляем "расстояние" между цветами в RGB пространстве
+    return sqrt(pow(c1.red - c2.red, 2) +
+        pow(c1.green - c2.green, 2) +
+        pow(c1.blue - c2.blue, 2));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -291,39 +387,21 @@ class _PlayerScreenState extends State<PlayerScreen> {
           children: [
             Stack(
               children: [
-                // BlocBuilder<PlayerBloc, PlayerState>(
-                //   buildWhen: (previous, current) =>
-                //       previous.currentTrackIndex != current.currentTrackIndex,
-                //   builder: (context, state) {
-                //     return Positioned.fill(
-                //       child: TweenAnimationBuilder<List<Color>>(
-                //         duration: const Duration(milliseconds: 500),
-                //         tween: state.colorsOfBackground.isEmpty
-                //             ? ColorListTween(
-                //                 [Colors.black, Colors.black],
-                //                 [Colors.black, Colors.black],
-                //               )
-                //             : ColorListTween(
-                //                 state.colorsOfBackground[0],
-                //                 state.colorsOfBackground[
-                //                     state.currentTrackIndex],
-                //               ),
-                //         child: Container(),
-                //         builder: (context, List<Color> colors, child) {
-                //           return Container(
-                //             decoration: BoxDecoration(
-                //               gradient: LinearGradient(
-                //                 begin: Alignment.topCenter,
-                //                 end: Alignment.bottomCenter,
-                //                 colors: colors,
-                //               ),
-                //             ),
-                //           );
-                //         },
-                //       ),
-                //     );
-                //   },
-                // ),
+                Positioned.fill(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    // height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [primaryColor, secondaryColor],
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned.fill(
                   child: Container(color: Colors.black.withOpacity(0.5)),
                 ),
@@ -366,11 +444,19 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           return PageView.builder(
                             controller: _pageController,
                             itemCount: state.trackList.length,
-                            onPageChanged: (value) {
+                            onPageChanged: (value) async {
                               if (value > state.currentTrackIndex) {
+                                // context
+                                //     .read<PlayerBloc>()
+                                //     .add(NextTrackEvent());
+
                                 context
                                     .read<PlayerBloc>()
-                                    .add(NextTrackEvent());
+                                    .add(NextBeatInPlaylistEvent());
+
+                                await loadImageAndColors(state
+                                    .trackList[state.currentTrackIndex]
+                                    .photoUrl);
                               } else {
                                 context
                                     .read<PlayerBloc>()
@@ -447,41 +533,53 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
                             BlocBuilder<PlayerBloc, PlayerState>(
                                 buildWhen: (previous, current) =>
-                                    previous.currentTrackIndex !=
-                                    current.currentTrackIndex,
+                                    previous.trackList != current.trackList,
                                 builder: (context, state) {
-                                  return ConditionalMarquee(
-                                    text: state
-                                        .trackList[state.currentTrackIndex]
-                                        .name,
-                                    style: AppTextStyles.headline1,
-                                  );
+                                  if (state.trackList.isNotEmpty) {
+                                    // return ConditionalMarquee(
+                                    //   text: state
+                                    //       .trackList[state.currentTrackIndex].name,
+                                    //   style: AppTextStyles.headline1,
+                                    // );
+                                    return Text(
+                                      state.trackList[state.currentTrackIndex]
+                                          .name,
+                                      style: AppTextStyles.headline1,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    );
+                                  }
+                                  return Container();
                                 }),
 
                             const SizedBox(
                               height: 2,
                             ),
                             BlocBuilder<PlayerBloc, PlayerState>(
-                              buildWhen: (previous, current) =>
-                                  previous.currentTrackIndex !=
-                                  current.currentTrackIndex,
+                              // buildWhen: (previous, current) =>
+                              //     previous.currentTrackIndex !=
+                              //     current.currentTrackIndex,
                               builder: (context, state) {
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 1),
-                                      child: Text(
-                                        "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
-                                        style: AppTextStyles.bodyText1,
+                                if (state.trackList.isNotEmpty) {
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 1),
+                                        child: Text(
+                                          "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
+                                          style: AppTextStyles.bodyText1,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      "₽${state.trackList[state.currentTrackIndex].price}",
-                                      style: AppTextStyles.bodyPrice1,
-                                    ),
-                                  ],
-                                );
+                                      Text(
+                                        "₽${state.trackList[state.currentTrackIndex].price}",
+                                        style: AppTextStyles.bodyPrice1,
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return Text("null");
                               },
                             ),
                           ],
@@ -521,7 +619,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 Container(
                   margin: const EdgeInsets.only(top: 18, left: 18, right: 18),
                   width: double.infinity,
-                  height: 160,
+                  height: 164,
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(6)),
                     border: Border.all(
@@ -820,14 +918,32 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           ],
                         ),
                       ),
-                      Positioned(
-                        right: 4,
-                        bottom: 2,
-                        child: IconButton(
-                          onPressed: () async {},
-                          icon: const Icon(Icons.info_outline),
-                          color: AppColors.iconPrimary,
-                        ),
+                      BlocBuilder<PlayerBloc, PlayerState>(
+                        builder: (context, state) {
+                          return Positioned(
+                            right: 4,
+                            bottom: 2,
+                            child: IconButton(
+                              onPressed: () {
+                                context.maybePop().then((_) {
+                                  Future.delayed(
+                                          const Duration(milliseconds: 300))
+                                      .then((_) {
+                                    context.router.push(
+                                      InfoBeat(
+                                        beatId: state
+                                            .trackList[state.currentTrackIndex]
+                                            .id,
+                                      ),
+                                    );
+                                  });
+                                });
+                              },
+                              icon: const Icon(Icons.info_outline),
+                              color: AppColors.iconPrimary,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

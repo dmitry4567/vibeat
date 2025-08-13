@@ -18,11 +18,13 @@ class AppRouter extends RootStackRouter {
               page: const EmptyShellRoute('head'),
               children: [
                 AutoRoute(path: '', page: HeadRoute.page),
-                AutoRoute(path: 'head/playlistMood', page: PlaylistMoodRoute.page),
+                AutoRoute(
+                    path: 'head/playlistMood', page: PlaylistMoodRoute.page),
               ],
             ),
             AutoRoute(
               path: 'search',
+              initial: true,
               page: const EmptyShellRoute('search'),
               children: [
                 AutoRoute(path: '', page: SearchRoute.page),
@@ -48,9 +50,54 @@ class AppRouter extends RootStackRouter {
         ),
         AutoRoute(
           path: '/signIn',
-          initial: true,
           page: SignInRoute.page,
         ),
+        AutoRoute(
+          path: '/infoBeatmaker',
+          page: InfoBeatmaker.page,
+        ),
+        // AutoRoute(
+        //   path: '/infoBeat',
+        //   page: InfoBeat.page,
+        // ),
+        CustomRoute(
+          path: '/infoBeat',
+          page: InfoBeat.page,
+          customRouteBuilder: <T>(
+            BuildContext context,
+            Widget child,
+            AutoRoutePage<T> page,
+          ) {
+            return PageRouteBuilder<T>(
+              fullscreenDialog: page.fullscreenDialog,
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const curve = Curves.ease;
+                final tween =
+                    Tween(begin: const Offset(1, 0), end: Offset.zero);
+                final curvedAnimation = CurvedAnimation(
+                  parent: animation,
+                  curve: curve,
+                );
+
+                return SlideTransition(
+                  position: tween.animate(curvedAnimation),
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 300),
+              settings: page,
+              pageBuilder: (_, __, ___) => child,
+            );
+          },
+        ),
+        // CustomRoute(
+        //   path: '/infoBeat',
+        //   page: InfoBeat.page,
+        //   transitionsBuilder:
+        //       TransitionsBuilders.,
+        //   durationInMilliseconds: 400,
+        // ),
         AutoRoute(
           path: '/signUp',
           page: SignUpRoute.page,
