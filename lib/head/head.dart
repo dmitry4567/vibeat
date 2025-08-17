@@ -112,20 +112,29 @@ class _HeadScreenState extends State<HeadScreen> {
                 surfaceTintColor: Colors.transparent,
               ),
               SliverToBoxAdapter(
-                child: GestureDetector(
-                  onTap: () {
-                    context.read<AuthBloc>().add(SignOutRequested());
-                  },
-                  child: Text(
-                    'Главная',
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontFamily: "Helvetica",
-                      fontWeight: FontWeight.w600,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Главная',
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontFamily: "Helvetica",
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                    IconButton(
+                      onPressed: () {
+                        context.read<AuthBloc>().add(SignOutRequested());
+                      },
+                      icon: const Icon(
+                        Icons.exit_to_app,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+
               const SliverPadding(
                 padding: EdgeInsets.only(top: 40),
                 sliver: SliverToBoxAdapter(
