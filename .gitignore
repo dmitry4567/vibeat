@@ -9,6 +9,7 @@
 .history
 .svn/
 migrate_working_dir/
+packages/just_audio
 
 # IntelliJ related
 *.iml
