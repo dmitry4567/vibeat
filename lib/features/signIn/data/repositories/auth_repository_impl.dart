@@ -28,7 +28,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String password,
   ) async {
     try {
-      final response = await _apiClient.post(
+      final response =await _apiClient.post(
         '/user/login',
         options: d.Options(
           headers: {

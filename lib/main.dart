@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/app_router.dart';
@@ -40,23 +41,25 @@ Future<void> main() async {
   // );
 
   runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => PlayerBloc()),
-        BlocProvider(create: (_) => FilterBloc()),
-        BlocProvider(create: (_) => GenreCubit()),
-        BlocProvider(create: (_) => TagBloc()),
-        BlocProvider(create: (_) => BpmCubit()),
-        BlocProvider(create: (_) => KeyCubit()),
-        BlocProvider(create: (_) => MoodCubit()),
-        BlocProvider(
-          create: (context) => di.sl<AuthBloc>(),
-        ),
-        BlocProvider(
-          create: (context) => di.sl<AnketaBloc>(),
-        ),
-      ],
-      child: const MainApp(),
+    Phoenix(
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => PlayerBloc()),
+          BlocProvider(create: (_) => FilterBloc()),
+          BlocProvider(create: (_) => GenreCubit()),
+          BlocProvider(create: (_) => TagBloc()),
+          BlocProvider(create: (_) => BpmCubit()),
+          BlocProvider(create: (_) => KeyCubit()),
+          BlocProvider(create: (_) => MoodCubit()),
+          BlocProvider(
+            create: (context) => di.sl<AuthBloc>(),
+          ),
+          BlocProvider(
+            create: (context) => di.sl<AnketaBloc>(),
+          ),
+        ],
+        child: const MainApp(),
+      ),
     ),
   );
 }
