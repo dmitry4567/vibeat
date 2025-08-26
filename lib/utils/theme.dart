@@ -23,22 +23,38 @@ class AppColors {
 }
 
 class AppTextStyles {
+  static const TextStyle headline = TextStyle(
+    fontSize: 30,
+    fontFamily: "Helvetica",
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+    letterSpacing: -0.41,
+    height: 1,
+  );
+
   static const TextStyle headline1 = TextStyle(
     fontSize: 18,
     fontFamily: "Poppins",
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     letterSpacing: -0.41,
-    height: 1.22,
+    // height: 1.22,
   );
 
   static const TextStyle headline2 = TextStyle(
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: "Helvetica",
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     letterSpacing: -0.41,
     height: 0.9,
+  );
+
+  static const TextStyle buttonTextField = TextStyle(
+    fontSize: 16,
+    fontFamily: "Helvetica",
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
   );
 
   static TextStyle bodyText1 = TextStyle(

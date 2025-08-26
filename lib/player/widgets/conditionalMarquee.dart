@@ -35,7 +35,6 @@ class ConditionalMarquee extends StatelessWidget {
 
         return SizedBox(
           width: constraints.maxWidth,
-          height: 25,
           child: isOverflow
               ? Marquee(
                   text: text,
