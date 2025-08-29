@@ -34,10 +34,10 @@ class UpdatePositionEvent extends PlayerEvent {
   List<Object?> get props => [position];
 }
 
-class UpdateCurrentTrackEvent extends PlayerEvent {
+class UpdateCurrentTrackIndexEvent extends PlayerEvent {
   final int index;
 
-  UpdateCurrentTrackEvent(this.index);
+  UpdateCurrentTrackIndexEvent(this.index);
 
   @override
   List<Object?> get props => [index];

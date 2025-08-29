@@ -29,12 +29,8 @@ class KeyError extends KeyState {
 
 class KeyLoaded extends KeyState {
   const KeyLoaded({
-    required List<KeyModel> keys,
-    required List<KeyModel> selectedKeys,
-    String searchQuery = '',
-  }) : super(
-          keys: keys,
-          selectedKeys: selectedKeys,
-          searchQuery: searchQuery,
-        );
+    required super.keys,
+    required super.selectedKeys,
+    super.searchQuery,
+  });
 }

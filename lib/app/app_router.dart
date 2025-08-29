@@ -1,8 +1,10 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
+import 'package:vibeat/player/player_widget.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
@@ -38,9 +40,78 @@ class AppRouter extends RootStackRouter {
                 AutoRoute(
                     path: 'search/filter_mood', page: FilterMoodRoute.page),
                 AutoRoute(path: 'search/result', page: ResultRoute.page),
+                CustomRoute(
+                  path: 'search/infoBeatmaker',
+                  page: InfoBeatmaker.page,
+                  customRouteBuilder: <T>(
+                    BuildContext context,
+                    Widget child,
+                    AutoRoutePage<T> page,
+                  ) {
+                    return CupertinoPageRoute(
+                      builder: (context) => child,
+                      settings: page,
+                      fullscreenDialog: page.fullscreenDialog,
+                    );
+                  },
+                ),
+                CustomRoute(
+                  path: 'search/infoBeat',
+                  page: InfoBeat.page,
+                  customRouteBuilder: <T>(
+                    BuildContext context,
+                    Widget child,
+                    AutoRoutePage<T> page,
+                  ) {
+                    return CupertinoPageRoute(
+                      builder: (context) => child,
+                      settings: page,
+                      fullscreenDialog: page.fullscreenDialog,
+                    );
+                  },
+                ),
               ],
             ),
-            AutoRoute(path: 'favorite', page: FavoriteRoute.page),
+            AutoRoute(
+              path: 'favorite',
+              page: const EmptyShellRoute('favorite'),
+              children: [
+                AutoRoute(
+                  path: '',
+                  page: FavoriteRoute.page,
+                ),
+                CustomRoute(
+                  path: 'favorite/infoBeatmaker',
+                  page: InfoBeatmaker.page,
+                  customRouteBuilder: <T>(
+                    BuildContext context,
+                    Widget child,
+                    AutoRoutePage<T> page,
+                  ) {
+                    return CupertinoPageRoute(
+                      builder: (context) => child,
+                      settings: page,
+                      fullscreenDialog: page.fullscreenDialog,
+                    );
+                  },
+                ),
+                CustomRoute(
+                  path: 'favorite/infoBeat',
+                  page: InfoBeat.page,
+                  customRouteBuilder: <T>(
+                    BuildContext context,
+                    Widget child,
+                    AutoRoutePage<T> page,
+                  ) {
+                    return CupertinoPageRoute(
+                      builder: (context) => child,
+                      settings: page,
+                      fullscreenDialog: page.fullscreenDialog,
+                    );
+                  },
+                ),
+              ],
+            ),
             AutoRoute(path: 'cart', page: CartRoute.page),
           ],
         ),
@@ -52,52 +123,42 @@ class AppRouter extends RootStackRouter {
           path: '/signIn',
           page: SignInRoute.page,
         ),
-        AutoRoute(
-          path: '/infoBeatmaker',
-          page: InfoBeatmaker.page,
-        ),
         // AutoRoute(
         //   path: '/infoBeat',
         //   page: InfoBeat.page,
         // ),
-        CustomRoute(
-          path: '/infoBeat',
-          page: InfoBeat.page,
-          customRouteBuilder: <T>(
-            BuildContext context,
-            Widget child,
-            AutoRoutePage<T> page,
-          ) {
-            return PageRouteBuilder<T>(
-              fullscreenDialog: page.fullscreenDialog,
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                const curve = Curves.ease;
-                final tween =
-                    Tween(begin: const Offset(1, 0), end: Offset.zero);
-                final curvedAnimation = CurvedAnimation(
-                  parent: animation,
-                  curve: curve,
-                );
-
-                return SlideTransition(
-                  position: tween.animate(curvedAnimation),
-                  child: child,
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 300),
-              settings: page,
-              pageBuilder: (_, __, ___) => child,
-            );
-          },
-        ),
         // CustomRoute(
         //   path: '/infoBeat',
         //   page: InfoBeat.page,
-        //   transitionsBuilder:
-        //       TransitionsBuilders.,
-        //   durationInMilliseconds: 400,
+        //   customRouteBuilder: <T>(
+        //     BuildContext context,
+        //     Widget child,
+        //     AutoRoutePage<T> page,
+        //   ) {
+        //     return PageRouteBuilder<T>(
+        //       fullscreenDialog: page.fullscreenDialog,
+        //       transitionsBuilder:
+        //           (context, animation, secondaryAnimation, child) {
+        //         const curve = Curves.ease;
+        //         final tween =
+        //             Tween(begin: const Offset(1, 0), end: Offset.zero);
+        //         final curvedAnimation = CurvedAnimation(
+        //           parent: animation,
+        //           curve: curve,
+        //         );
+
+        //         return SlideTransition(
+        //           position: tween.animate(curvedAnimation),
+        //           child: child,
+        //         );
+        //       },
+        //       transitionDuration: const Duration(milliseconds: 300),
+        //       settings: page,
+        //       pageBuilder: (_, __, ___) => child,
+        //     );
+        //   },
         // ),
+
         AutoRoute(
           path: '/signUp',
           page: SignUpRoute.page,
@@ -115,7 +176,8 @@ class AppRouter extends RootStackRouter {
             AutoRoutePage<T> page,
           ) {
             return PageRouteBuilder<T>(
-              fullscreenDialog: page.fullscreenDialog,
+              fullscreenDialog: true,
+              opaque: false,
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 const curve = Curves.ease;

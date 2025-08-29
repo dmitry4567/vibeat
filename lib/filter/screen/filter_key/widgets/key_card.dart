@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/utils/theme.dart';
 
 class KeyCard extends StatelessWidget {
-  const KeyCard({
+  const KeyCard({super.key, 
     required this.index,
     required this.keyData,
     required this.onToggle,

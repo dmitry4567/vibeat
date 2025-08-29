@@ -19,7 +19,7 @@ class BpmInitial extends BpmState {
 
 class BpmChanged extends BpmState {
   const BpmChanged({
-    required int from,
-    required int to,
-  }) : super(from: from, to: to);
+    required super.from,
+    required super.to,
+  });
 }

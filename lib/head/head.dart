@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer' as d;
 import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
@@ -116,7 +115,7 @@ class _HeadScreenState extends State<HeadScreen> {
                   onTap: () {
                     context.read<AuthBloc>().add(SignOutRequested());
                   },
-                  child: Text(
+                  child: const Text(
                     'Главная',
                     style: TextStyle(
                       fontSize: 34,

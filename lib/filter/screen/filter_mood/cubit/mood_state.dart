@@ -30,12 +30,8 @@ class MoodError extends MoodState {
 
 class MoodLoaded extends MoodState {
   const MoodLoaded({
-    required List<MoodModel> moods,
-    required List<MoodModel> selectedMoods,
-    String searchQuery = '',
-  }) : super(
-          moods: moods,
-          selectedMoods: selectedMoods,
-          searchQuery: searchQuery,
-        );
+    required super.moods,
+    required super.selectedMoods,
+    super.searchQuery,
+  });
 }

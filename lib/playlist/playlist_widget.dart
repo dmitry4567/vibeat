@@ -37,34 +37,39 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
           style: AppTextStyles.bodyAppbar,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.only(top: 8, bottom: 80),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  childCount: widget.beats.length,
-                  (context, index) {
-                    return Skeletonizer(
-                      enabled: false,
-                      child: BeatWidget(
-                        gridItemWidth: gridItemWidth,
-                        beat: widget.beats[index],
-                      ),
-                    );
-                  },
-                ),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisExtent: gridItemWidth + 67,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
+      body: Scrollbar(
+        thumbVisibility: false,
+        trackVisibility: true,
+        interactive: true,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8, bottom: 80),
+                sliver: SliverGrid(
+                  delegate: SliverChildBuilderDelegate(
+                    childCount: widget.beats.length,
+                    (context, index) {
+                      return Skeletonizer(
+                        enabled: false,
+                        child: BeatWidget(
+                          gridItemWidth: gridItemWidth,
+                          beat: widget.beats[index],
+                        ),
+                      );
+                    },
+                  ),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisExtent: gridItemWidth + 67,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -130,7 +135,8 @@ class BeatWidget extends StatelessWidget {
             ),
             GestureDetector(
               onTap: () {
-                context.router.push(const InfoBeatmaker());
+                context.router
+                    .push(InfoBeatmaker(beatmakerId: beat.beatmakerId));
               },
               child: Padding(
                 padding: const EdgeInsets.only(top: 8),

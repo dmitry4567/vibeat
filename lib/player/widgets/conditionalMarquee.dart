@@ -9,7 +9,8 @@ class ConditionalMarquee extends StatelessWidget {
   final Duration startAfter;
   final Duration pauseAfterRound;
 
-  const ConditionalMarquee({super.key, 
+  const ConditionalMarquee({
+    super.key,
     required this.text,
     required this.style,
     this.blankSpace = 30.0,

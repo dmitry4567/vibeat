@@ -9,6 +9,8 @@ import 'package:vibeat/utils/theme.dart';
 
 @RoutePage()
 class FilterBpmScreen extends StatefulWidget {
+  const FilterBpmScreen({super.key});
+
   @override
   State<FilterBpmScreen> createState() => _FilterBpmScreenState();
 }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -25,9 +24,11 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
     5,
     (index) => const BeatEntity(
       id: "",
+      isCurrentPlaying: false,
       name: "",
       description: "",
       picture: "",
+      beatmakerId: "",
       beatmakerName: "",
       url: "",
       price: 1000,
@@ -62,10 +63,8 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['data'];
 
-      log(data.toString());
-
       setState(() {
-        beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
+        beatData = data.map((json) => BeatEntity.fromJson(json, "false")).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -111,7 +110,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
                       ),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        mainAxisExtent: gridItemWidth + 67,
+                        mainAxisExtent: gridItemWidth + 71,
                         crossAxisSpacing: 20,
                         mainAxisSpacing: 20,
                       ),

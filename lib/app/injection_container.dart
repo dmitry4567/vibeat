@@ -13,6 +13,8 @@ import 'package:vibeat/features/anketa/domain/usecases/send_anketa_response.dart
 import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
 import 'package:vibeat/features/signIn/domain/repositories/auth_repository.dart';
 import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
+import 'package:vibeat/info_beatmaker/widgets/bloc/all_beats_of_beatmaker_bloc.dart';
+import 'package:vibeat/player/bloc/player_bloc.dart';
 import '../features/signIn/data/repositories/auth_repository_impl.dart';
 import 'package:dio/dio.dart';
 
@@ -61,6 +63,9 @@ Future<void> init() async {
   sl<Dio>().interceptors.add(sl<AuthInterceptor>());
 
   // BLoCs
+  sl.registerLazySingleton(() => PlayerBloc());
+  sl.registerLazySingleton(() => AllBeatsOfBeatmakerBloc(playerBloc: sl()));
+
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
   sl.registerFactory(() => AnketaBloc(
         getAnketa: sl(),
