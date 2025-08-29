@@ -35,7 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final initialIndex = sl<PlayerBloc>().state.currentTrackIndex;
-      
+
       if (initialIndex > 0) {
         _carouselController.jumpToPage(initialIndex);
         currentPage = initialIndex;
@@ -141,8 +141,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
                   _carouselController.animateToPage(
                     state.currentTrackIndex,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
+                    // duration: const Duration(milliseconds: 300),
+                    // curve: Curves.easeInOut,
                   );
                 }
               },
@@ -166,7 +166,6 @@ class _DashboardPageState extends State<DashboardPage> {
                         enableInfiniteScroll: false,
                         initialPage: state.currentTrackIndex,
                         onPageChanged: (index, reason) {
-                          // Игнорируем программные изменения
                           if (_isProgrammaticChange) {
                             _isProgrammaticChange = false;
                             return;
