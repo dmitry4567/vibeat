@@ -167,6 +167,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
 
     on<PlayCurrentBeatEvent>((event, emit) async {
+      await player.stop();
+
       emit(state.copyWith(
         currentTrackIndex: event.index,
       ));
