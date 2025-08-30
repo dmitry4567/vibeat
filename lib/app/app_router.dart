@@ -19,7 +19,39 @@ class AppRouter extends RootStackRouter {
               children: [
                 AutoRoute(path: '', page: HeadRoute.page),
                 AutoRoute(
-                    path: 'head/playlistMood', page: PlaylistMoodRoute.page),
+                  path: 'head/playlistMood',
+                  page: PlaylistMoodRoute.page,
+                ),
+                CustomRoute(
+                  path: 'head/infoBeatmaker',
+                  page: InfoBeatmaker.page,
+                  customRouteBuilder: <T>(
+                    BuildContext context,
+                    Widget child,
+                    AutoRoutePage<T> page,
+                  ) {
+                    return CupertinoPageRoute(
+                      builder: (context) => child,
+                      settings: page,
+                      fullscreenDialog: page.fullscreenDialog,
+                    );
+                  },
+                ),
+                CustomRoute(
+                  path: 'head/infoBeat',
+                  page: InfoBeat.page,
+                  customRouteBuilder: <T>(
+                    BuildContext context,
+                    Widget child,
+                    AutoRoutePage<T> page,
+                  ) {
+                    return CupertinoPageRoute(
+                      builder: (context) => child,
+                      settings: page,
+                      fullscreenDialog: page.fullscreenDialog,
+                    );
+                  },
+                ),
               ],
             ),
             AutoRoute(

@@ -168,7 +168,7 @@ class _InfoBeatState extends State<InfoBeat> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-        centerTitle: true,
+            centerTitle: true,
             automaticallyImplyLeading: true,
             stretch: true,
             primary: true,
@@ -367,7 +367,7 @@ class _InfoBeatState extends State<InfoBeat> {
                         beat.genres.isNotEmpty
                             ? beat.genres.map((e) => e.name).join(", ")
                             : "-",
-                        style: AppTextStyles.bodyText1.copyWith(
+                        style: AppTextStyles.bodyPrice1.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -701,14 +701,14 @@ class TagCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.transparent,
         border: Border.all(
-          color: const Color(0xff1E1E1E),
+          color: const Color.fromRGBO(50, 50, 50, 1),
         ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withOpacity(0.35),
         ),
       ),
     );

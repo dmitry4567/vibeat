@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
@@ -13,7 +14,6 @@ import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:http/http.dart' as http;
-import 'package:vibeat/app/injection_container.dart' as di;
 
 @RoutePage()
 class ResultScreen extends StatefulWidget {
@@ -178,8 +178,7 @@ class _ResultScreenState extends State<ResultScreen> {
                         enabled: false,
                         child: GestureDetector(
                           onTap: () {
-                            di
-                                .sl<PlayerBloc>()
+                              sl<PlayerBloc>()
                                 .add(PlayCurrentBeatEvent(beatData, index));
         
                             context.router.push(const PlayerRoute());
@@ -192,8 +191,8 @@ class _ResultScreenState extends State<ResultScreen> {
                             marginRight: 0,
                             isLoading: false,
                             openPlayer: () {
-                              di
-                                  .sl<PlayerBloc>()
+                            
+                                  sl<PlayerBloc>()
                                   .add(PlayCurrentBeatEvent(beatData, index));
         
                               context.router.navigate(const PlayerRoute());
