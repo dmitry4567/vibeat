@@ -3,7 +3,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/core/api_client.dart';

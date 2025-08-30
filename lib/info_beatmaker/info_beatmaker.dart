@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
@@ -725,7 +724,7 @@ class BeatRowWidget extends StatelessWidget {
                 style: AppTextStyles.bodyPrice2.copyWith(height: 1),
               ),
               const SizedBox(height: 6),
-              Container(
+              SizedBox(
                 width: 280,
                 child: Text(
                   beat.name,
@@ -734,7 +733,7 @@ class BeatRowWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              Row(
+              const Row(
                 children: [
                   // const SizedBox(
                   //   width: 12,

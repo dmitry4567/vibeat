@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'dart:math';
-import 'dart:developer' as d;
 import 'package:http/http.dart' as http;
 import 'package:audio_waveforms/audio_waveforms.dart' as af;
 import 'package:auto_route/auto_route.dart';
@@ -32,7 +31,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   bool _isClosing = false;
   double _velocity = 0.0;
-  List<double> _recentVelocities = [];
+  final List<double> _recentVelocities = [];
 
   List<List<Color>> listOfColors = [
     [const Color(0xffDBDBDB), const Color(0xffDADADA)],
@@ -71,11 +70,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   String currentFragmentName = '...';
 
   PageController _pageController = PageController();
-  int _currentPage = 0;
-  bool _isAnimating = false;
+  final int _currentPage = 0;
+  final bool _isAnimating = false;
 
-  double _positionY = 0.0; // Позиция по Y
-  double _startPositionY = 0.0; // Начальная позиция при касании
+  final double _positionY = 0.0; // Позиция по Y
+  final double _startPositionY = 0.0; // Начальная позиция при касании
   double _maxPosition = 0.0; // Максимальное смещение
 
   @override
@@ -219,7 +218,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         });
       });
 
-    _animationController.duration = Duration(milliseconds: 300);
+    _animationController.duration = const Duration(milliseconds: 300);
     _animationController.forward(from: 0.0);
   }
 

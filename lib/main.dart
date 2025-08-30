@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/app_router.dart';
 import 'package:vibeat/app/router.dart';
 import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
@@ -21,25 +19,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:vibeat/app/injection_container.dart' as di;
 
-void _setupSafeHotReload() {
-  assert(() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      print('Hot reload detected - safe disposing audio isolates...');
-
-      // di.sl<PlayerBloc>().close();
-      // await di.sl.reset();
-      // await di.sl.resetScope();
-      // await di.init();
-      // di.sl.registerLazySingleton(() => PlayerBloc());
-    });
-    return true;
-  }());
-}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await di.init();
-  _setupSafeHotReload();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

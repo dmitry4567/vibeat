@@ -3,12 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:marquee/marquee.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
-import 'package:vibeat/app/injection_container.dart' as di;
 import 'package:vibeat/player/bloc/player_bloc.dart';
-import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/utils/theme.dart';
 
 @RoutePage()
