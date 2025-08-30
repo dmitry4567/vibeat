@@ -36,7 +36,7 @@ class _SignInScreenState extends State<SignInScreen> {
         if (state is RegisteredNewUser) {
           context.router.push(const AnketaRoute());
         } else if (state is Authenticated) {
-          context.router.push(const SearchRoute());
+          context.router.replaceAll([const DashboardRoute()]);
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             setupSnackBar(state.message),
@@ -44,7 +44,6 @@ class _SignInScreenState extends State<SignInScreen> {
         }
       },
       child: Scaffold(
-     
         backgroundColor: AppColors.background,
         body: Stack(
           children: [

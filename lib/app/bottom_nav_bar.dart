@@ -73,6 +73,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   items: [
                     BottomNavigationBarItem(
                       icon: Icon(
+                        size: 30,
                         tabsRouter.activeIndex == 0
                             ? Icons.home
                             : Icons.home_outlined,
@@ -84,6 +85,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(
+                        size: 30,
                         tabsRouter.activeIndex == 0
                             ? Icons.search
                             : Icons.search_outlined,
@@ -95,6 +97,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(
+                        size: 30,
                         tabsRouter.activeIndex == 2
                             ? Icons.favorite
                             : Icons.favorite_outline,
@@ -106,6 +109,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(
+                        size: 30,
                         tabsRouter.activeIndex == 3
                             ? Icons.shopping_cart
                             : Icons.shopping_cart_outlined,
@@ -137,11 +141,11 @@ class _DashboardPageState extends State<DashboardPage> {
                   currentPage = state.currentTrackIndex;
 
                   // if (state.currentTrackIndex != 0) {
-                    _carouselController.animateToPage(
-                      state.currentTrackIndex,
-                      // duration: const Duration(milliseconds: 300),
-                      // curve: Curves.easeInOut,
-                    );
+                  _carouselController.animateToPage(
+                    state.currentTrackIndex,
+                    // duration: const Duration(milliseconds: 300),
+                    // curve: Curves.easeInOut,
+                  );
                   // }
                 }
               },

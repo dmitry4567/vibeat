@@ -28,7 +28,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String password,
   ) async {
     try {
-      final response =await _apiClient.post(
+      final response = await _apiClient.post(
         '/user/login',
         options: d.Options(
           headers: {
@@ -43,8 +43,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final responseData = response.data;
 
-      final user =
-          UserEntity(jwtToken: responseData['data']['access_token'], authType: AuthType.email);
+      final user = UserEntity(
+        jwtToken: responseData['data']['access_token'],
+        refreshToken: responseData['data']['refresh_token'],
+        authType: AuthType.email,
+      );
 
       await cacheUser(user, AuthType.email);
 
@@ -80,8 +83,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final responseData = response.data;
 
-      final user =
-          UserEntity(jwtToken: responseData['data']['access_token'], authType: AuthType.email);
+      final user = UserEntity(
+        jwtToken: responseData['data']['access_token'],
+        refreshToken: responseData['data']['refresh_token'],
+        authType: AuthType.email,
+      );
 
       await cacheUser(user, AuthType.email);
 
@@ -122,13 +128,13 @@ class AuthRepositoryImpl implements AuthRepository {
       final responseData = response.data;
 
       final user = UserEntity(
-        jwtToken: responseData['token'],
+        jwtToken: responseData['access_token'],
+        refreshToken: responseData['refresh_token'],
         authType: AuthType.google,
       );
 
       await cacheUser(user, AuthType.google);
 
-      // Проверяем наличие параметра 'message' в responseData
       final bool hasMessage = responseData.containsKey('new_user');
 
       return Tuple2(user, hasMessage);
@@ -150,10 +156,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
     if (authType == AuthType.email.name) {
       final jwtToken = await _secureStorage.read(key: AppStrings.jwtTokenKey);
+      final refreshToken =
+          await _secureStorage.read(key: AppStrings.refreshTokenKey);
+
       if (jwtToken == null) return null;
+      if (refreshToken == null) return null;
 
       return UserEntity(
         jwtToken: jwtToken,
+        refreshToken: refreshToken,
         authType: AuthType.email,
       );
     } else if (authType == AuthType.google.name) {
@@ -162,10 +173,15 @@ class AuthRepositoryImpl implements AuthRepository {
         if (account == null) return null;
 
         final jwtToken = await _secureStorage.read(key: AppStrings.jwtTokenKey);
+        final refreshToken =
+            await _secureStorage.read(key: AppStrings.refreshTokenKey);
+
         if (jwtToken == null) return null;
+        if (refreshToken == null) return null;
 
         return UserEntity(
           jwtToken: jwtToken,
+          refreshToken: refreshToken,
           authType: AuthType.google,
         );
       } catch (e) {
@@ -184,6 +200,10 @@ class AuthRepositoryImpl implements AuthRepository {
       value: user.jwtToken,
     );
     await _secureStorage.write(
+      key: AppStrings.refreshTokenKey,
+      value: user.refreshToken,
+    );
+    await _secureStorage.write(
       key: AppStrings.authType,
       value: authType.name,
     );
@@ -192,6 +212,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> clearCache() async {
     await _secureStorage.delete(key: AppStrings.jwtTokenKey);
+    await _secureStorage.delete(key: AppStrings.refreshTokenKey);
     await _secureStorage.delete(key: AppStrings.authType);
   }
 }

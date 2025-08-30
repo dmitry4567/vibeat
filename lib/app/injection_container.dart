@@ -51,17 +51,18 @@ Future<void> init() async {
       ));
 
   // Interceptors
-  sl.registerLazySingleton(() => AuthInterceptor(
-        secureStorage: sl(),
-      ));
-
+  sl.registerLazySingleton(
+    () => AuthInterceptor(
+      dio: sl<Dio>(),
+      secureStorage: sl<FlutterSecureStorage>(),
+    ),
+  );
 
   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
   final ip = sharedPreferences.getString("ip");
   if (ip == null) {
     sharedPreferences.setString("ip", "192.168.0.135");
   }
-
 
   // Initialize API Client
   final apiClient = sl<ApiClient>();

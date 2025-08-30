@@ -61,15 +61,12 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         if (responseData['status'] == true) {
           final List<dynamic> dataList = responseData['data'];
 
-          log(dataList.toString());
-
           setState(() {
             beatData = dataList
                 .map((item) => BeatEntity.fromJson(item['beat'], "false"))
                 .toList();
           });
         } else {
-          // Если status false, устанавливаем пустой список
           setState(() {
             beatData = [];
           });
