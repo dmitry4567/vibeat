@@ -42,9 +42,7 @@ class AllBeatsOfBeatmakerBloc
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['data'];
-
-      log(currentBeatId.toString());
-
+      
       final List<BeatEntity> listBeats =
           data.map((beat) => BeatEntity.fromJson(beat, currentBeatId)).toList();
 
@@ -67,7 +65,7 @@ class AllBeatsOfBeatmakerBloc
       if (beat.id == event.beatId) {
         return beat.copyWith(isCurrentPlaying: true);
       }
-      
+
       return beat;
     }).toList();
 

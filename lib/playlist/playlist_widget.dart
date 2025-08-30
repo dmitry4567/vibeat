@@ -2,7 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
 
 @RoutePage()
@@ -23,10 +26,12 @@ class PlaylistScreen extends StatefulWidget {
 class _PlaylistScreenState extends State<PlaylistScreen> {
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    const paddingWidth = 18.0;
-    final gridItemWidth = (size.width - paddingWidth * 2 - 20) / 2;
+    const double paddingWidth = 18.0;
+    const double marginRight = 20.0;
 
+    final size = MediaQuery.of(context).size;
+    final width = size.width * 0.38;
+    final gridItemWidth = (size.width - paddingWidth * 2 - 20) / 2;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -53,16 +58,26 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                     (context, index) {
                       return Skeletonizer(
                         enabled: false,
-                        child: BeatWidget(
-                          gridItemWidth: gridItemWidth,
+                        child: NewBeatWidget(
+                          openPlayer: () {
+                            sl<PlayerBloc>()
+                                .add(PlayCurrentBeatEvent(widget.beats, index));
+
+                            context.router.navigate(const PlayerRoute());
+                          },
                           beat: widget.beats[index],
+                          index: index,
+                          width: width,
+                          marginRight: 0,
+                          gridItemWidth: gridItemWidth,
+                          isLoading: false,
                         ),
                       );
                     },
                   ),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisExtent: gridItemWidth + 67,
+                    mainAxisExtent: gridItemWidth + 71,
                     crossAxisSpacing: 20,
                     mainAxisSpacing: 20,
                   ),

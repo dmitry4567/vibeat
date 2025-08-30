@@ -139,11 +139,13 @@ class _DashboardPageState extends State<DashboardPage> {
                   _isProgrammaticChange = true;
                   currentPage = state.currentTrackIndex;
 
-                  _carouselController.animateToPage(
-                    state.currentTrackIndex,
-                    // duration: const Duration(milliseconds: 300),
-                    // curve: Curves.easeInOut,
-                  );
+                  // if (state.currentTrackIndex != 0) {
+                    _carouselController.animateToPage(
+                      state.currentTrackIndex,
+                      // duration: const Duration(milliseconds: 300),
+                      // curve: Curves.easeInOut,
+                    );
+                  // }
                 }
               },
               builder: (context, state) {
