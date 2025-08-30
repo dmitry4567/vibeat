@@ -1053,7 +1053,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                                     Future.delayed(
                                             const Duration(milliseconds: 300))
                                         .then((_) {
-                                      router.push(InfoBeat(beatId: beatId));
+                                      router.push(
+                                        InfoBeat(
+                                          beatId: beatId,
+                                        ),
+                                      );
                                     });
                                   });
                                 },
@@ -1105,6 +1109,8 @@ class ImagesPageBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Stack(
       children: [
         Positioned(
@@ -1173,12 +1179,23 @@ class ImagesPageBuilder extends StatelessWidget {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12.0),
                               child: CachedNetworkImage(
-                                imageUrl: state.trackList[index].photoUrl,
+                                imageUrl:
+                                    state.trackList[index].photoUrl,
                                 width: coverWidth,
                                 height: coverWidth,
                                 fit: BoxFit.cover,
                                 errorWidget: (context, imageUrl, error) =>
-                                    Text(error.toString()),
+                                    ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(6)),
+                                  child: Container(
+                                    color: Colors.grey,
+                                    child: const Icon(
+                                      Icons.error,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           );

@@ -19,6 +19,7 @@ class FilterScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: AppColors.appbar,
         forceMaterialTransparency: true,
       ),

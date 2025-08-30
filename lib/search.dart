@@ -106,7 +106,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void getGenres() async {
-        SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     final ip = sharedPreferences.getString("ip");
     final response = await http.get(
       Uri.parse('http://$ip:8080/metadata/genres'),
@@ -141,6 +141,7 @@ class _SearchScreenState extends State<SearchScreen> {
       resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        centerTitle: true,
         elevation: 0,
         forceMaterialTransparency: true,
         backgroundColor: AppColors.appbar,
@@ -282,6 +283,13 @@ class _SearchScreenState extends State<SearchScreen> {
 
                                   context.router.navigate(const PlayerRoute());
                                 },
+                                openInfoBeat: () {
+                                  context.router.navigate(
+                                    InfoBeat(
+                                      beatId: beatData[index].id,
+                                    ),
+                                  );
+                                },
                                 isLoading: false,
                                 index: index,
                                 beat: beatData[index],
@@ -295,12 +303,8 @@ class _SearchScreenState extends State<SearchScreen> {
                             return Skeletonizer(
                               enabled: true,
                               child: NewBeatWidget(
-                                openPlayer: () {
-                                  sl<PlayerBloc>().add(
-                                      PlayCurrentBeatEvent(beatData, index));
-
-                                  context.router.navigate(const PlayerRoute());
-                                },
+                                openPlayer: () {},
+                                openInfoBeat: () {},
                                 isLoading: true,
                                 index: index,
                                 beat: const BeatEntity(
@@ -580,6 +584,7 @@ class NewBeatWidget extends StatelessWidget {
   final double gridItemWidth;
   final bool isLoading;
   final VoidCallback openPlayer;
+  final VoidCallback openInfoBeat;
 
   const NewBeatWidget({
     super.key,
@@ -590,6 +595,7 @@ class NewBeatWidget extends StatelessWidget {
     required this.gridItemWidth,
     required this.isLoading,
     required this.openPlayer,
+    required this.openInfoBeat,
   });
 
   @override
@@ -630,14 +636,26 @@ class NewBeatWidget extends StatelessWidget {
                     );
                   },
                   errorBuilder: (context, error, stackTrace) {
-                    return ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(6)),
-                      child: Container(
-                        width: gridItemWidth,
-                        height: gridItemWidth - marginRight,
-                        color: Colors.grey,
-                      ),
-                    );
+                    return !isLoading
+                        ? ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(6)),
+                            child: Container(
+                              width: gridItemWidth,
+                              height: gridItemWidth - marginRight,
+                              color: Colors.grey,
+                              child: const Icon(Icons.error),
+                            ),
+                          )
+                        : ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(6)),
+                            child: Container(
+                              width: gridItemWidth,
+                              height: gridItemWidth - marginRight,
+                              color: Colors.grey,
+                            ),
+                          );
                   },
                 ),
               ),
@@ -648,9 +666,7 @@ class NewBeatWidget extends StatelessWidget {
             //   "assets/images/image1.png",
             // ),
             GestureDetector(
-              onTap: () {
-                context.router.navigate(InfoBeat(beatId: beat.id));
-              },
+              onTap: openInfoBeat,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -10,6 +10,7 @@ import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
 import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibeat/app/injection_container.dart' as di;
@@ -76,7 +77,7 @@ class _ResultScreenState extends State<ResultScreen> {
       data.add(FeatureModel(name: 'Настроение', text: moodsText));
     }
 
-    if (widget.bpmFrom != null && widget.bpmTo != null) {
+    if (widget.bpmFrom != 0 && widget.bpmTo != 0) {
       String bpmText = '${widget.bpmFrom} - ${widget.bpmTo}';
 
       data.add(FeatureModel(name: 'BPM', text: bpmText));
@@ -102,7 +103,7 @@ class _ResultScreenState extends State<ResultScreen> {
     if (widget.moods?.isNotEmpty ?? false) {
       filters['moods'] = widget.keys!.map((key) => int.parse(key.key)).toList();
     }
-    if (widget.bpmFrom != null && widget.bpmTo != null) {
+    if (widget.bpmFrom != 0 || widget.bpmTo != 0) {
       filters['max_bpm'] = widget.bpmTo;
       filters['min_bpm'] = widget.bpmFrom;
     }
@@ -133,13 +134,17 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const double paddingWidth = 18.0;
+    const double marginRight = 20.0;
+
     final size = MediaQuery.of(context).size;
-    const paddingWidth = 18.0;
+    final width = size.width * 0.38;
     final gridItemWidth = (size.width - paddingWidth * 2 - 20) / 2;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: AppColors.appbar,
         forceMaterialTransparency: true,
         title: const Text(
@@ -147,51 +152,74 @@ class _ResultScreenState extends State<ResultScreen> {
           style: AppTextStyles.bodyAppbar,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
-        child: CustomScrollView(
-          slivers: [
-            data.isNotEmpty
-                ? SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _ResultHeaderDelegate(
-                      data: data,
-                    ),
-                  )
-                : const SliverToBoxAdapter(),
-            SliverPadding(
-              padding: const EdgeInsets.only(top: 8, bottom: 80),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  childCount: beatData.length,
-                  (context, index) {
-                    return Skeletonizer(
-                      enabled: false,
-                      child: GestureDetector(
-                        onTap: () {
-                          di
-                              .sl<PlayerBloc>()
-                              .add(PlayCurrentBeatEvent(beatData, index));
-
-                          context.router.push(const PlayerRoute());
-                        },
-                        child: BeatWidget(
-                          gridItemWidth: gridItemWidth,
-                          beat: beatData[index],
-                        ),
+      body: Scrollbar(
+        thumbVisibility: false,
+        trackVisibility: true,
+        interactive: true,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
+          child: CustomScrollView(
+            slivers: [
+              data.isNotEmpty
+                  ? SliverPersistentHeader(
+                      pinned: false,
+                      delegate: _ResultHeaderDelegate(
+                        data: data,
                       ),
-                    );
-                  },
-                ),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisExtent: gridItemWidth + 71,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
+                    )
+                  : const SliverToBoxAdapter(),
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8, bottom: 80),
+                sliver: SliverGrid(
+                  delegate: SliverChildBuilderDelegate(
+                    childCount: beatData.length,
+                    (context, index) {
+                      return Skeletonizer(
+                        enabled: false,
+                        child: GestureDetector(
+                          onTap: () {
+                            di
+                                .sl<PlayerBloc>()
+                                .add(PlayCurrentBeatEvent(beatData, index));
+        
+                            context.router.push(const PlayerRoute());
+                          },
+                          child: NewBeatWidget(
+                            gridItemWidth: gridItemWidth,
+                            beat: beatData[index],
+                            index: index,
+                            width: width,
+                            marginRight: 0,
+                            isLoading: false,
+                            openPlayer: () {
+                              di
+                                  .sl<PlayerBloc>()
+                                  .add(PlayCurrentBeatEvent(beatData, index));
+        
+                              context.router.navigate(const PlayerRoute());
+                            },
+                            openInfoBeat: () {
+                              context.router.navigate(
+                                InfoBeat(
+                                  beatId: beatData[index].id,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisExtent: gridItemWidth + 71,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -310,134 +338,134 @@ class FeatureModel {
   const FeatureModel({required this.name, required this.text});
 }
 
-class BeatWidget extends StatelessWidget {
-  final double gridItemWidth;
-  final BeatEntity beat;
+// class BeatWidget extends StatelessWidget {
+//   final double gridItemWidth;
+//   final BeatEntity beat;
 
-  const BeatWidget({
-    super.key,
-    required this.gridItemWidth,
-    required this.beat,
-  });
+//   const BeatWidget({
+//     super.key,
+//     required this.gridItemWidth,
+//     required this.beat,
+//   });
 
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(
-        Radius.circular(6),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image.asset(
-          //   fit: BoxFit.fitWidth,
-          //   width: gridItemWidth,
-          //   "assets/images/image1.png",
-          // ),
+//   @override
+//   Widget build(BuildContext context) {
+//     return ClipRRect(
+//       borderRadius: const BorderRadius.all(
+//         Radius.circular(6),
+//       ),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           // Image.asset(
+//           //   fit: BoxFit.fitWidth,
+//           //   width: gridItemWidth,
+//           //   "assets/images/image1.png",
+//           // ),
 
-          Image.network(
-            fit: BoxFit.fitHeight,
-            width: gridItemWidth,
-            height: gridItemWidth,
-            beat.picture,
-            // loadingBuilder: (context, child, loadingProgress) =>
-            //     Skeletonizer(
-            //   enabled: true,
-            //   child: ClipRRect(
-            //     borderRadius: const BorderRadius.all(Radius.circular(6)),
-            //     child: Container(
-            //       width: gridItemWidth,
-            //       height: gridItemWidth,
-            //       color: Colors.red,
-            //     ),
-            //   ),
-            // ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            "${beat.price} RUB",
-            style: AppTextStyles.bodyPrice2,
-          ),
-          Text(
-            beat.name,
-            style: AppTextStyles.headline1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          GestureDetector(
-            onTap: () {
-              context.router
-                  .navigate(InfoBeatmaker(beatmakerId: beat.beatmakerId));
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        const SizedBox(
-                          width: 12,
-                          height: 12,
-                          child: CircleAvatar(
-                            backgroundImage: NetworkImage(
-                              'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.only(
-                              right: 5,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 2),
-                                Text(
-                                  beat.beatmakerName == ''
-                                      ? "beatmaker1"
-                                      : beat.beatmakerName,
-                                  style: AppTextStyles.bodyText2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.volume_down_outlined,
-                        size: 12,
-                        color: AppColors.unselectedItemColor,
-                      ),
-                      Column(
-                        children: [
-                          const SizedBox(height: 1),
-                          Text(
-                            beat.plays.toString(),
-                            style:
-                                AppTextStyles.bodyText2.copyWith(fontSize: 10),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//           Image.network(
+//             fit: BoxFit.fitHeight,
+//             width: gridItemWidth,
+//             height: gridItemWidth,
+//             beat.picture,
+//             // loadingBuilder: (context, child, loadingProgress) =>
+//             //     Skeletonizer(
+//             //   enabled: true,
+//             //   child: ClipRRect(
+//             //     borderRadius: const BorderRadius.all(Radius.circular(6)),
+//             //     child: Container(
+//             //       width: gridItemWidth,
+//             //       height: gridItemWidth,
+//             //       color: Colors.red,
+//             //     ),
+//             //   ),
+//             // ),
+//           ),
+//           const SizedBox(height: 6),
+//           Text(
+//             "${beat.price} RUB",
+//             style: AppTextStyles.bodyPrice2,
+//           ),
+//           Text(
+//             beat.name,
+//             style: AppTextStyles.headline1,
+//             overflow: TextOverflow.ellipsis,
+//           ),
+//           GestureDetector(
+//             onTap: () {
+//               context.router
+//                   .navigate(InfoBeatmaker(beatmakerId: beat.beatmakerId));
+//             },
+//             child: Padding(
+//               padding: const EdgeInsets.only(top: 8),
+//               child: Row(
+//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                 children: [
+//                   Expanded(
+//                     child: Row(
+//                       children: [
+//                         const SizedBox(
+//                           width: 12,
+//                           height: 12,
+//                           child: CircleAvatar(
+//                             backgroundImage: NetworkImage(
+//                               'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
+//                             ),
+//                           ),
+//                         ),
+//                         const SizedBox(width: 4),
+//                         Expanded(
+//                           child: Container(
+//                             padding: const EdgeInsets.only(
+//                               right: 5,
+//                             ),
+//                             child: Column(
+//                               crossAxisAlignment: CrossAxisAlignment.start,
+//                               children: [
+//                                 const SizedBox(height: 2),
+//                                 Text(
+//                                   beat.beatmakerName == ''
+//                                       ? "beatmaker1"
+//                                       : beat.beatmakerName,
+//                                   style: AppTextStyles.bodyText2,
+//                                   overflow: TextOverflow.ellipsis,
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                   Row(
+//                     children: [
+//                       Icon(
+//                         Icons.volume_down_outlined,
+//                         size: 12,
+//                         color: AppColors.unselectedItemColor,
+//                       ),
+//                       Column(
+//                         children: [
+//                           const SizedBox(height: 1),
+//                           Text(
+//                             beat.plays.toString(),
+//                             style:
+//                                 AppTextStyles.bodyText2.copyWith(fontSize: 10),
+//                             overflow: TextOverflow.ellipsis,
+//                           ),
+//                         ],
+//                       ),
+//                     ],
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 class BeatEntity {
   final String id;

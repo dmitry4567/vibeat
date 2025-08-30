@@ -3,9 +3,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
+import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:http/http.dart' as http;
 
@@ -67,7 +71,8 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
       List<dynamic> data = json.decode(response.body)['data'];
 
       setState(() {
-        beatData = data.map((json) => BeatEntity.fromJson(json, "false")).toList();
+        beatData =
+            data.map((json) => BeatEntity.fromJson(json, "false")).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -77,13 +82,17 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const double paddingWidth = 18.0;
+    const double marginRight = 20.0;
+
     final size = MediaQuery.of(context).size;
-    const paddingWidth = 18.0;
+    final width = size.width * 0.38;
     final gridItemWidth = (size.width - paddingWidth * 2 - 20) / 2;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: AppColors.appbar,
         forceMaterialTransparency: true,
         title: Text(
@@ -104,9 +113,26 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
                         (context, index) {
                           return Skeletonizer(
                             enabled: false,
-                            child: BeatWidget(
+                            child: NewBeatWidget(
                               gridItemWidth: gridItemWidth,
                               beat: beatData[index],
+                              index: index,
+                              width: width,
+                              marginRight: 0,
+                              isLoading: false,
+                              openPlayer: () {
+                                sl<PlayerBloc>()
+                                    .add(PlayCurrentBeatEvent(beatData, index));
+
+                                context.router.navigate(const PlayerRoute());
+                              },
+                              openInfoBeat: () {
+                                context.router.navigate(
+                                  InfoBeat(
+                                    beatId: beatData[index].id,
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },

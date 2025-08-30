@@ -79,6 +79,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     } catch (e) {
       log('Error fetching favorite beats: $e');
       setState(() {
+        if (!mounted) return;
         beatData = [];
       });
     }
@@ -96,6 +97,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: AppColors.appbar,
         forceMaterialTransparency: true,
         title: const Text(
@@ -103,11 +105,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           style: AppTextStyles.bodyAppbar,
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          getFavoriteBeats();
-        },
-        child: Padding(
+      body: Scrollbar(
+      thumbVisibility: false,
+      trackVisibility: true,
+      interactive: true,
+      child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
           child: CustomScrollView(
             slivers: [
@@ -123,8 +125,15 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           openPlayer: () {
                             sl<PlayerBloc>()
                                 .add(PlayCurrentBeatEvent(beatData, index));
-
+        
                             context.router.navigate(const PlayerRoute());
+                          },
+                          openInfoBeat: () {
+                            context.router.navigate(
+                              InfoBeat(
+                                beatId: beatData[index].id,
+                              ),
+                            );
                           },
                           beat: beatData[index],
                           index: index,

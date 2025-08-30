@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/app/injection_container.dart' as di;
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/info_beatmaker/beatmaker.dart';
@@ -76,9 +78,8 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
   }
 
   void getBeatmakerInfo() async {
-      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-  final ip = sharedPreferences.getString("ip");
-
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
 
     final response = await http.get(
       Uri.parse("http://$ip:7773/api/userById/${widget.beatmakerId}"),
@@ -124,6 +125,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
+        centerTitle: true,
               stretch: true,
               backgroundColor: AppColors.background,
               excludeHeaderSemantics: true,
@@ -245,7 +247,17 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                 Container(
                                   alignment: AlignmentDirectional.topCenter,
                                   child: MaterialButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      // sl<PlayerBloc>().add(PlayCurrentBeatEvent(
+                                      //     di
+                                      //         .sl<AllBeatsOfBeatmakerBloc>()
+                                      //         .state
+                                      //         .beats,
+                                      //     0));
+
+                                      // context.router
+                                      //     .navigate(const PlayerRoute());
+                                    },
                                     color: AppColors.primary,
                                     textColor: Colors.white,
                                     shape: const CircleBorder(),

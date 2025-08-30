@@ -4,17 +4,22 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
+import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:http/http.dart' as http;
 
 @RoutePage()
 class InfoBeat extends StatefulWidget {
-  const InfoBeat({super.key, required this.beatId});
+  const InfoBeat({
+    super.key,
+    required this.beatId,
+  });
 
   final String beatId;
 
@@ -113,7 +118,7 @@ class _InfoBeatState extends State<InfoBeat> {
   void getLikesCountByBeat() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     final ip = sharedPreferences.getString("ip");
-    
+
     final response = await http.get(
       Uri.parse(
           "http://$ip:8080/activityBeat/viewLikesCountByBeatId/${widget.beatId}"),
@@ -163,6 +168,7 @@ class _InfoBeatState extends State<InfoBeat> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+        centerTitle: true,
             automaticallyImplyLeading: true,
             stretch: true,
             primary: true,
@@ -213,6 +219,7 @@ class _InfoBeatState extends State<InfoBeat> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 9),
@@ -230,6 +237,7 @@ class _InfoBeatState extends State<InfoBeat> {
                       SingleChildScrollView(
                         primary: false,
                         scrollDirection: Axis.horizontal,
+                        physics: const NeverScrollableScrollPhysics(),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -266,7 +274,14 @@ class _InfoBeatState extends State<InfoBeat> {
                                 Container(
                                   alignment: AlignmentDirectional.topCenter,
                                   child: MaterialButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      sl<PlayerBloc>().add(
+                                        PlayCurrentBeatEvent([beat], 0),
+                                      );
+
+                                      context.router
+                                          .navigate(const PlayerRoute());
+                                    },
                                     color: AppColors.primary,
                                     textColor: Colors.white,
                                     shape: const CircleBorder(),

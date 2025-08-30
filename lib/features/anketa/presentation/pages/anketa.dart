@@ -50,6 +50,7 @@ class _AnketaScreenState extends State<AnketaScreen> {
                 CustomScrollView(
                   slivers: [
                     const SliverAppBar(
+        centerTitle: true,
                       pinned: true,
                       floating: false,
                       elevation: 0,

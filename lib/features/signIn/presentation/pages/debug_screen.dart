@@ -39,6 +39,7 @@ class _DebugScreenState extends State<DebugScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         leading: IconButton(
           onPressed: () {
             context.router.maybePop();
