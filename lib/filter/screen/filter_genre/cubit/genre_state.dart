@@ -29,12 +29,8 @@ class GenreError extends GenreState {
 
 class GenreLoaded extends GenreState {
   const GenreLoaded({
-    required List<GenreModel> genres,
-    required List<GenreModel> selectedGenres,
-    String searchQuery = '',
-  }) : super(
-          genres: genres,
-          selectedGenres: selectedGenres,
-          searchQuery: searchQuery,
-        );
+    required super.genres,
+    required super.selectedGenres,
+    super.searchQuery,
+  });
 }

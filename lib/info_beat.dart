@@ -1,16 +1,14 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/core/api_client.dart';
-import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
-import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:http/http.dart' as http;
@@ -28,9 +26,11 @@ class InfoBeat extends StatefulWidget {
 class _InfoBeatState extends State<InfoBeat> {
   BeatEntity beat = const BeatEntity(
     id: "",
+    isCurrentPlaying: false,
     name: "",
     description: "",
     picture: "",
+    beatmakerId: "",
     beatmakerName: "",
     url: "",
     price: 1000,
@@ -77,8 +77,11 @@ class _InfoBeatState extends State<InfoBeat> {
   Future<void> postNewLike() async {
     final apiClient = sl<ApiClient>().dio;
 
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final responseLike = await apiClient.post(
-      "http://192.168.0.135:8080/activityBeat/postNewLike",
+      "http://$ip:8080/activityBeat/postNewLike",
       data: {
         'beatId': widget.beatId,
       },
@@ -86,7 +89,7 @@ class _InfoBeatState extends State<InfoBeat> {
 
     if (responseLike.statusCode == 205) {
       final responseDelete = await apiClient
-          .delete("http://192.168.0.135:8080/activityBeat/${widget.beatId}");
+          .delete("http://$ip:8080/activityBeat/${widget.beatId}");
 
       if (responseDelete.statusCode == 200) {
         setState(() {
@@ -102,21 +105,26 @@ class _InfoBeatState extends State<InfoBeat> {
         isLike = true;
       });
       // setState(() {
-      //                                 isLike = !isLike;
-      //                                 countLikes += isLike ? 1 : -1;
-      //                               });
+      //   isLike = !isLike;
+      //   countLikes += isLike ? 1 : -1;
+      // });
     } else {}
   }
 
   void getLikesCountByBeat() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+    
     final response = await http.get(
       Uri.parse(
-          "http://192.168.0.135:8080/activityBeat/viewLikesCountByBeatId/${widget.beatId}"),
+          "http://$ip:8080/activityBeat/viewLikesCountByBeatId/${widget.beatId}"),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
       dynamic data = json.decode(response.body)['data'];
+
+      if (!mounted) return;
 
       setState(() {
         countLikes = data['count'];
@@ -125,16 +133,21 @@ class _InfoBeatState extends State<InfoBeat> {
   }
 
   void getBeatInfo() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final response = await http.get(
-      Uri.parse("http://192.168.0.135:8080/beat/byBeatId/${widget.beatId}"),
+      Uri.parse("http://$ip:8080/beat/byBeatId/${widget.beatId}"),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
       dynamic data = json.decode(response.body)['data'];
 
+      if (!mounted) return;
+
       setState(() {
-        beat = BeatEntity.fromJson(data);
+        beat = BeatEntity.fromJson(data, "false");
       });
     }
   }
@@ -151,7 +164,9 @@ class _InfoBeatState extends State<InfoBeat> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+            automaticallyImplyLeading: true,
             stretch: true,
+            primary: true,
             backgroundColor: AppColors.background,
             excludeHeaderSemantics: true,
             expandedHeight: 450.0, //375
@@ -166,8 +181,13 @@ class _InfoBeatState extends State<InfoBeat> {
                           beat.picture,
                           fit: BoxFit.cover,
                         )
-                      : Container(
-                          color: AppColors.appbar,
+                      : Skeletonizer(
+                          enabled: true,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            color: AppColors.appbar,
+                          ),
                         ),
                   Align(
                     alignment: Alignment.bottomCenter,
@@ -187,102 +207,113 @@ class _InfoBeatState extends State<InfoBeat> {
                   ),
                 ],
               ),
+              titlePadding: const EdgeInsets.all(0),
               title: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      beat.name,
-                      style: AppTextStyles.bodyAppbar.copyWith(
-                        fontSize: 26,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 9),
+                        child: Text(
+                          beat.name,
+                          maxLines: 2,
+                          style: AppTextStyles.bodyAppbar.copyWith(
+                            fontSize: 26,
+                            height: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Column(
-                            children: [
-                              Container(
-                                alignment: AlignmentDirectional.topCenter,
-                                child: MaterialButton(
-                                  onPressed: () async {
-                                    await postNewLike();
-                                  },
-                                  color: Colors.white.withOpacity(0.1),
-                                  textColor: Colors.white,
-                                  shape: const CircleBorder(),
-                                  child: Icon(
-                                    isLike
-                                        ? Icons.favorite
-                                        : Icons.favorite_outline,
-                                    size: 18,
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        primary: false,
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Column(
+                              children: [
+                                Container(
+                                  alignment: AlignmentDirectional.topCenter,
+                                  child: MaterialButton(
+                                    onPressed: () async {
+                                      await postNewLike();
+                                    },
+                                    color: Colors.white.withOpacity(0.1),
+                                    textColor: Colors.white,
+                                    shape: const CircleBorder(),
+                                    child: Icon(
+                                      isLike
+                                          ? Icons.favorite
+                                          : Icons.favorite_outline,
+                                      size: 18,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "253",
-                                style: AppTextStyles.bodyAppbar.copyWith(
-                                  fontSize: 10,
-                                ),
-                              )
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Container(
-                                alignment: AlignmentDirectional.topCenter,
-                                child: MaterialButton(
-                                  onPressed: () {},
-                                  color: AppColors.primary,
-                                  textColor: Colors.white,
-                                  shape: const CircleBorder(),
-                                  child: const Icon(
-                                    Icons.play_arrow,
+                                const SizedBox(height: 2),
+                                Text(
+                                  countLikes.toString(),
+                                  style: AppTextStyles.bodyAppbar.copyWith(
+                                    fontSize: 10,
+                                  ),
+                                )
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Container(
+                                  alignment: AlignmentDirectional.topCenter,
+                                  child: MaterialButton(
+                                    onPressed: () {},
+                                    color: AppColors.primary,
+                                    textColor: Colors.white,
+                                    shape: const CircleBorder(),
+                                    child: const Icon(
+                                      Icons.play_arrow,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "Слушать",
-                                style: AppTextStyles.bodyAppbar.copyWith(
-                                  fontSize: 10,
-                                ),
-                              )
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Container(
-                                alignment: AlignmentDirectional.topCenter,
-                                child: MaterialButton(
-                                  onPressed: () {},
-                                  color: Colors.white.withOpacity(0.1),
-                                  textColor: Colors.white,
-                                  shape: const CircleBorder(),
-                                  child: const Icon(
-                                    Icons.share,
-                                    size: 18,
+                                const SizedBox(height: 2),
+                                Text(
+                                  "Слушать",
+                                  style: AppTextStyles.bodyAppbar.copyWith(
+                                    fontSize: 10,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "Поделиться",
-                                style: AppTextStyles.bodyAppbar.copyWith(
-                                  fontSize: 10,
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Container(
+                                  alignment: AlignmentDirectional.topCenter,
+                                  child: MaterialButton(
+                                    onPressed: () {},
+                                    color: Colors.white.withOpacity(0.1),
+                                    textColor: Colors.white,
+                                    shape: const CircleBorder(),
+                                    child: const Icon(
+                                      Icons.share,
+                                      size: 18,
+                                    ),
+                                  ),
                                 ),
-                              )
-                            ],
-                          ),
-                        ],
+                                const SizedBox(height: 2),
+                                Text(
+                                  "Поделиться",
+                                  style: AppTextStyles.bodyAppbar.copyWith(
+                                    fontSize: 10,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -296,11 +327,11 @@ class _InfoBeatState extends State<InfoBeat> {
             sliver: SliverList(
               delegate: SliverChildListDelegate(
                 [
-                  const SizedBox(height: 20),
-                  const Divider(
-                    height: 0.5,
-                    color: Color(0xff1E1E1E),
-                  ),
+                  // const SizedBox(height: 20),
+                  // const Divider(
+                  //   height: 0.5,
+                  //   color: Color(0xff1E1E1E),
+                  // ),
                   const SizedBox(height: 20),
                   Text(
                     "О КОМПОЗИЦИИ",

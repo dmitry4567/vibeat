@@ -28,7 +28,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String password,
   ) async {
     try {
-      final response = await _apiClient.post(
+      final response =await _apiClient.post(
         '/user/login',
         options: d.Options(
           headers: {
@@ -44,7 +44,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final responseData = response.data;
 
       final user =
-          UserEntity(jwtToken: responseData['token'], authType: AuthType.email);
+          UserEntity(jwtToken: responseData['data']['access_token'], authType: AuthType.email);
 
       await cacheUser(user, AuthType.email);
 
@@ -81,7 +81,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final responseData = response.data;
 
       final user =
-          UserEntity(jwtToken: responseData['token'], authType: AuthType.email);
+          UserEntity(jwtToken: responseData['data']['access_token'], authType: AuthType.email);
 
       await cacheUser(user, AuthType.email);
 

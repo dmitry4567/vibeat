@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/core/api/auth_interceptor.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/core/network/network_info.dart';
@@ -13,6 +14,8 @@ import 'package:vibeat/features/anketa/domain/usecases/send_anketa_response.dart
 import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
 import 'package:vibeat/features/signIn/domain/repositories/auth_repository.dart';
 import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
+import 'package:vibeat/info_beatmaker/widgets/bloc/all_beats_of_beatmaker_bloc.dart';
+import 'package:vibeat/player/bloc/player_bloc.dart';
 import '../features/signIn/data/repositories/auth_repository_impl.dart';
 import 'package:dio/dio.dart';
 
@@ -52,15 +55,26 @@ Future<void> init() async {
         secureStorage: sl(),
       ));
 
+
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  final ip = sharedPreferences.getString("ip");
+  if (ip == null) {
+    sharedPreferences.setString("ip", "192.168.0.135");
+  }
+
+
   // Initialize API Client
   final apiClient = sl<ApiClient>();
-  await apiClient.initialize('http://192.168.0.135:8080/');
+  await apiClient.initialize('http://$ip:8080/');
   // await apiClient.initialize('http://172.20.10.4:3000');
 
   // Add auth interceptor
   sl<Dio>().interceptors.add(sl<AuthInterceptor>());
 
   // BLoCs
+  sl.registerLazySingleton(() => PlayerBloc());
+  sl.registerLazySingleton(() => AllBeatsOfBeatmakerBloc(playerBloc: sl()));
+
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
   sl.registerFactory(() => AnketaBloc(
         getAnketa: sl(),

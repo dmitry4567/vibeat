@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
@@ -21,17 +22,17 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
-List<BeatEntity> beatData = [];
-
 class _SearchScreenState extends State<SearchScreen> {
   List<GenreModel> genresData = [];
   List<BeatEntity> placeholderBeat = List.generate(
     5,
     (index) => const BeatEntity(
       id: "",
+      isCurrentPlaying: false,
       name: "",
       description: "",
       picture: "",
+      beatmakerId: "",
       beatmakerName: "",
       url: "",
       price: 1000,
@@ -48,11 +49,18 @@ class _SearchScreenState extends State<SearchScreen> {
       createAt: 0,
     ),
   );
+
   List<GenreModel> placeholderGenre = List.generate(
     4,
     (index) => const GenreModel(
-        name: "", countOfBeats: 300, key: "", photoUrl: "", isSelected: false),
+        name: "skjrngfs",
+        countOfBeats: 300,
+        key: "",
+        photoUrl: "",
+        isSelected: false),
   );
+
+  List<BeatEntity> beatData = [];
 
   final TextEditingController textController1 = TextEditingController();
 
@@ -77,20 +85,21 @@ class _SearchScreenState extends State<SearchScreen> {
   void getNewBeats() async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final response = await http.get(
-      Uri.parse('http://192.168.0.135:8080/beat/beatsByDate/0/$now'),
+      Uri.parse('http://$ip:8080/beat/beatsByDate/0/$now'),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['data'];
 
-      // log(data.toString());
-
       setState(() {
-        beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
+        beatData =
+            data.map((json) => BeatEntity.fromJson(json, "false")).toList();
       });
-      // beatData = beatData.toList();
     }
     if (response.statusCode == 500) {
       beatData = [];
@@ -98,8 +107,10 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void getGenres() async {
+        SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
     final response = await http.get(
-      Uri.parse('http://192.168.0.135:8080/metadata/genres'),
+      Uri.parse('http://$ip:8080/metadata/genres'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -139,7 +150,8 @@ class _SearchScreenState extends State<SearchScreen> {
       body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
-          context.read<PlayerBloc>().add(UpdatePlayerBottomEvent(true));
+
+          sl<PlayerBloc>().add(UpdatePlayerBottomEvent(true));
         },
         child: SingleChildScrollView(
           // physics: const ClampingScrollPhysics(),
@@ -158,14 +170,14 @@ class _SearchScreenState extends State<SearchScreen> {
                     }
                   },
                   onTap: () {
-                    context.read<PlayerBloc>().add(
-                          UpdatePlayerBottomEvent(false),
-                        );
+                    sl<PlayerBloc>().add(
+                      UpdatePlayerBottomEvent(false),
+                    );
                   },
                   onTapOutside: (event) {
-                    context.read<PlayerBloc>().add(
-                          UpdatePlayerBottomEvent(true),
-                        );
+                    sl<PlayerBloc>().add(
+                      UpdatePlayerBottomEvent(true),
+                    );
                   },
                   textAlignVertical: TextAlignVertical.center,
                   obscureText: false,
@@ -265,6 +277,13 @@ class _SearchScreenState extends State<SearchScreen> {
                             return Skeletonizer(
                               enabled: false,
                               child: NewBeatWidget(
+                                openPlayer: () {
+                                  sl<PlayerBloc>().add(
+                                      PlayCurrentBeatEvent(beatData, index));
+
+                                  context.router.navigate(const PlayerRoute());
+                                },
+                                isLoading: false,
                                 index: index,
                                 beat: beatData[index],
                                 width: width,
@@ -276,22 +295,46 @@ class _SearchScreenState extends State<SearchScreen> {
                         : List.generate(placeholderBeat.length, (index) {
                             return Skeletonizer(
                               enabled: true,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(6),
+                              child: NewBeatWidget(
+                                openPlayer: () {
+                                  sl<PlayerBloc>().add(
+                                      PlayCurrentBeatEvent(beatData, index));
+
+                                  context.router.navigate(const PlayerRoute());
+                                },
+                                isLoading: true,
+                                index: index,
+                                beat: const BeatEntity(
+                                  id: "",
+                                  isCurrentPlaying: false,
+                                  name: "sefsesfseff",
+                                  description: "sefsef",
+                                  picture: "",
+                                  beatmakerId: "",
+                                  beatmakerName: "sefsef",
+                                  url: "",
+                                  price: 0,
+                                  plays: 0,
+                                  genres: [],
+                                  moods: [],
+                                  tags: [],
+                                  key: KeyModel(
+                                    name: "",
+                                    key: "",
+                                    isSelected: false,
+                                  ),
+                                  bpm: 0,
+                                  createAt: 0,
                                 ),
-                                child: Container(
-                                  margin:
-                                      const EdgeInsets.only(right: marginRight),
-                                  width: gridItemWidth,
-                                  height: gridItemWidth,
-                                  color: Colors.black,
-                                ),
+                                width: width,
+                                marginRight: marginRight,
+                                gridItemWidth: gridItemWidth,
                               ),
                             );
                           }),
                   ),
                 ),
+
                 const SizedBox(height: 32),
                 const Text("Горячие жанры", style: AppTextStyles.headline2),
                 const SizedBox(height: 25),
@@ -536,6 +579,8 @@ class NewBeatWidget extends StatelessWidget {
   final double width;
   final double marginRight;
   final double gridItemWidth;
+  final bool isLoading;
+  final VoidCallback openPlayer;
 
   const NewBeatWidget({
     super.key,
@@ -544,6 +589,8 @@ class NewBeatWidget extends StatelessWidget {
     required this.width,
     required this.marginRight,
     required this.gridItemWidth,
+    required this.isLoading,
+    required this.openPlayer,
   });
 
   @override
@@ -551,136 +598,188 @@ class NewBeatWidget extends StatelessWidget {
     Random random = Random();
 
     return ClipRRect(
-      borderRadius: const BorderRadius.all(
-        Radius.circular(6),
-      ),
-      child: GestureDetector(
-        onTap: () {
-          context.read<PlayerBloc>().add(PlayCurrentBeatEvent(beatData, index));
-
-          context.router.push(const PlayerRoute());
-        },
-        child: Container(
-          width: width,
-          margin: EdgeInsets.only(right: marginRight),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image.asset(
-              //   fit: BoxFit.fitWidth,
-              //   width: width,
-              //   "assets/images/image1.png",
-              // ),
-              Image.network(
-                fit: BoxFit.fitHeight,
-                width: gridItemWidth,
-                height: gridItemWidth,
-                beat.picture,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) {
-                    return ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(6)),
-                      child: child,
+      borderRadius: const BorderRadius.all(Radius.circular(6)),
+      child: Container(
+        width: width,
+        margin: EdgeInsets.only(right: marginRight),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: openPlayer,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(6)),
+                child: Image.network(
+                  fit: BoxFit.fitHeight,
+                  width: gridItemWidth,
+                  height: gridItemWidth - marginRight,
+                  beat.picture,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child;
+                    }
+                    return Skeletonizer(
+                      enabled: true,
+                      child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(6)),
+                        child: SizedBox(
+                          width: gridItemWidth,
+                          height: gridItemWidth - marginRight,
+                        ),
+                      ),
                     );
-                  }
-                  return Skeletonizer(
-                    enabled: true,
-                    child: ClipRRect(
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return ClipRRect(
                       borderRadius: const BorderRadius.all(Radius.circular(6)),
                       child: Container(
                         width: gridItemWidth,
-                        height: gridItemWidth,
-                        color: Colors.red,
+                        height: gridItemWidth - marginRight,
+                        color: Colors.grey,
                       ),
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return ClipRRect(
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                    child: Container(
-                      width: gridItemWidth,
-                      height: gridItemWidth,
-                      color: Colors.grey,
-                      child: const Icon(Icons.error),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                "${getRandomNumber(10, 20) * 100} RUB",
-                style: AppTextStyles.bodyPrice2,
-              ),
-              Text(
-                beat.name,
-                style: AppTextStyles.headline1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+            // Image.asset(
+            //   fit: BoxFit.fitWidth,
+            //   width: width,
+            //   "assets/images/image1.png",
+            // ),
+            GestureDetector(
+              onTap: () {
+                context.router.navigate(InfoBeat(beatId: beat.id));
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        const SizedBox(
-                          width: 12,
-                          height: 12,
-                          child: CircleAvatar(
-                            backgroundImage: NetworkImage(
-                              'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.only(
-                              right: 5,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 2),
-                                Text(
-                                  beat.beatmakerName == ''
-                                      ? "beatmaker1"
-                                      : beat.beatmakerName,
-                                  style: AppTextStyles.bodyText2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "${getRandomNumber(10, 20) * 100} RUB",
+                    style: AppTextStyles.bodyPrice2,
                   ),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.volume_down_outlined,
-                        size: 12,
-                        color: AppColors.unselectedItemColor,
-                      ),
-                      Column(
-                        children: [
-                          const SizedBox(height: 1),
-                          Text(
-                            random.nextInt(1000).toString(),
-                            style:
-                                AppTextStyles.bodyText2.copyWith(fontSize: 10),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ],
+                  Text(
+                    beat.name,
+                    style: AppTextStyles.headline1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+
+            GestureDetector(
+              onTap: () {
+                context.router
+                    .navigate(InfoBeatmaker(beatmakerId: beat.beatmakerId));
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // isLoading
+                          //     ? ClipRRect(
+                          //         borderRadius: const BorderRadius.all(
+                          //             Radius.circular(6)),
+                          //         child: Container(
+                          //           width: 12,
+                          //           height: 12,
+                          //           color: Colors.grey,
+                          //         ),
+                          //       )
+                          //     : ClipRRect(
+                          //         borderRadius: const BorderRadius.all(
+                          //             Radius.circular(6)),
+                          //         child: Image.network(
+                          //           fit: BoxFit.fitHeight,
+                          //           width: 12,
+                          //           height: 12,
+                          //           'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
+                          //           loadingBuilder:
+                          //               (context, child, loadingProgress) {
+                          //             if (loadingProgress == null) {
+                          //               return child;
+                          //             }
+                          //             return Skeletonizer(
+                          //               enabled: true,
+                          //               child: ClipRRect(
+                          //                 borderRadius: const BorderRadius.all(
+                          //                     Radius.circular(6)),
+                          //                 child: Container(
+                          //                   width: 12,
+                          //                   height: 12,
+                          //                   color: Colors.black,
+                          //                 ),
+                          //               ),
+                          //             );
+                          //           },
+                          //           errorBuilder: (context, error, stackTrace) {
+                          //             return ClipRRect(
+                          //               borderRadius: const BorderRadius.all(
+                          //                   Radius.circular(6)),
+                          //               child: Container(
+                          //                 width: 12,
+                          //                 height: 12,
+                          //                 color: Colors.black,
+                          //               ),
+                          //             );
+                          //           },
+                          //         ),
+                          //       ),
+                          // const SizedBox(width: 4),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.only(
+                                right: 5,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    beat.beatmakerName == ''
+                                        ? "beatmaker1"
+                                        : beat.beatmakerName,
+                                    style: AppTextStyles.bodyText2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.volume_down_outlined,
+                          size: 12,
+                          color: AppColors.unselectedItemColor,
+                        ),
+                        Column(
+                          children: [
+                            const SizedBox(height: 1),
+                            Text(
+                              random.nextInt(1000).toString(),
+                              style: AppTextStyles.bodyText2
+                                  .copyWith(fontSize: 10),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

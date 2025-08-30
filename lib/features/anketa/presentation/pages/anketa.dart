@@ -5,7 +5,6 @@ import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/custom_functions.dart';
 import 'package:vibeat/features/anketa/domain/entities/anketa_entity.dart';
 import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
-import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 

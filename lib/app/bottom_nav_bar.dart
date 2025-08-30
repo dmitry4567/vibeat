@@ -1,9 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marquee/marquee.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/app/injection_container.dart' as di;
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/utils/theme.dart';
 
 @RoutePage()
@@ -15,6 +20,29 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
+
+  final double coverWidth = 330;
+  int currentPage = 0;
+  int targetPage = 0;
+  bool isScrolling = false;
+  bool _isProgrammaticChange = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final initialIndex = sl<PlayerBloc>().state.currentTrackIndex;
+
+      if (initialIndex > 0) {
+        _carouselController.jumpToPage(initialIndex);
+        currentPage = initialIndex;
+      }
+    });
+  }
+
   @override
   Widget build(context) {
     return Scaffold(
@@ -99,126 +127,176 @@ class _DashboardPageState extends State<DashboardPage> {
             left: 0,
             right: 0,
             bottom: 96,
-            child: BlocBuilder<PlayerBloc, PlayerState>(
+            child: BlocConsumer<PlayerBloc, PlayerState>(
               buildWhen: (previous, current) =>
                   previous.playerBottom != current.playerBottom ||
                   previous.trackList != current.trackList ||
                   previous.isPlaying != current.isPlaying,
+              listenWhen: (previous, current) =>
+                  previous.currentTrackIndex != current.currentTrackIndex,
+              listener: (context, state) {
+                if (state.currentTrackIndex != currentPage) {
+                  _isProgrammaticChange = true;
+                  currentPage = state.currentTrackIndex;
+
+                  // if (state.currentTrackIndex != 0) {
+                    _carouselController.animateToPage(
+                      state.currentTrackIndex,
+                      // duration: const Duration(milliseconds: 300),
+                      // curve: Curves.easeInOut,
+                    );
+                  // }
+                }
+              },
               builder: (context, state) {
                 if (state.trackList.isNotEmpty && state.playerBottom) {
-                  final track = state.trackList[state.currentTrackIndex];
+                  return Container(
+                    height: 80,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                    ),
+                    child: CarouselSlider(
+                      carouselController: _carouselController,
+                      options: CarouselOptions(
+                        height: 80,
+                        viewportFraction: 0.92,
+                        enlargeCenterPage: false,
+                        enableInfiniteScroll: false,
+                        initialPage: state.currentTrackIndex,
+                        onPageChanged: (index, reason) {
+                          if (_isProgrammaticChange) {
+                            _isProgrammaticChange = false;
+                            return;
+                          }
 
-                  return GestureDetector(
-                    onTap: () {
-                      context.router.push(const PlayerRoute());
-                    },
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                      builder: (context, value, child) {
-                        return AnimatedOpacity(
-                          opacity: value,
-                          duration: const Duration(milliseconds: 0),
-                          child: Container(
-                            height: 80,
-                            color: Colors.black,
-                            padding: const EdgeInsets.only(
-                              left: 18,
-                              right: 18,
-                              top: 12,
-                              bottom: 12,
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.only(left: 8, right: 8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xff1E1E1E),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: CachedNetworkImage(
-                                      imageUrl: track.photoUrl,
-                                      height: 38,
-                                      width: 38,
-                                      fit: BoxFit.cover,
-                                    ),
+                          if (!isScrolling) {
+                            currentPage = index;
+                            sl<PlayerBloc>().add(
+                              UpdateCurrentTrackIndexEvent(index),
+                            );
+                          }
+                        },
+                      ),
+                      items: state.trackList.map((track) {
+                        return Builder(
+                          builder: (BuildContext context) {
+                            return Container(
+                              width: MediaQuery.of(context).size.width,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: GestureDetector(
+                                onTap: () {
+                                  context.router.push(const PlayerRoute());
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.only(
+                                    top: 12,
+                                    bottom: 12,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                  child: Container(
+                                    padding: const EdgeInsets.only(
+                                      left: 8,
+                                      right: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xff1E1E1E),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
                                       children: [
-                                        Text(
-                                          track.name,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            fontFamily: "Poppins",
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          child: CachedNetworkImage(
+                                            imageUrl: track.photoUrl,
+                                            width: 38,
+                                            height: 38,
+                                            fit: BoxFit.cover,
+                                            errorWidget:
+                                                (context, imageUrl, error) =>
+                                                    Text(
+                                              error.toString(),
+                                            ),
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        Text(
-                                          track.bitmaker,
-                                          style: TextStyle(
-                                            color:
-                                                Colors.white.withOpacity(0.5),
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w400,
-                                            fontFamily: "Helvetica",
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                track.name,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontFamily: "Poppins",
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                track.bitmaker,
+                                                style: TextStyle(
+                                                  color: Colors.white
+                                                      .withOpacity(0.5),
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w400,
+                                                  fontFamily: "Helvetica",
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.favorite_outline,
+                                                size: 22,
+                                              ),
+                                              onPressed: () {},
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                state.isPlaying == true
+                                                    ? Icons.pause
+                                                    : Icons.play_arrow,
+                                                color: Colors.white,
+                                                size: 30,
+                                              ),
+                                              onPressed: () {
+                                                if (state.isPlaying) {
+                                                  sl<PlayerBloc>().add(
+                                                    PauseAudioEvent(),
+                                                  );
+                                                } else {
+                                                  sl<PlayerBloc>().add(
+                                                    PlayAudioEvent(),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.favorite,
-                                          size: 20,
-                                        ),
-                                        onPressed: () {
-                                          // context.read<PlayerBloc>().add(UpdatePlayerBottomEvent(false));
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          state.isPlaying == true
-                                              ? Icons.pause
-                                              : Icons.play_arrow,
-                                          color: Colors.white,
-                                          size: 28,
-                                        ),
-                                        onPressed: () {
-                                          if (state.isPlaying) {
-                                            context.read<PlayerBloc>().add(
-                                                  PauseAudioEvent(),
-                                                );
-                                          } else {
-                                            context.read<PlayerBloc>().add(
-                                                  PlayAudioEvent(),
-                                                );
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         );
-                      },
+                      }).toList(),
                     ),
                   );
                 }

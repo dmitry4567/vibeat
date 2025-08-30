@@ -36,14 +36,14 @@ class FFButtonOptions {
 
 class FFButtonWidget extends StatefulWidget {
   const FFButtonWidget({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.icon,
     this.iconData,
     required this.options,
     this.showLoadingIndicator = true,
-  }) : super(key: key);
+  });
 
   final String text;
   final Widget? icon;
@@ -63,7 +63,7 @@ class _FFButtonWidgetState extends State<FFButtonWidget> {
   Widget build(BuildContext context) {
     Widget textWidget = loading
         ? Center(
-            child: Container(
+            child: SizedBox(
               width: 23,
               height: 23,
               child: CircularProgressIndicator(
@@ -82,7 +82,7 @@ class _FFButtonWidgetState extends State<FFButtonWidget> {
 
     print(widget.onPressed);
 
-    var onPressed;
+    Function()? onPressed;
     if (widget.onPressed != null) {
       onPressed = widget.showLoadingIndicator
           ? () async {
@@ -104,43 +104,43 @@ class _FFButtonWidgetState extends State<FFButtonWidget> {
     }
 
     ButtonStyle style = ButtonStyle(
-      shape: MaterialStateProperty.all<OutlinedBorder>(
+      shape: WidgetStateProperty.all<OutlinedBorder>(
         RoundedRectangleBorder(
           borderRadius:
               widget.options.borderRadius ?? BorderRadius.circular(8.0),
           side: widget.options.borderSide ?? BorderSide.none,
         ),
       ),
-      foregroundColor: MaterialStateProperty.resolveWith<Color?>(
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
         (states) {
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return widget.options.disabledTextColor;
           }
           return widget.options.textStyle!.color;
         },
       ),
-      backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
         (states) {
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return widget.options.disabledColor;
           }
           return widget.options.color;
         },
       ),
-      overlayColor: MaterialStateProperty.resolveWith<Color?>((states) {
-        if (states.contains(MaterialState.pressed)) {
+      overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.pressed)) {
           return widget.options.splashColor;
         }
         return null;
       }),
-      padding: MaterialStateProperty.all(widget.options.padding ??
+      padding: WidgetStateProperty.all(widget.options.padding ??
           const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0)),
       elevation:
-          MaterialStateProperty.all<double>(widget.options.elevation ?? 2.0),
+          WidgetStateProperty.all<double>(widget.options.elevation ?? 2.0),
     );
 
     if (widget.icon != null || widget.iconData != null) {
-      return Container(
+      return SizedBox(
         height: widget.options.height,
         width: widget.options.width,
         child: ElevatedButton.icon(
@@ -161,7 +161,7 @@ class _FFButtonWidgetState extends State<FFButtonWidget> {
       );
     }
 
-    return Container(
+    return SizedBox(
       height: widget.options.height,
       width: widget.options.width,
       child: ElevatedButton(

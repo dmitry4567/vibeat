@@ -31,13 +31,13 @@ class MyAutoRouterObserver extends AutoRouterObserver {
   @override
   void didInitTabRoute(TabPageRoute route, TabPageRoute? previousRoute) {
     super.didInitTabRoute(route, previousRoute);
-    d.log("init " + route.path);
+    d.log("init ${route.path}");
   }
 
   @override
   void didChangeTabRoute(TabPageRoute route, TabPageRoute previousRoute) {
     super.didChangeTabRoute(route, previousRoute);
-    d.log("change " + route.path);
+    d.log("change ${route.path}");
 
     if (route.path == "search") {
       bloc.add(UpdatePlayerBottomEvent(true));
@@ -52,7 +52,7 @@ class MyAutoRouterObserver extends AutoRouterObserver {
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
 
-    d.log("push " + route.settings.name.toString());
+    d.log("push ${route.settings.name}");
 
     final routeData = (route.settings as AutoRoutePage).routeData;
 
@@ -83,8 +83,8 @@ class MyAutoRouterObserver extends AutoRouterObserver {
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
-    d.log("pop prev " + previousRoute!.settings.name.toString());
-    d.log("pop " + route.settings.name.toString());
+    d.log("pop prev ${previousRoute!.settings.name}");
+    d.log("pop ${route.settings.name}");
 
     final routeData = (route.settings as AutoRoutePage).routeData;
 

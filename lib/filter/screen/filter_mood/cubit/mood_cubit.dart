@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
 
 part 'mood_state.dart';
@@ -17,8 +18,11 @@ class MoodCubit extends Cubit<MoodState> {
     try {
       emit(MoodLoading());
 
+          SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
       final response = await http.get(
-        Uri.parse('http://192.168.0.135:8080/metadata/moods'),
+        Uri.parse('http://$ip:8080/metadata/moods'),
       );
 
       await Future.delayed(const Duration(milliseconds: 500));

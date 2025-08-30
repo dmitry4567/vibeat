@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
@@ -25,9 +25,11 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
     5,
     (index) => const BeatEntity(
       id: "",
+      isCurrentPlaying: false,
       name: "",
       description: "",
       picture: "",
+      beatmakerId: "",
       beatmakerName: "",
       url: "",
       price: 1000,
@@ -53,19 +55,19 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
   }
 
   void getBeatByMood() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final response = await http.get(
-      Uri.parse(
-          'http://192.168.0.135:8080/beat/beatsByMoodId/${widget.mood.key}'),
+      Uri.parse('http://$ip:8080/beat/beatsByMoodId/${widget.mood.key}'),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['data'];
 
-      log(data.toString());
-
       setState(() {
-        beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
+        beatData = data.map((json) => BeatEntity.fromJson(json, "false")).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -111,7 +113,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
                       ),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        mainAxisExtent: gridItemWidth + 67,
+                        mainAxisExtent: gridItemWidth + 71,
                         crossAxisSpacing: 20,
                         mainAxisSpacing: 20,
                       ),

@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart';
 
 part 'tag_state.dart';
@@ -21,8 +22,12 @@ class TagBloc extends Bloc<TagEvent, TagState> {
         )) {
     on<GetTrendTags>((event, emit) async {
       try {
-        final response = await http
-            .get(Uri.parse('http://192.168.0.135:8080/metadata/tags'));
+        SharedPreferences sharedPreferences =
+            await SharedPreferences.getInstance();
+        final ip = sharedPreferences.getString("ip");
+
+        final response =
+            await http.get(Uri.parse('http://$ip:8080/metadata/tags'));
 
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body)['data'];
@@ -72,8 +77,12 @@ class TagBloc extends Bloc<TagEvent, TagState> {
         return;
       }
 
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      final ip = sharedPreferences.getString("ip");
+
       final response = await http.get(Uri.parse(
-          'http://192.168.0.135:8080/metadata/tagsByName/${event.query}'));
+          'http://$ip:8080/metadata/tagsByName/${event.query}'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body)['data'];

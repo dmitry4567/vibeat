@@ -3,3 +3,4 @@ analyzer:
   errors:
     must_be_immutable: ignore
     file_names: ignore
+    empty_constructor_bodies: ignore

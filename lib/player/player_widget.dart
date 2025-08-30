@@ -1,7 +1,6 @@
-import 'dart:developer';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'dart:math';
+import 'dart:developer' as d;
 import 'package:http/http.dart' as http;
 import 'package:audio_waveforms/audio_waveforms.dart' as af;
 import 'package:auto_route/auto_route.dart';
@@ -10,10 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:vibeat/app/app_router.gr.dart';
+import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
-import 'package:vibeat/player/widgets/conditionalMarquee.dart';
 import 'package:vibeat/player/widgets/player_control_widget.dart';
-import 'package:vibeat/utils/image_extractor.dart';
 
 import '../utils/theme.dart';
 
@@ -25,7 +23,17 @@ class PlayerScreen extends StatefulWidget {
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> {
+class _PlayerScreenState extends State<PlayerScreen>
+    with SingleTickerProviderStateMixin {
+  double _offsetY = 0.0;
+  double _startY = 0.0;
+  late AnimationController _animationController;
+  late Animation<double> _offsetAnimation;
+
+  bool _isClosing = false;
+  double _velocity = 0.0;
+  List<double> _recentVelocities = [];
+
   List<List<Color>> listOfColors = [
     [const Color(0xffDBDBDB), const Color(0xffDADADA)],
     [
@@ -49,7 +57,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
   double? screenWidth;
   double? coverWidth;
   double? percentWidthCover;
-  PageController _pageController = PageController();
 
   af.PlayerController controller = af.PlayerController();
   String? audioFilePath;
@@ -63,9 +70,25 @@ class _PlayerScreenState extends State<PlayerScreen> {
   int numberOfFragments = 0;
   String currentFragmentName = '...';
 
+  PageController _pageController = PageController();
+  int _currentPage = 0;
+  bool _isAnimating = false;
+
+  double _positionY = 0.0; // Позиция по Y
+  double _startPositionY = 0.0; // Начальная позиция при касании
+  double _maxPosition = 0.0; // Максимальное смещение
+
   @override
   void initState() {
     super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    final initialPage = sl<PlayerBloc>().state.currentTrackIndex;
+
     controller.stopPlayer();
 
     screenWidth = 390.0;
@@ -75,16 +98,137 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
     _pageController = PageController(
       viewportFraction: percentWidthCover! / 100,
-      initialPage: 0,
+      initialPage: initialPage,
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentIndex = context.read<PlayerBloc>().state.currentTrackIndex;
-
-      _pageController.jumpToPage(currentIndex);
+      // Получаем размер экрана после построения виджета
+      final mediaQuery = MediaQuery.of(context);
+      _maxPosition = mediaQuery.size.height;
     });
 
+    // _pageController.addListener(_pageListener);
+
     // _downloadAudioFile();
+  }
+
+  // void _pageListener() {
+  //   if (_pageController.position.isScrollingNotifier.value) {
+  //     _isAnimating = true;
+  //   } else if (_isAnimating) {
+  //     _isAnimating = false;
+  //     // Анимация завершена
+  //     print('Анимация завершена, текущая страница: $_currentPage');
+  //   }
+  // }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _pageController.dispose();
+    // _pageController.removeListener(_pageListener);
+    super.dispose();
+  }
+
+  void _onVerticalDragStart(DragStartDetails details) {
+    _startY = details.globalPosition.dy;
+    _animationController.stop();
+    _isClosing = false;
+    _recentVelocities.clear();
+  }
+
+  void _onVerticalDragUpdate(DragUpdateDetails details) {
+    setState(() {
+      _offsetY = details.globalPosition.dy - _startY;
+
+      // Рассчитываем скорость свайпа
+      if (_recentVelocities.length >= 5) {
+        _recentVelocities.removeAt(0);
+      }
+      _recentVelocities.add(details.primaryDelta!);
+
+      // Вычисляем среднюю скорость
+      _velocity = _recentVelocities.isNotEmpty
+          ? _recentVelocities.reduce((a, b) => a + b) / _recentVelocities.length
+          : 0.0;
+    });
+  }
+
+  void _onVerticalDragEnd(DragEndDetails details) {
+    // Если скорость свайпа достаточно высокая или сдвинули достаточно далеко - быстро закрываем
+    final bool isFastSwipe =
+        _velocity > 3.0; // Порог скорости для быстрого закрытия
+    final bool isFarEnough = _offsetY > 200; // Порог расстояния
+
+    if (isFastSwipe || isFarEnough) {
+      _closeWithAnimation();
+    } else {
+      _startReturnAnimation();
+    }
+  }
+
+  void _closeWithAnimation() {
+    if (_isClosing) return;
+    _isClosing = true;
+
+    final closeTween = Tween<double>(
+      begin: _offsetY,
+      end: MediaQuery.of(context).size.height,
+    );
+
+    final closeAnimation = closeTween.animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    closeAnimation
+      ..addListener(() {
+        setState(() {
+          _offsetY = closeAnimation.value;
+        });
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          Navigator.of(context).pop();
+        }
+      });
+
+    _animationController.duration = Duration(
+      milliseconds: (400 * (_velocity > 5.0 ? 0.5 : 1.0)).toInt(),
+    );
+
+    _animationController.forward(from: 0.0);
+  }
+
+  void _startReturnAnimation() {
+    final returnTween = Tween<double>(
+      begin: _offsetY,
+      end: 0.0,
+    );
+
+    _offsetAnimation = returnTween.animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuad,
+      ),
+    )..addListener(() {
+        setState(() {
+          _offsetY = _offsetAnimation.value;
+        });
+      });
+
+    _animationController.duration = Duration(milliseconds: 300);
+    _animationController.forward(from: 0.0);
+  }
+
+  // Обработка быстрого тапа для закрытия
+  void _onTapDown(TapDownDetails details) {
+    // Если тап в верхней части экрана - закрываем
+    if (details.globalPosition.dy < 100) {
+      _closeWithAnimation();
+    }
   }
 
   bool isDownloading = false;
@@ -92,7 +236,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   // Future<void> _downloadAudioFile() async {
   //   if (isDownloading) {
   //     if (kDebugMode) {
-  //       print('Download already in progress, skipping duplicate call.');
+  //       'Download already in progress, skipping duplicate call.');
   //     }
   //     return;
   //   }
@@ -108,7 +252,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   //   // Check if the file already exists and is not empty
   //   if (await audioFile.exists() && await audioFile.length() > 0) {
-  //     if (kDebugMode) print('Audio file already exists at: $path');
+  //     if (kDebugMode) 'Audio file already exists at: $path');
   //     await _playAudioFile(path);
   //     setState(() {
   //       isLoading = false;
@@ -124,7 +268,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   //     if (response.statusCode == 200) {
   //       // Write the downloaded file
   //       await audioFile.writeAsBytes(response.bodyBytes);
-  //       if (kDebugMode) print('File downloaded and saved: $path');
+  //       if (kDebugMode) 'File downloaded and saved: $path');
 
   //       // Proceed to play the file after successful download
   //       await _playAudioFile(path);
@@ -133,7 +277,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   //           'Failed to download audio file: ${response.statusCode}');
   //     }
   //   } catch (e) {
-  //     if (kDebugMode) print('Error downloading audio file: $e');
+  //     if (kDebugMode) 'Error downloading audio file: $e');
   //   } finally {
   //     setState(() {
   //       isLoading = false;
@@ -167,7 +311,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   //       _updateFragment();
   //     });
   //   } catch (e) {
-  //     if (kDebugMode) print('Error preparing or starting the player: $e');
+  //     if (kDebugMode) 'Error preparing or starting the player: $e');
   //   }
   // }
   // Future<void> _downloadAudioFile() async {
@@ -216,7 +360,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   //       throw Exception('Не удалось загрузить аудиофайл');
   //     }
   //   } catch (e) {
-  //     print('Ошибка: $e');
+  //     'Ошибка: $e');
   //   }
   // }
 
@@ -333,7 +477,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Map<String, Color> _analyzeImageColors(
       Uint8List pixels, int width, int height) {
     final colorMap = <Color, int>{};
-    final sampleStep = 10; // Шаг выборки пикселей для ускорения анализа
+    const sampleStep = 10; // Шаг выборки пикселей для ускорения анализа
 
     // Собираем статистику по цветам
     for (int y = 0; y < height; y += sampleStep) {
@@ -374,596 +518,723 @@ class _PlayerScreenState extends State<PlayerScreen> {
         pow(c1.blue - c2.blue, 2));
   }
 
+  void state() {
+    super.setState(() {
+      if (!mounted) return;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: GestureDetector(
-        onVerticalDragUpdate: (details) {
-          if (details.primaryDelta! > 20) {
-            Navigator.of(context).pop();
-          }
-        },
-        child: Stack(
-          children: [
-            Stack(
-              children: [
-                Positioned.fill(
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    // height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [primaryColor, secondaryColor],
+        // onVerticalDragUpdate: (details) {
+        //   if (details.primaryDelta! > 20) {
+        //     Navigator.of(context).pop();
+        //   }
+        // },
+        onVerticalDragStart: _onVerticalDragStart,
+        onVerticalDragUpdate: _onVerticalDragUpdate,
+        onVerticalDragEnd: _onVerticalDragEnd,
+        child: Transform.translate(
+          offset: Offset(0, _offsetY > 0 ? _offsetY : 0),
+          child: Stack(
+            children: [
+              Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(55),
+                        topLeft: Radius.circular(55),
                       ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(color: Colors.black.withOpacity(0.5)),
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                Stack(
-                  children: [
-                    Positioned(
-                      top: 0,
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        width: coverWidth,
-                        height: coverWidth,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(6.0),
-                          boxShadow: const [
-                            // BoxShadow(
-                            //   color: Colors.white24,
-                            //   blurRadius: 50,
-                            //   spreadRadius: 0,
-                            // ),
-                          ],
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [primaryColor, secondaryColor],
+                          ),
                         ),
                       ),
                     ),
-                    Container(
-                      margin: const EdgeInsets.only(top: 90),
-                      height: coverWidth,
-                      child: BlocBuilder<PlayerBloc, PlayerState>(
-                        buildWhen: (previous, current) {
-                          return previous.trackList.length !=
-                              current.trackList.length;
-                        },
-                        builder: (context, state) {
-                          return PageView.builder(
-                            controller: _pageController,
-                            itemCount: state.trackList.length,
-                            onPageChanged: (value) async {
-                              if (value > state.currentTrackIndex) {
-                                // context
-                                //     .read<PlayerBloc>()
-                                //     .add(NextTrackEvent());
-
-                                context
-                                    .read<PlayerBloc>()
-                                    .add(NextBeatInPlaylistEvent());
-
-                                await loadImageAndColors(state
-                                    .trackList[state.currentTrackIndex]
-                                    .photoUrl);
-                              } else {
-                                context
-                                    .read<PlayerBloc>()
-                                    .add(PreviousTrackEvent());
-                              }
-
-                              context
-                                  .read<PlayerBloc>()
-                                  .add(UpdateCurrentTrackEvent(value));
-                            },
-                            itemBuilder: (context, index) {
-                              double scale =
-                                  (index == _pageController.initialPage)
-                                      ? 1.0
-                                      : 0.9;
-                              return AnimatedBuilder(
-                                animation: _pageController,
-                                builder: (context, child) {
-                                  if (_pageController.position.haveDimensions) {
-                                    double currentPage = _pageController.page ??
-                                        _pageController.initialPage.toDouble();
-                                    scale =
-                                        (1 - (currentPage - index).abs() * 0.3)
-                                            .clamp(0.9, 1.0);
-                                  }
-                                  return Transform.scale(
-                                    scale: scale,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      child: CachedNetworkImage(
-                                        imageUrl:
-                                            state.trackList[index].photoUrl,
-                                        width: coverWidth,
-                                        height: coverWidth,
-                                        fit: BoxFit.cover,
-                                        errorWidget:
-                                            (context, imageUrl, error) =>
-                                                Text(error.toString()),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          );
-                        },
-                      ),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.5),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.only(left: 30),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // SizedBox(
-                            //   height: 25,
-                            //   child: Marquee(
-                            //     text: listOfName[currentAudioIndex],
-                            //     style: AppTextStyles.headline1,
-                            //     scrollAxis: Axis.horizontal,
-                            //     crossAxisAlignment: CrossAxisAlignment.start,
-                            //     blankSpace: 20.0,
-                            //     velocity: 50.0,
-                            //     startAfter: const Duration(seconds: 1),
-                            //     pauseAfterRound: const Duration(seconds: 1),
-                            //   ),
-                            // ),
+                  ),
+                ],
+              ),
+              Column(
+                children: [
+                  ImagesPageBuilder(
+                    coverWidth: coverWidth!,
+                    pageController: _pageController,
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.only(left: 30),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // SizedBox(
+                              //   height: 25,
+                              //   child: Marquee(
+                              //     text: listOfName[currentAudioIndex],
+                              //     style: AppTextStyles.headline1,
+                              //     scrollAxis: Axis.horizontal,
+                              //     crossAxisAlignment: CrossAxisAlignment.start,
+                              //     blankSpace: 20.0,
+                              //     velocity: 50.0,
+                              //     startAfter: const Duration(seconds: 1),
+                              //     pauseAfterRound: const Duration(seconds: 1),
+                              //   ),
+                              // ),
 
-                            BlocBuilder<PlayerBloc, PlayerState>(
+                              BlocBuilder<PlayerBloc, PlayerState>(
                                 buildWhen: (previous, current) =>
-                                    previous.trackList != current.trackList,
+                                    previous.currentTrackIndex !=
+                                    current.currentTrackIndex,
                                 builder: (context, state) {
                                   if (state.trackList.isNotEmpty) {
-                                    // return ConditionalMarquee(
-                                    //   text: state
-                                    //       .trackList[state.currentTrackIndex].name,
-                                    //   style: AppTextStyles.headline1,
-                                    // );
-                                    return Text(
-                                      state.trackList[state.currentTrackIndex]
-                                          .name,
-                                      style: AppTextStyles.headline1,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                    return AnimatedSwitcher(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      transitionBuilder: (child, animation) {
+                                        return FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        );
+                                      },
+                                      child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        key: ValueKey<int>(
+                                            state.currentTrackIndex),
+                                        child: Text(
+                                          state
+                                              .trackList[
+                                                  state.currentTrackIndex]
+                                              .name,
+                                          style: AppTextStyles.headline1,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                     );
                                   }
                                   return Container();
-                                }),
+                                },
+                              ),
 
-                            const SizedBox(
-                              height: 2,
-                            ),
-                            BlocBuilder<PlayerBloc, PlayerState>(
-                              // buildWhen: (previous, current) =>
-                              //     previous.currentTrackIndex !=
-                              //     current.currentTrackIndex,
-                              builder: (context, state) {
-                                if (state.trackList.isNotEmpty) {
-                                  return Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 1),
-                                        child: Text(
-                                          "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
-                                          style: AppTextStyles.bodyText1,
-                                        ),
-                                      ),
-                                      Text(
-                                        "₽${state.trackList[state.currentTrackIndex].price}",
-                                        style: AppTextStyles.bodyPrice1,
-                                      ),
-                                    ],
-                                  );
-                                }
-                                return Text("null");
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.shopping_cart,
+                              // BlocBuilder<PlayerBloc, PlayerState>(
+                              //     buildWhen: (previous, current) =>
+                              //         previous.currentTrackIndex !=
+                              //         current.currentTrackIndex,
+                              //     builder: (context, state) {
+                              //       if (state.trackList.isNotEmpty) {
+                              //         // return Container(
+                              //         //   width: 200,
+                              //         //   child: ConditionalMarquee(
+                              //         //     text: state
+                              //         //         .trackList[state.currentTrackIndex]
+                              //         //         .name,
+                              //         //     style: AppTextStyles.headline1,
+                              //         //   ),
+                              //         // );
+                              //         return Text(
+                              //           state.trackList[state.currentTrackIndex]
+                              //               .name,
+                              //           style: AppTextStyles.headline1,
+                              //           maxLines: 1,
+                              //           overflow: TextOverflow.ellipsis,
+                              //         );
+                              //       }
+                              //       return Container();
+                              //       // return const Skeletonizer(
+                              //       //   child: Text(
+                              //       //     "kusgifsef",
+                              //       //     style: AppTextStyles.headline1,
+                              //       //     maxLines: 1,
+                              //       //     overflow: TextOverflow.ellipsis,
+                              //       //   ),
+                              //       // );
+                              //     }),
+
+                              const SizedBox(
+                                height: 2,
                               ),
-                              color: AppColors.iconPrimary,
-                            ),
-                            IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.favorite_border,
-                              ),
-                              color: AppColors.iconPrimary,
-                            ),
-                            IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Icons.share),
-                              color: AppColors.iconPrimary,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                PlayerControlWidget(pageController: _pageController),
-                const SizedBox(height: 18),
-                Container(
-                  margin: const EdgeInsets.only(top: 18, left: 18, right: 18),
-                  width: double.infinity,
-                  height: 164,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.4),
-                      width: 0.5,
-                    ),
-                    color: Colors.white.withOpacity(0.1),
-                  ),
-                  child: Stack(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 5, left: 12),
-                              child: BlocBuilder<PlayerBloc, PlayerState>(
-                                buildWhen: (previous, current) =>
-                                    previous.indexFragment !=
-                                    current.indexFragment,
+                              BlocBuilder<PlayerBloc, PlayerState>(
+                                // buildWhen: (previous, current) =>
+                                //     previous.currentTrackIndex !=
+                                //     current.currentTrackIndex,
                                 builder: (context, state) {
-                                  return Text(
-                                    state.fragmentsNames[state.indexFragment],
-                                    style: AppTextStyles.bodyPrice1.copyWith(
-                                      fontSize: 12,
-                                      color: Colors.white,
-                                      height: 1.375,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.only(top: 5),
-                            child: Container(
-                              height: 54,
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              child: GestureDetector(
-                                onTapDown: (details) {
-                                  final RenderBox box =
-                                      context.findRenderObject() as RenderBox;
-                                  final Offset localPosition =
-                                      box.globalToLocal(details.globalPosition);
-                                  final double percent =
-                                      localPosition.dx / box.size.width;
-                                  final duration = context
-                                      .read<PlayerBloc>()
-                                      .player
-                                      .duration;
-
-                                  if (duration != null) {
-                                    final position =
-                                        duration.inMilliseconds * percent;
-                                    context.read<PlayerBloc>().player.seek(
-                                          Duration(
-                                              milliseconds: position.round()),
-                                        );
-                                  }
-                                },
-                                onHorizontalDragUpdate: (details) {
-                                  final RenderBox box =
-                                      context.findRenderObject() as RenderBox;
-                                  final Offset localPosition =
-                                      box.globalToLocal(details.globalPosition);
-                                  final double percent =
-                                      (localPosition.dx / box.size.width)
-                                          .clamp(0.0, 1.0);
-
-                                  context.read<PlayerBloc>().add(
-                                        UpdateDragProgressEvent(percent),
-                                      );
-                                },
-                                onHorizontalDragEnd: (details) {
-                                  final duration = context
-                                      .read<PlayerBloc>()
-                                      .player
-                                      .duration;
-                                  final progress = context
-                                      .read<PlayerBloc>()
-                                      .state
-                                      .dragProgress;
-
-                                  if (duration != null && progress != null) {
-                                    final position =
-                                        duration.inMilliseconds * progress;
-                                    context.read<PlayerBloc>().player.seek(
-                                          Duration(
-                                              milliseconds: position.round()),
-                                        );
-                                  }
-                                  context.read<PlayerBloc>().add(
-                                        UpdateDragProgressEvent(null),
-                                      );
-                                },
-                                child: BlocBuilder<PlayerBloc, PlayerState>(
-                                    buildWhen: (previous, current) =>
-                                        previous.progress / 100 !=
-                                        current.progress / 100,
-                                    builder: (context, state) {
-                                      return CustomPaint(
-                                        painter: WaveformPainter(
-                                          waveformData: state.waveformData,
-                                          progress: state.dragProgress != null
-                                              ? state.dragProgress!
-                                              : state.progress,
-                                          fixedWaveColor:
-                                              Colors.white.withOpacity(0.4),
-                                          liveWaveColor: Colors.white,
-                                          spacing: 4,
-                                          scaleFactor: 54,
-                                          waveCap: StrokeCap.round,
+                                  if (state.trackList.isNotEmpty) {
+                                    return Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 1),
+                                          child: Text(
+                                            "${state.trackList[state.currentTrackIndex].bitmaker}  |  ",
+                                            style: AppTextStyles.bodyText1,
+                                          ),
                                         ),
-                                        size: Size(
-                                            MediaQuery.of(context).size.width -
-                                                32,
-                                            100),
-                                      );
-                                    }),
-                              ),
-                            ),
-                          ),
-                          // Padding(
-                          //   padding: const EdgeInsets.only(
-                          //       top: 5, left: 12, right: 12),
-                          //   child: BlocBuilder<PlayerBloc, PlayerState>(
-                          //     builder: (context, state) {
-                          //       final player =
-                          //           context.read<PlayerBloc>().player;
-                          //       final position = player.position;
-                          //       final duration = player.duration;
-
-                          //       final currentSeconds = position.inSeconds;
-                          //       final totalSeconds = duration?.inSeconds ?? 0;
-
-                          //       return Row(
-                          //         mainAxisAlignment:
-                          //             MainAxisAlignment.spaceBetween,
-                          //         children: [
-                          //           Text(
-                          //             "${(currentSeconds ~/ 60).toString().padLeft(2, '0')}:${(currentSeconds % 60).toString().padLeft(2, '0')}",
-                          //             style: AppTextStyles.timePlayer,
-                          //           ),
-                          //           Text(
-                          //             "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
-                          //             style: AppTextStyles.timePlayer,
-                          //           )
-                          //         ],
-                          //       );
-                          //     },
-                          //   ),
-                          // ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: 5, left: 12, right: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                BlocBuilder<PlayerBloc, PlayerState>(
-                                  buildWhen: (previous, current) =>
-                                      previous.position.inSeconds !=
-                                      current.position.inSeconds,
-                                  builder: (context, state) {
-                                    return Text(
-                                      "${(state.position.inSeconds ~/ 60).toString().padLeft(2, '0')}:${(state.position.inSeconds % 60).toString().padLeft(2, '0')}",
-                                      style: AppTextStyles.timePlayer,
+                                        Text(
+                                          "₽${state.trackList[state.currentTrackIndex].price}",
+                                          style: AppTextStyles.bodyPrice1,
+                                        ),
+                                      ],
                                     );
-                                  },
-                                ),
-                                BlocBuilder<PlayerBloc, PlayerState>(
-                                  buildWhen: (previous, current) =>
-                                      previous.duration != current.duration,
-                                  builder: (context, state) {
-                                    final totalSeconds =
-                                        state.duration.inSeconds ?? 0;
-
-                                    return Text(
-                                      "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
-                                      style: AppTextStyles.timePlayer,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  context.read<PlayerBloc>().add(
-                                        PreviousFragmentEvent(),
-                                      );
+                                  }
+                                  return const Text("null");
                                 },
-                                child: SvgPicture.asset(
-                                    "assets/svg/left_arrow.svg"),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  context.read<PlayerBloc>().add(
-                                        ToggleLoopFragmentEvent(),
-                                      );
-                                },
-                                child: BlocBuilder<PlayerBloc, PlayerState>(
-                                  buildWhen: (previous, current) =>
-                                      previous.loopCurrentFragment !=
-                                      current.loopCurrentFragment,
-                                  builder: (context, state) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: state.loopCurrentFragment
-                                            ? Colors.white
-                                            : Colors.white.withOpacity(0.4),
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(12)),
-                                      ),
-                                      width: 64,
-                                      height: 47,
-                                      child: Icon(
-                                        Icons.repeat_one,
-                                        color: state.loopCurrentFragment
-                                            ? Colors.black.withOpacity(0.5)
-                                            : const Color.fromARGB(
-                                                255, 255, 255, 255),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  context.read<PlayerBloc>().add(
-                                        NextFragmentEvent(),
-                                      );
-                                },
-                                child: SvgPicture.asset(
-                                    "assets/svg/right_arrow.svg"),
                               ),
                             ],
                           ),
-                        ],
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {},
+                                icon: const Icon(
+                                  Icons.shopping_cart,
+                                ),
+                                color: AppColors.iconPrimary,
+                              ),
+                              IconButton(
+                                onPressed: () {},
+                                icon: const Icon(
+                                  Icons.favorite_border,
+                                ),
+                                color: AppColors.iconPrimary,
+                              ),
+                              IconButton(
+                                onPressed: () {},
+                                icon: const Icon(Icons.share),
+                                color: AppColors.iconPrimary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  PlayerControlWidget(
+                    pageController: _pageController,
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    margin: const EdgeInsets.only(top: 18, left: 18, right: 18),
+                    width: double.infinity,
+                    height: 164,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.4),
+                        width: 0.5,
                       ),
-                      Positioned(
-                        left: 12,
-                        bottom: 14,
-                        child: Column(
+                      color: Colors.white.withOpacity(0.1),
+                    ),
+                    child: Stack(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                SvgPicture.asset("assets/svg/bpm.svg"),
-                                const SizedBox(
-                                  width: 4,
+                            // Align(
+                            //   alignment: Alignment.centerLeft,
+                            //   child: Padding(
+                            //     padding: const EdgeInsets.only(top: 5, left: 12),
+                            //     child: BlocBuilder<PlayerBloc, PlayerState>(
+                            //       buildWhen: (previous, current) =>
+                            //           previous.indexFragment !=
+                            //           current.indexFragment,
+                            //       builder: (context, state) {
+                            //         return Text(
+                            //           state.fragmentsNames[state.indexFragment],
+                            //           style: AppTextStyles.bodyPrice1.copyWith(
+                            //             fontSize: 12,
+                            //             color: Colors.white,
+                            //             height: 1.375,
+                            //           ),
+                            //         );
+                            //       },
+                            //     ),
+                            //   ),
+                            // ),
+                            Container(
+                              padding: const EdgeInsets.only(top: 5),
+                              child: Container(
+                                height: 54,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                child: GestureDetector(
+                                  onTapDown: (details) {
+                                    final RenderBox box =
+                                        context.findRenderObject() as RenderBox;
+                                    final Offset localPosition = box
+                                        .globalToLocal(details.globalPosition);
+                                    final double percent =
+                                        localPosition.dx / box.size.width;
+                                    // final duration = context
+                                    //     .read<PlayerBloc>()
+                                    //     .player
+                                    //     .duration;
+
+                                    // if (duration != null) {
+                                    //   final position =
+                                    //       duration.inMilliseconds * percent;
+                                    //   sl<PlayerBloc>().player.seek(
+                                    //         Duration(
+                                    //             milliseconds: position.round()),
+                                    //       );
+                                    // }
+                                  },
+                                  onHorizontalDragUpdate: (details) {
+                                    final RenderBox box =
+                                        context.findRenderObject() as RenderBox;
+                                    final Offset localPosition = box
+                                        .globalToLocal(details.globalPosition);
+                                    final double percent =
+                                        (localPosition.dx / box.size.width)
+                                            .clamp(0.0, 1.0);
+
+                                    sl<PlayerBloc>().add(
+                                      UpdateDragProgressEvent(percent),
+                                    );
+                                  },
+                                  onHorizontalDragEnd: (details) {
+                                    // final duration = context
+                                    //     .read<PlayerBloc>()
+                                    //     .player
+                                    //     .duration;
+                                    // final progress = context
+                                    //     .read<PlayerBloc>()
+                                    //     .state
+                                    //     .dragProgress;
+
+                                    // if (duration != null && progress != null) {
+                                    //   final position =
+                                    //       duration.inMilliseconds * progress;
+                                    //   sl<PlayerBloc>().player.seek(
+                                    //         Duration(
+                                    //             milliseconds: position.round()),
+                                    //       );
+                                    // }
+                                    // sl<PlayerBloc>().add(
+                                    //   UpdateDragProgressEvent(null),
+                                    // );
+                                  },
+                                  // child: BlocBuilder<PlayerBloc, PlayerState>(
+                                  //     buildWhen: (previous, current) =>
+                                  //         previous.progress / 100 !=
+                                  //         current.progress / 100,
+                                  //     builder: (context, state) {
+                                  //       return CustomPaint(
+                                  //         painter: WaveformPainter(
+                                  //           waveformData: state.waveformData,
+                                  //           progress: state.dragProgress != null
+                                  //               ? state.dragProgress!
+                                  //               : state.progress,
+                                  //           fixedWaveColor:
+                                  //               Colors.white.withOpacity(0.4),
+                                  //           liveWaveColor: Colors.white,
+                                  //           spacing: 4,
+                                  //           scaleFactor: 54,
+                                  //           waveCap: StrokeCap.round,
+                                  //         ),
+                                  //         size: Size(
+                                  //             MediaQuery.of(context).size.width -
+                                  //                 32,
+                                  //             100),
+                                  //       );
+                                  //     }),
                                 ),
-                                Text(
-                                  "163",
-                                  style: AppTextStyles.timePlayer.copyWith(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 12,
-                                    height: 0.9,
+                              ),
+                            ),
+                            // Padding(
+                            //   padding: const EdgeInsets.only(
+                            //       top: 5, left: 12, right: 12),
+                            //   child: BlocBuilder<PlayerBloc, PlayerState>(
+                            //     builder: (context, state) {
+                            //       final player =
+                            //           di.sl<PlayerBloc>().player;
+                            //       final position = player.position;
+                            //       final duration = player.duration;
+
+                            //       final currentSeconds = position.inSeconds;
+                            //       final totalSeconds = duration?.inSeconds ?? 0;
+
+                            //       return Row(
+                            //         mainAxisAlignment:
+                            //             MainAxisAlignment.spaceBetween,
+                            //         children: [
+                            //           Text(
+                            //             "${(currentSeconds ~/ 60).toString().padLeft(2, '0')}:${(currentSeconds % 60).toString().padLeft(2, '0')}",
+                            //             style: AppTextStyles.timePlayer,
+                            //           ),
+                            //           Text(
+                            //             "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
+                            //             style: AppTextStyles.timePlayer,
+                            //           )
+                            //         ],
+                            //       );
+                            //     },
+                            //   ),
+                            // ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 5, left: 12, right: 12),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  BlocBuilder<PlayerBloc, PlayerState>(
+                                    buildWhen: (previous, current) =>
+                                        previous.position.inSeconds !=
+                                        current.position.inSeconds,
+                                    builder: (context, state) {
+                                      return Text(
+                                        "${(state.position.inSeconds ~/ 60).toString().padLeft(2, '0')}:${(state.position.inSeconds % 60).toString().padLeft(2, '0')}",
+                                        style: AppTextStyles.timePlayer,
+                                      );
+                                    },
+                                  ),
+                                  BlocBuilder<PlayerBloc, PlayerState>(
+                                    buildWhen: (previous, current) =>
+                                        previous.duration != current.duration,
+                                    builder: (context, state) {
+                                      final totalSeconds =
+                                          state.duration.inSeconds ?? 0;
+
+                                      return Text(
+                                        "${(totalSeconds ~/ 60).toString().padLeft(2, '0')}:${(totalSeconds % 60).toString().padLeft(2, '0')}",
+                                        style: AppTextStyles.timePlayer,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    sl<PlayerBloc>().add(
+                                      PreviousFragmentEvent(),
+                                    );
+                                  },
+                                  child: SvgPicture.asset(
+                                      "assets/svg/left_arrow.svg"),
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    sl<PlayerBloc>().add(
+                                      ToggleLoopFragmentEvent(),
+                                    );
+                                  },
+                                  child: BlocBuilder<PlayerBloc, PlayerState>(
+                                    buildWhen: (previous, current) =>
+                                        previous.loopCurrentFragment !=
+                                        current.loopCurrentFragment,
+                                    builder: (context, state) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          color: state.loopCurrentFragment
+                                              ? Colors.white
+                                              : Colors.white.withOpacity(0.4),
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(12)),
+                                        ),
+                                        width: 64,
+                                        height: 47,
+                                        child: Icon(
+                                          Icons.repeat_one,
+                                          color: state.loopCurrentFragment
+                                              ? Colors.black.withOpacity(0.5)
+                                              : const Color.fromARGB(
+                                                  255, 255, 255, 255),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 6,
-                            ),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
                                 const SizedBox(
-                                  width: 1,
+                                  width: 10,
                                 ),
-                                SvgPicture.asset("assets/svg/tune.svg"),
-                                const SizedBox(
-                                  width: 9,
-                                ),
-                                Text(
-                                  "Em",
-                                  style: AppTextStyles.timePlayer.copyWith(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 12,
-                                    height: 0.9,
-                                  ),
+                                GestureDetector(
+                                  onTap: () {
+                                    sl<PlayerBloc>().add(
+                                      NextFragmentEvent(),
+                                    );
+                                  },
+                                  child: SvgPicture.asset(
+                                      "assets/svg/right_arrow.svg"),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                      ),
-                      BlocBuilder<PlayerBloc, PlayerState>(
-                        builder: (context, state) {
-                          return Positioned(
-                            right: 4,
-                            bottom: 2,
-                            child: IconButton(
-                              onPressed: () {
-                                context.maybePop().then((_) {
-                                  Future.delayed(
-                                          const Duration(milliseconds: 300))
-                                      .then((_) {
-                                    context.router.push(
-                                      InfoBeat(
-                                        beatId: state
-                                            .trackList[state.currentTrackIndex]
-                                            .id,
-                                      ),
-                                    );
+                        Positioned(
+                          left: 12,
+                          bottom: 14,
+                          child: Column(
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  SvgPicture.asset("assets/svg/bpm.svg"),
+                                  const SizedBox(
+                                    width: 4,
+                                  ),
+                                  Text(
+                                    "163",
+                                    style: AppTextStyles.timePlayer.copyWith(
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontSize: 12,
+                                      height: 0.9,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 6,
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const SizedBox(
+                                    width: 1,
+                                  ),
+                                  SvgPicture.asset("assets/svg/tune.svg"),
+                                  const SizedBox(
+                                    width: 9,
+                                  ),
+                                  Text(
+                                    "Em",
+                                    style: AppTextStyles.timePlayer.copyWith(
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontSize: 12,
+                                      height: 0.9,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        BlocBuilder<PlayerBloc, PlayerState>(
+                          builder: (context, state) {
+                            return Positioned(
+                              right: 4,
+                              bottom: 2,
+                              child: IconButton(
+                                onPressed: () {
+                                  final router = context.router;
+                                  final beatId = state
+                                      .trackList[state.currentTrackIndex].id;
+
+                                  context.maybePop().then((_) {
+                                    Future.delayed(
+                                            const Duration(milliseconds: 300))
+                                        .then((_) {
+                                      router.push(InfoBeat(beatId: beatId));
+                                    });
                                   });
-                                });
-                              },
-                              icon: const Icon(Icons.info_outline),
-                              color: AppColors.iconPrimary,
+                                },
+                                icon: const Icon(Icons.info_outline),
+                                color: AppColors.iconPrimary,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Positioned(
+                top: 40,
+                child: IconButton(
+                  onPressed: () {
+                    context.maybePop();
+                  },
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ImagesPageBuilder extends StatelessWidget {
+  ImagesPageBuilder({
+    super.key,
+    required this.coverWidth,
+    required this.pageController,
+    this.currentPage = 0,
+    this.targetPage = 0,
+    this.isScrolling = false,
+  });
+
+  final double coverWidth;
+  final PageController pageController;
+  int currentPage;
+  int targetPage;
+  bool isScrolling;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            width: coverWidth,
+            height: coverWidth,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(6.0),
+              boxShadow: const [
+                // BoxShadow(
+                //   color: Colors.white24,
+                //   blurRadius: 50,
+                //   spreadRadius: 0,
+                // ),
+              ],
+            ),
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(top: 90),
+          height: coverWidth,
+          child: BlocBuilder<PlayerBloc, PlayerState>(
+            buildWhen: (previous, current) =>
+                previous.currentTrackIndex != current.currentTrackIndex,
+            builder: (context, state) {
+              return NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification notification) {
+                  if (notification is ScrollStartNotification) {
+                    isScrolling = true;
+                  } else if (notification is ScrollUpdateNotification) {
+                    final page = pageController.page ?? 0.0;
+                    targetPage = page.round();
+                  } else if (notification is ScrollEndNotification) {
+                    isScrolling = false;
+                    if (targetPage != currentPage) {
+                      currentPage = targetPage;
+
+                      sl<PlayerBloc>()
+                          .add(UpdateCurrentTrackIndexEvent(currentPage));
+                    }
+                  }
+                  return false;
+                },
+                child: PageView.custom(
+                  controller: pageController,
+                  childrenDelegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      double scale =
+                          (index == pageController.initialPage) ? 1.0 : 0.9;
+                      return AnimatedBuilder(
+                        animation: pageController,
+                        builder: (context, child) {
+                          if (pageController.position.haveDimensions) {
+                            double currentPage = pageController.page ??
+                                pageController.initialPage.toDouble();
+                            scale = (1 - (currentPage - index).abs() * 0.3)
+                                .clamp(0.9, 1.0);
+                          }
+                          return Transform.scale(
+                            scale: scale,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12.0),
+                              child: CachedNetworkImage(
+                                imageUrl: state.trackList[index].photoUrl,
+                                width: coverWidth,
+                                height: coverWidth,
+                                fit: BoxFit.cover,
+                                errorWidget: (context, imageUrl, error) =>
+                                    Text(error.toString()),
+                              ),
                             ),
                           );
                         },
-                      ),
-                    ],
+                      );
+                    },
+                    childCount: state.trackList.length,
+                    // Оптимизация производительности:
+                    addAutomaticKeepAlives: true, // Сохраняем состояние видимых
+                    addRepaintBoundaries: true, // Добавляем границы перерисовки
                   ),
+                  // itemCount: state.trackList.length,
+                  // onPageChanged: (value) async {
+                  // log(value);
+                  // if (value > state.currentTrackIndex) {
+                  //   // context
+                  //   //     .read<PlayerBloc>()
+                  //   //     .add(NextTrackEvent());
+
+                  //   context
+                  //       .read<PlayerBloc>()
+                  //       .add(NextBeatInPlaylistEvent());
+
+                  //   await loadImageAndColors(state
+                  //       .trackList[state.currentTrackIndex]
+                  //       .photoUrl);
+                  // } else {
+                  //   // context
+                  //   //     .read<PlayerBloc>()
+                  //   //     .add(PreviousTrackEvent());
+                  // }
+
+                  // context
+                  //     .read<PlayerBloc>()
+                  //     .add(UpdateCurrentTrackEvent(value));
+                  // },
+                  // itemBuilder: (context, index) {
+                  // final currentPage =
+                  //     _pageController.page?.round() ?? 0;
+
+                  // const renderRange =
+                  //     3; // Рендерим +-2 страницы от текущей
+
+                  // if ((index - currentPage).abs() > renderRange) {
+                  //   return const SizedBox
+                  //       .shrink(); // Не рендерим далекие элементы
+                  // }
+
+                  // },
                 ),
-              ],
-            ),
-            Positioned(
-              top: 40,
-              child: IconButton(
-                onPressed: () {
-                  context.maybePop();
-                },
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                ),
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 }
