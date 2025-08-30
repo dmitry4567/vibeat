@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
@@ -76,8 +77,12 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
   }
 
   void getBeatmakerInfo() async {
+      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  final ip = sharedPreferences.getString("ip");
+
+
     final response = await http.get(
-      Uri.parse("http://192.168.0.135:7773/api/userById/${widget.beatmakerId}"),
+      Uri.parse("http://$ip:7773/api/userById/${widget.beatmakerId}"),
       headers: {'Content-Type': 'application/json'},
     );
 

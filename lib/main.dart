@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/app_router.dart';
 import 'package:vibeat/app/router.dart';
 import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
@@ -53,28 +56,30 @@ Future<void> main() async {
   // );
 
   runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => di.sl<PlayerBloc>(),
-        ),
-        BlocProvider(
-          create: (context) => di.sl<AllBeatsOfBeatmakerBloc>(),
-        ),
-        BlocProvider(create: (_) => FilterBloc()),
-        BlocProvider(create: (_) => GenreCubit()),
-        BlocProvider(create: (_) => TagBloc()),
-        BlocProvider(create: (_) => BpmCubit()),
-        BlocProvider(create: (_) => KeyCubit()),
-        BlocProvider(create: (_) => MoodCubit()),
-        BlocProvider(
-          create: (context) => di.sl<AuthBloc>(),
-        ),
-        BlocProvider(
-          create: (context) => di.sl<AnketaBloc>(),
-        ),
-      ],
-      child: const MainApp(),
+    Phoenix(
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => di.sl<PlayerBloc>(),
+          ),
+          BlocProvider(
+            create: (context) => di.sl<AllBeatsOfBeatmakerBloc>(),
+          ),
+          BlocProvider(create: (_) => FilterBloc()),
+          BlocProvider(create: (_) => GenreCubit()),
+          BlocProvider(create: (_) => TagBloc()),
+          BlocProvider(create: (_) => BpmCubit()),
+          BlocProvider(create: (_) => KeyCubit()),
+          BlocProvider(create: (_) => MoodCubit()),
+          BlocProvider(
+            create: (context) => di.sl<AuthBloc>(),
+          ),
+          BlocProvider(
+            create: (context) => di.sl<AnketaBloc>(),
+          ),
+        ],
+        child: const MainApp(),
+      ),
     ),
   );
 }

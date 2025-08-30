@@ -545,7 +545,10 @@ class _PlayerScreenState extends State<PlayerScreen>
                 children: [
                   Positioned.fill(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(55.0),
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(55),
+                        topLeft: Radius.circular(55),
+                      ),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,

@@ -7,6 +7,8 @@ import 'package:equatable/equatable.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 part 'all_beats_of_beatmaker_event.dart';
 part 'all_beats_of_beatmaker_state.dart';
@@ -34,9 +36,12 @@ class AllBeatsOfBeatmakerBloc
       GetBeats event, Emitter<AllBeatsOfBeatmakerState> emit) async {
     emit(state.copyWith(isLoading: true));
 
+      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  final ip = sharedPreferences.getString("ip");
+
     final response = await http.get(
       Uri.parse(
-          "http://192.168.0.135:7771/api/beat/byBeatmakerId/${event.beatmakerId}"),
+          "http://$ip:7771/api/beat/byBeatmakerId/${event.beatmakerId}"),
       headers: {'Content-Type': 'application/json'},
     );
 

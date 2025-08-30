@@ -11,6 +11,7 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+packages/just_audio
 ios/Runner/GoogleService-Info.plist
 
 # IntelliJ related

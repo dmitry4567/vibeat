@@ -3,6 +3,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/filter/result.dart';
@@ -75,8 +77,11 @@ class _InfoBeatState extends State<InfoBeat> {
   Future<void> postNewLike() async {
     final apiClient = sl<ApiClient>().dio;
 
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final responseLike = await apiClient.post(
-      "http://192.168.0.135:8080/activityBeat/postNewLike",
+      "http://$ip:8080/activityBeat/postNewLike",
       data: {
         'beatId': widget.beatId,
       },
@@ -84,7 +89,7 @@ class _InfoBeatState extends State<InfoBeat> {
 
     if (responseLike.statusCode == 205) {
       final responseDelete = await apiClient
-          .delete("http://192.168.0.135:8080/activityBeat/${widget.beatId}");
+          .delete("http://$ip:8080/activityBeat/${widget.beatId}");
 
       if (responseDelete.statusCode == 200) {
         setState(() {
@@ -107,9 +112,12 @@ class _InfoBeatState extends State<InfoBeat> {
   }
 
   void getLikesCountByBeat() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+    
     final response = await http.get(
       Uri.parse(
-          "http://192.168.0.135:8080/activityBeat/viewLikesCountByBeatId/${widget.beatId}"),
+          "http://$ip:8080/activityBeat/viewLikesCountByBeatId/${widget.beatId}"),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -125,8 +133,11 @@ class _InfoBeatState extends State<InfoBeat> {
   }
 
   void getBeatInfo() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final response = await http.get(
-      Uri.parse("http://192.168.0.135:8080/beat/byBeatId/${widget.beatId}"),
+      Uri.parse("http://$ip:8080/beat/byBeatId/${widget.beatId}"),
       headers: {'Content-Type': 'application/json'},
     );
 

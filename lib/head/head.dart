@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
@@ -41,8 +42,11 @@ class _HeadScreenState extends State<HeadScreen> {
   }
 
   void getMoodData() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final response = await http.get(
-      Uri.parse('http://192.168.0.135:8080/metadata/moods'),
+      Uri.parse('http://$ip:8080/metadata/moods'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -56,8 +60,11 @@ class _HeadScreenState extends State<HeadScreen> {
   }
 
   void getTrendTagsData() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final response = await http.get(
-      Uri.parse('http://192.168.0.135:8080/metadataBeat/tags/in_trend'),
+      Uri.parse('http://$ip:8080/metadataBeat/tags/in_trend'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -125,6 +132,7 @@ class _HeadScreenState extends State<HeadScreen> {
                   ),
                 ),
               ),
+
               const SliverPadding(
                 padding: EdgeInsets.only(top: 40),
                 sliver: SliverToBoxAdapter(

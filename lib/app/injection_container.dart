@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/core/api/auth_interceptor.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/core/network/network_info.dart';
@@ -54,9 +55,17 @@ Future<void> init() async {
         secureStorage: sl(),
       ));
 
+
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  final ip = sharedPreferences.getString("ip");
+  if (ip == null) {
+    sharedPreferences.setString("ip", "192.168.0.135");
+  }
+
+
   // Initialize API Client
   final apiClient = sl<ApiClient>();
-  await apiClient.initialize('http://192.168.0.135:8080/');
+  await apiClient.initialize('http://$ip:8080/');
   // await apiClient.initialize('http://172.20.10.4:3000');
 
   // Add auth interceptor

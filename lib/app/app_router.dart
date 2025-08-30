@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
-import 'package:vibeat/player/player_widget.dart';
+import 'package:vibeat/features/signIn/presentation/pages/debug_screen.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
@@ -122,6 +122,14 @@ class AppRouter extends RootStackRouter {
         AutoRoute(
           path: '/signIn',
           page: SignInRoute.page,
+        ),
+        AutoRoute(
+          path: '/debug',
+          page: DebugRoute.page,
+        ),
+        AutoRoute(
+          path: '/infoBeatmaker',
+          page: InfoBeatmaker.page,
         ),
         // AutoRoute(
         //   path: '/infoBeat',

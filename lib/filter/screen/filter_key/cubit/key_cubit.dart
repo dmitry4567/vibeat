@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 
 part 'key_state.dart';
@@ -16,9 +17,12 @@ class KeyCubit extends Cubit<KeyState> {
   void loadInitialKeys() async {
     try {
       emit(KeyLoading());
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      final ip = sharedPreferences.getString("ip");
 
-      final response = await http
-          .get(Uri.parse('http://192.168.0.135:8080/metadata/keynotes'));
+      final response =
+          await http.get(Uri.parse('http://$ip:8080/metadata/keynotes'));
 
       await Future.delayed(const Duration(milliseconds: 500));
 

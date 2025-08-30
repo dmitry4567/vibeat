@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
@@ -42,9 +43,12 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   Future<void> getFavoriteBeats() async {
     final apiClient = sl<ApiClient>().dio;
 
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     try {
       final response = await apiClient.get(
-        "http://192.168.0.135:8080/activityBeat/viewMyLikes",
+        "http://$ip:8080/activityBeat/viewMyLikes",
       );
 
       if (response.statusCode == 200) {

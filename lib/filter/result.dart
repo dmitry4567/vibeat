@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
@@ -108,8 +109,11 @@ class _ResultScreenState extends State<ResultScreen> {
 
     log(filters.toString());
 
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
     final response = await http.post(
-      Uri.parse('http://192.168.0.135:8080/beat/filteredBeats'),
+      Uri.parse('http://$ip:8080/beat/filteredBeats'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(filters),
     );
