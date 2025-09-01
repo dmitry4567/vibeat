@@ -176,35 +176,26 @@ class _ResultScreenState extends State<ResultScreen> {
                     (context, index) {
                       return Skeletonizer(
                         enabled: false,
-                        child: GestureDetector(
-                          onTap: () {
-                              sl<PlayerBloc>()
+                        child: NewBeatWidget(
+                          gridItemWidth: gridItemWidth,
+                          beat: beatData[index],
+                          index: index,
+                          width: width,
+                          marginRight: 0,
+                          isLoading: false,
+                          openPlayer: () {
+                            sl<PlayerBloc>()
                                 .add(PlayCurrentBeatEvent(beatData, index));
-        
-                            context.router.push(const PlayerRoute());
+
+                            context.router.navigate(const PlayerRoute());
                           },
-                          child: NewBeatWidget(
-                            gridItemWidth: gridItemWidth,
-                            beat: beatData[index],
-                            index: index,
-                            width: width,
-                            marginRight: 0,
-                            isLoading: false,
-                            openPlayer: () {
-                            
-                                  sl<PlayerBloc>()
-                                  .add(PlayCurrentBeatEvent(beatData, index));
-        
-                              context.router.navigate(const PlayerRoute());
-                            },
-                            openInfoBeat: () {
-                              context.router.navigate(
-                                InfoBeat(
-                                  beatId: beatData[index].id,
-                                ),
-                              );
-                            },
-                          ),
+                          openInfoBeat: () {
+                            context.router.navigate(
+                              InfoBeat(
+                                beatId: beatData[index].id,
+                              ),
+                            );
+                          },
                         ),
                       );
                     },

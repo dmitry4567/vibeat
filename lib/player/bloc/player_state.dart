@@ -1,10 +1,11 @@
 part of 'player_bloc.dart';
 
-class PlayerState extends Equatable {
+class PlayerStateApp extends Equatable {
   final bool playerBottom;
   final bool isPlaying;
   final bool isPause;
   final bool isRepeat;
+  final bool isEnd;
   final bool loopCurrentFragment;
   final int currentTrackIndex;
   final String currentTrackBeatId;
@@ -25,11 +26,12 @@ class PlayerState extends Equatable {
           ? position.inMilliseconds / duration.inMilliseconds
           : 0.0);
 
-  const PlayerState({
+  const PlayerStateApp({
     required this.playerBottom,
     required this.isPlaying,
     required this.isPause,
     required this.isRepeat,
+    required this.isEnd,
     required this.loopCurrentFragment,
     required this.currentTrackIndex,
     required this.currentTrackBeatId,
@@ -45,12 +47,13 @@ class PlayerState extends Equatable {
     this.dragProgress,
   });
 
-  factory PlayerState.initial() {
-    return const PlayerState(
+  factory PlayerStateApp.initial() {
+    return const PlayerStateApp(
       playerBottom: true,
       isPlaying: false,
       isPause: false,
       isRepeat: false,
+      isEnd: false,
       loopCurrentFragment: false,
       currentTrackIndex: 0,
       currentTrackBeatId: "",
@@ -66,11 +69,12 @@ class PlayerState extends Equatable {
     );
   }
 
-  PlayerState copyWith({
+  PlayerStateApp copyWith({
     bool? playerBottom,
     bool? isPlaying,
     bool? isPause,
     bool? isRepeat,
+    bool? isEnd,
     bool? loopCurrentFragment,
     int? currentTrackIndex,
     String? currentTrackBeatId,
@@ -85,11 +89,12 @@ class PlayerState extends Equatable {
     List<double>? waveformData,
     double? dragProgress,
   }) {
-    return PlayerState(
+    return PlayerStateApp(
       playerBottom: playerBottom ?? this.playerBottom,
       isPlaying: isPlaying ?? this.isPlaying,
       isPause: isPause ?? this.isPause,
       isRepeat: isRepeat ?? this.isRepeat,
+      isEnd: isEnd ?? this.isEnd,
       loopCurrentFragment: loopCurrentFragment ?? this.loopCurrentFragment,
       currentTrackIndex: currentTrackIndex ?? this.currentTrackIndex,
       currentTrackBeatId: currentTrackBeatId ?? this.currentTrackBeatId,
@@ -111,6 +116,8 @@ class PlayerState extends Equatable {
     playerBottom,
     isPlaying,
     isRepeat,
+    isPause,
+    isEnd,
     loopCurrentFragment,
     currentTrackIndex,
     currentTrackBeatId,

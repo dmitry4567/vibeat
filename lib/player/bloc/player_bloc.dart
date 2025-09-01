@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:math';
 import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'dart:math';
+import 'dart:ui';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
@@ -18,14 +22,16 @@ import 'package:vibeat/utils/image_extractor.dart';
 part 'player_event.dart';
 part 'player_state.dart';
 
-class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
+class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
   static String host = "192.168.43.60";
   // static String host = "192.168.0.136";
 
   final AudioPlayer player = AudioPlayer();
   late ConcatenatingAudioSource playlist;
+  late PageController pageController;
+  // StreamSubscription<PlaybackEvent>? _playerStateSubscription;
   StreamSubscription<Duration>? _positionSubscription;
-  final Map<String, List<double>> _trackWaveforms = {};
+  StreamSubscription<Duration?>? _durationSubscription;
   final List<List<Color>> _trackColors = [];
   final apiClient = sl<ApiClient>().dio;
 
@@ -43,7 +49,74 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     // );
   }
 
-  PlayerBloc() : super(PlayerState.initial()) {
+  void _initializeSubscriptions() {
+    _durationSubscription = player.durationStream.listen(
+      (duration) {
+        if (duration != null) add(UpdateDurationEvent(duration));
+      },
+      onError: (error) {
+        // Обработка ошибок
+      },
+    );
+
+    _positionSubscription = player.positionStream.listen(
+      (position) {
+        if (position < state.duration) {
+          add(UpdatePositionEvent(position));
+        }
+        // print(position);
+      },
+      onError: (error) {
+        // Обработка ошибок
+      },
+    );
+
+    player.positionDiscontinuityStream.listen((event) {
+      if (event.reason == PositionDiscontinuityReason.autoAdvance) {
+        if (state.currentTrackIndex < state.trackList.length - 1) {
+          // add(UpdatePageControllerEvent(state.currentTrackIndex + 1))
+
+          add(NextBeatInPlaylistEvent());
+        }
+      }
+    });
+
+    // _playerStateSubscription = player.playerStateStream.listen((playerState) {
+    //   if (playerState.processingState == ProcessingState.completed) {
+    //     add(PlayerTrackEnded());
+    //   }
+    // });
+  }
+
+  void _trackListeningTime(Duration currentPosition) {
+    // Логика отслеживания времени прослушивания
+    final difference = (currentPosition - _lastPosition).inSeconds;
+
+    if (difference > 0) {
+      listenedSeconds += difference;
+      _lastPosition = currentPosition;
+    }
+
+    // Отправка на сервер после 30 секунд прослушивания
+    if (listenedSeconds >= 5 && !isListened) {
+      _markTrackAsListened();
+      isListened = true;
+    }
+  }
+
+  Future<void> _markTrackAsListened() async {
+    try {
+      // final response = await apiClient.post(
+      //   "beatActivity/listened",
+      //   data: {"beatId": beatData[state.currentTrackIndex].id},
+      // );
+    } catch (e) {
+      // Обработка ошибок
+    }
+  }
+
+  PlayerBloc() : super(PlayerStateApp.initial()) {
+    _initializeSubscriptions();
     // Initialize position stream subscription
     // player.currentIndexStream.listen((index) {
     // if (index! > state.currentTrackIndex) {
@@ -76,9 +149,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     //   }
     // });
 
-    // player.playerStateStream.listen((playerState) {
-    //   if (playerState.playing != state.isPlaying) {
-    //     emit(state.copyWith(isPlaying: playerState.playing));
+    // player.PlayerStateAppStream.listen((PlayerStateApp) {
+    //   if (PlayerStateApp.playing != state.isPlaying) {
+    //     emit(state.copyWith(isPlaying: PlayerStateApp.playing));
     //   }
     // });
 
@@ -88,8 +161,63 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     //   }
     // });
 
+    // on<PlayerTrackEnded>((event, emit) {
+    //   add(NextBeatInPlaylistEvent());
+    // });
+
     on<UpdatePlayerBottomEvent>((event, emit) {
       emit(state.copyWith(playerBottom: event.value));
+    });
+
+    on<UpdatePositionEvent>((event, emit) async {
+      if (state.dragProgress == null) {
+        final currentSeconds = event.position.inSeconds;
+        int newIndexFragment = state.indexFragment;
+
+        if (!state.loopCurrentFragment) {
+          for (int i = 0; i < state.fragmentsMusic.length; i++) {
+            if (i == state.fragmentsMusic.length - 1) {
+              if (currentSeconds >= state.fragmentsMusic[i]) {
+                newIndexFragment = i;
+              }
+            } else if (currentSeconds >= state.fragmentsMusic[i] &&
+                currentSeconds < state.fragmentsMusic[i + 1]) {
+              newIndexFragment = i;
+              break;
+            }
+          }
+        }
+
+        // Проверяем необходимость зацикливания
+        if (state.loopCurrentFragment) {
+          final currentFragmentStart =
+              state.fragmentsMusic[state.indexFragment];
+          final currentFragmentEnd =
+              state.indexFragment < state.fragmentsMusic.length - 1
+                  ? state.fragmentsMusic[state.indexFragment + 1]
+                  : state.duration.inSeconds;
+
+          // Если вышли за пределы текущего фрагмента
+          if (currentSeconds >= currentFragmentEnd) {
+            await player.seek(Duration(seconds: currentFragmentStart));
+            emit(
+              state.copyWith(position: Duration(seconds: currentFragmentStart)),
+            );
+            return;
+          }
+        }
+
+        emit(state.copyWith(
+          indexFragment: newIndexFragment,
+          position: event.position,
+        ));
+      }
+
+      // _trackListeningTime(event.position);
+    });
+
+    on<UpdateDurationEvent>((event, emit) {
+      emit(state.copyWith(duration: event.duration));
     });
 
     on<GetRecommendEvent>(
@@ -143,19 +271,20 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
             await player.setAudioSource(
               playlist,
+              preload: true,
               initialIndex: 0,
               initialPosition: Duration.zero,
             );
 
             // Set initial waveform data
-            final initialWaveform = _trackWaveforms[trackList[0].trackUrl] ??
-                _generateDefaultWaveform();
+            // final initialWaveform = _trackWaveforms[trackList[0].trackUrl] ??
+            //     _generateDefaultWaveform();
 
             emit(state.copyWith(
               trackList: trackList,
               currentTrackIndex: player.currentIndex!,
               colorsOfBackground: _trackColors,
-              waveformData: initialWaveform,
+              // waveformData: initialWaveform,
             ));
           } else {
             throw Exception("Failed to load new track");
@@ -167,69 +296,87 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
 
     on<PlayCurrentBeatEvent>((event, emit) async {
-      await player.stop();
+      if (state.trackList.isEmpty ||
+          event.beats[0].id != state.trackList[0].id) {
+        try {
+          await player.stop();
+          await player.setAudioSource(ConcatenatingAudioSource(children: []));
 
-      emit(state.copyWith(
-        currentTrackIndex: event.index,
-      ));
+          List<Track> trackList = event.beats
+              .map((t) => Track(
+                    id: t.id,
+                    name: t.name,
+                    bitmaker: "icantluvv",
+                    price: t.price,
+                    trackUrl:
+                        'http://storage.yandexcloud.net/mp3beats/${t.url}',
+                    photoUrl: t.picture,
+                  ))
+              .toList();
 
-      // if (state.trackList.isEmpty) {
-      List<Track> trackList = [];
+          List<AudioSource> audioSources = trackList
+              .map((track) => AudioSource.uri(
+                    Uri.parse(track.trackUrl),
+                    tag: MediaItem(
+                      id: track.id,
+                      album: "Album name",
+                      artist: track.bitmaker,
+                      title: track.name,
+                      artUri: Uri.parse(track.photoUrl),
+                    ),
+                  ))
+              .toList();
 
-      for (var t in event.beats) {
-        final track = Track(
-          id: t.id,
-          name: t.name,
-          bitmaker: "icantluvv",
-          price: t.price,
-          trackUrl: 'http://storage.yandexcloud.net/mp3beats/${t.url}',
-          photoUrl: t.picture,
-        );
+          playlist = ConcatenatingAudioSource(
+            useLazyPreparation: true,
+            children: audioSources,
+          );
 
-        trackList.add(track);
-        // Generate waveform data for each track
-        // _generateWaveformForTrack(track);
-        // await _getColorsBackground(track);
+          await player.setAudioSource(
+            playlist,
+            initialIndex: event.index,
+            initialPosition: Duration.zero,
+          );
+
+          final waveformData =
+              _generateWaveformForTrack(trackList[event.index]);
+
+          emit(state.copyWith(
+            trackList: trackList,
+            currentTrackIndex: event.index,
+            playerBottom: true,
+            isPlaying: true,
+            waveformData: waveformData,
+            currentTrackBeatId: trackList[event.index].id,
+          ));
+
+          await player.play();
+        } catch (e) {
+          print("Error in OpenPlayerWithTrackEvent: $e");
+        }
+      } else {
+        try {
+          await player.stop();
+
+          final waveformData =
+              _generateWaveformForTrack(state.trackList[event.index]);
+
+          emit(state.copyWith(
+            currentTrackIndex: event.index,
+            playerBottom: true,
+            isPlaying: true,
+            waveformData: waveformData,
+            currentTrackBeatId: state.trackList[event.index].id,
+          ));
+
+          await player.seek(Duration.zero, index: event.index);
+
+          await player.play();
+        } catch (e) {
+          print("Error in OpenPlayerWithTrackEvent: $e");
+        }
       }
-
-      emit(state.copyWith(
-        trackList: trackList,
-      ));
-
-      List<AudioSource> audioSources = trackList
-          .map(
-            (track) => AudioSource.uri(
-              Uri.parse(track.trackUrl),
-              tag: MediaItem(
-                id: track.id,
-                album: "Album name",
-                artist: track.bitmaker,
-                title: track.name,
-                artUri: Uri.parse(track.photoUrl),
-              ),
-            ),
-          )
-          .toList();
-
-      playlist = ConcatenatingAudioSource(
-        useLazyPreparation: true,
-        shuffleOrder: DefaultShuffleOrder(),
-        children: audioSources,
-      );
-
-      await player.setAudioSource(
-        playlist,
-        initialIndex: event.index,
-        initialPosition: Duration.zero,
-      );
-
-      emit(state.copyWith(
-        playerBottom: true,
-        isPlaying: true,
-        currentTrackIndex: player.currentIndex,
-      ));
-
-      await player.play();
+      // });
       // }
       // player.stop();
 
@@ -295,10 +442,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     on<PreviousTrackEvent>((event, emit) async {
       if (player.currentIndex! > 0) {
-        //   final previousIndex = state.currentTrackIndex - 1;
-        //   await player.seek(Duration.zero, index: previousIndex);
-        //   await player.play();
-        // }
         emit(state.copyWith(
           currentTrackIndex: player.currentIndex! - 1,
         ));
@@ -312,7 +455,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         _lastPosition = Duration.zero;
         listenedSeconds = 0;
 
+        final waveformData =
+            _generateWaveformForTrack(state.trackList[player.currentIndex!]);
+
         emit(state.copyWith(
+          waveformData: waveformData,
           currentTrackBeatId: state.trackList[player.currentIndex!].id,
         ));
       }
@@ -320,8 +467,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     on<NextBeatInPlaylistEvent>((event, emit) async {
       if (state.currentTrackIndex < state.trackList.length - 1) {
+        int newIndex = state.currentTrackIndex + 1;
+        // int newIndex = player.currentIndex! + 1;
+
         emit(state.copyWith(
-          currentTrackIndex: player.currentIndex! + 1,
+          currentTrackIndex: newIndex,
         ));
 
         await player.seekToNext();
@@ -333,12 +483,38 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         _lastPosition = Duration.zero;
         listenedSeconds = 0;
 
-        d.log(player.currentIndex.toString());
-        d.log(state.currentTrackIndex.toString());
+        final waveformData =
+            _generateWaveformForTrack(state.trackList[player.currentIndex!]);
 
         emit(state.copyWith(
+          waveformData: waveformData,
           currentTrackBeatId: state.trackList[player.currentIndex!].id,
+          loopCurrentFragment: false,
         ));
+
+        // emit(state.copyWith(
+        //   currentTrackIndex: player.currentIndex! + 1,
+        // ));
+        // add(UpdateCurrentTrackIndexEvent(state.currentTrackIndex + 1));
+
+        // add(UpdateCurrentTrackIndexEvent(player.currentIndex! + 1));
+
+        // await player.seekToNext();
+
+        // if (!state.isPause) {
+        //   await player.play();
+        // }
+
+        // _lastPosition = Duration.zero;
+        // listenedSeconds = 0;
+
+        // final waveformData =
+        //     _generateWaveformForTrack(state.trackList[player.currentIndex!]);
+
+        // emit(state.copyWith(
+        //   waveformData: waveformData,
+        //   currentTrackBeatId: state.trackList[player.currentIndex!].id,
+        // ));
       }
 
       // final beat = state.trackList[state.currentTrackIndex + 1];
@@ -401,7 +577,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
 
     on<UpdateCurrentTrackIndexEvent>((event, emit) async {
-      log(event.index);
       emit(state.copyWith(
         currentTrackIndex: event.index,
       ));
@@ -414,6 +589,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
       _lastPosition = Duration.zero;
       listenedSeconds = 0;
+
+      final waveformData =
+          _generateWaveformForTrack(state.trackList[player.currentIndex!]);
+
+      emit(state.copyWith(
+        waveformData: waveformData,
+        currentTrackBeatId: state.trackList[player.currentIndex!].id,
+        loopCurrentFragment: false,
+      ));
+
       // if (event.index >= 0 && event.index < state.trackList.length) {
       // emit(
       //   state.copyWith(
@@ -501,53 +686,53 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       emit(state.copyWith(loopCurrentFragment: !state.loopCurrentFragment));
     });
 
-    on<UpdatePositionEvent>((event, emit) async {
-      if (state.dragProgress == null) {
-        final currentSeconds = event.position.inSeconds;
-        int newIndexFragment = state.indexFragment;
+    // on<UpdatePositionEvent>((event, emit) async {
+    // if (state.dragProgress == null) {
+    //   final currentSeconds = event.position.inSeconds;
+    //   int newIndexFragment = state.indexFragment;
 
-        // Если зацикливание выключено, обновляем индекс фрагмента
-        if (!state.loopCurrentFragment) {
-          for (int i = 0; i < state.fragmentsMusic.length; i++) {
-            if (i == state.fragmentsMusic.length - 1) {
-              if (currentSeconds >= state.fragmentsMusic[i]) {
-                newIndexFragment = i;
-              }
-            } else if (currentSeconds >= state.fragmentsMusic[i] &&
-                currentSeconds < state.fragmentsMusic[i + 1]) {
-              newIndexFragment = i;
-              break;
-            }
-          }
-        }
+    //   // Если зацикливание выключено, обновляем индекс фрагмента
+    //   if (!state.loopCurrentFragment) {
+    //     for (int i = 0; i < state.fragmentsMusic.length; i++) {
+    //       if (i == state.fragmentsMusic.length - 1) {
+    //         if (currentSeconds >= state.fragmentsMusic[i]) {
+    //           newIndexFragment = i;
+    //         }
+    //       } else if (currentSeconds >= state.fragmentsMusic[i] &&
+    //           currentSeconds < state.fragmentsMusic[i + 1]) {
+    //         newIndexFragment = i;
+    //         break;
+    //       }
+    //     }
+    //   }
 
-        // Проверяем необходимость зацикливания
-        if (state.loopCurrentFragment) {
-          final currentFragmentStart =
-              state.fragmentsMusic[state.indexFragment];
-          final currentFragmentEnd =
-              state.indexFragment < state.fragmentsMusic.length - 1
-                  ? state.fragmentsMusic[state.indexFragment + 1]
-                  : state.duration.inSeconds;
+    //   // Проверяем необходимость зацикливания
+    //   if (state.loopCurrentFragment) {
+    //     final currentFragmentStart =
+    //         state.fragmentsMusic[state.indexFragment];
+    //     final currentFragmentEnd =
+    //         state.indexFragment < state.fragmentsMusic.length - 1
+    //             ? state.fragmentsMusic[state.indexFragment + 1]
+    //             : state.duration.inSeconds;
 
-          // Если вышли за пределы текущего фрагмента
-          if (currentSeconds >= currentFragmentEnd) {
-            await player.seek(Duration(seconds: currentFragmentStart));
-            emit(
-              state.copyWith(position: Duration(seconds: currentFragmentStart)),
-            );
-            return;
-          }
-        }
+    //     // Если вышли за пределы текущего фрагмента
+    //     if (currentSeconds >= currentFragmentEnd) {
+    //       await player.seek(Duration(seconds: currentFragmentStart));
+    //       emit(
+    //         state.copyWith(position: Duration(seconds: currentFragmentStart)),
+    //       );
+    //       return;
+    //     }
+    //   }
 
-        emit(
-          state.copyWith(
-            position: event.position,
-            indexFragment: newIndexFragment,
-          ),
-        );
-      }
-    });
+    //   emit(
+    //     state.copyWith(
+    //       position: event.position,
+    //       indexFragment: newIndexFragment,
+    //     ),
+    //   );
+    // }
+    // });
 
     on<UpdateDragProgressEvent>((event, emit) {
       emit(state.copyWith(dragProgress: event.progress));
@@ -576,8 +761,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             trackList: updatedTrackList,
             currentTrackIndex: state.currentTrackIndex + 1,
             colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
-            waveformData: _trackWaveforms[newTrack.trackUrl] ??
-                _generateDefaultWaveform(),
+            // waveformData: _trackWaveforms[newTrack.trackUrl] ??
+            //     _generateDefaultWaveform(),
           ),
         );
       } catch (e) {
@@ -586,9 +771,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
   }
 
-  void _generateWaveformForTrack(Track track) {
-    if (_trackWaveforms.containsKey(track.trackUrl)) return;
-
+  List<double> _generateWaveformForTrack(Track track) {
     final random = Random(track.trackUrl.hashCode);
     final List<double> waveform = [];
     const int samples = 55;
@@ -616,7 +799,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       prevAmplitude = newAmplitude;
     }
 
-    _trackWaveforms[track.trackUrl] = waveform;
+    return waveform;
   }
 
   List<double> _generateDefaultWaveform() {
@@ -636,6 +819,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   Future<void> close() {
     _listeningTimer?.cancel();
     _positionSubscription?.cancel();
+    _durationSubscription?.cancel();
     player.dispose();
 
     return super.close();

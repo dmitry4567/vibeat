@@ -34,6 +34,15 @@ class UpdatePositionEvent extends PlayerEvent {
   List<Object?> get props => [position];
 }
 
+class UpdateDurationEvent extends PlayerEvent {
+  final Duration? duration;
+
+  UpdateDurationEvent(this.duration);
+
+  @override
+  List<Object?> get props => [duration];
+}
+
 class UpdateCurrentTrackIndexEvent extends PlayerEvent {
   final int index;
 

@@ -20,12 +20,11 @@ class AllBeatsOfBeatmakerBloc
 
   AllBeatsOfBeatmakerBloc({required this.playerBloc})
       : super(const AllBeatsOfBeatmakerState()) {
-    _playerSubscription = playerBloc.stream.listen((playerState) {
-      print(playerState.currentTrackBeatId);
-      currentBeatId = playerState.currentTrackBeatId;
+    // _playerSubscription = playerBloc.stream.listen((PlayerStateApp) {
+    //   currentBeatId = PlayerStateApp.currentTrackBeatId;
 
-      add(ToggleListened(playerState.currentTrackBeatId));
-    });
+    //   add(ToggleListened(PlayerStateApp.currentTrackBeatId));
+    // });
 
     on<GetBeats>(_onLoadBeats);
     on<ToggleListened>(_onToggleListened);

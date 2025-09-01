@@ -128,7 +128,7 @@ class _DashboardPageState extends State<DashboardPage> {
             left: 0,
             right: 0,
             bottom: 96,
-            child: BlocConsumer<PlayerBloc, PlayerState>(
+            child: BlocConsumer<PlayerBloc, PlayerStateApp>(
               buildWhen: (previous, current) =>
                   previous.playerBottom != current.playerBottom ||
                   previous.trackList != current.trackList ||
@@ -141,7 +141,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   currentPage = state.currentTrackIndex;
 
                   // if (state.currentTrackIndex != 0) {
-                  _carouselController.animateToPage(
+                  _carouselController.jumpToPage(
                     state.currentTrackIndex,
                     // duration: const Duration(milliseconds: 300),
                     // curve: Curves.easeInOut,

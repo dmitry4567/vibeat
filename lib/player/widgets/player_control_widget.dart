@@ -14,7 +14,7 @@ class PlayerControlWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PlayerBloc, PlayerState>(
+    return BlocBuilder<PlayerBloc, PlayerStateApp>(
       buildWhen: (previous, current) => previous.isPlaying != current.isPlaying,
       builder: (context, state) {
         return Row(
@@ -52,14 +52,14 @@ class PlayerControlWidget extends StatelessWidget {
             IconButton(
               onPressed: () async {
                 if (pageController.page!.round() < state.trackList.length - 1) {
-                  await pageController
-                      .nextPage(
+                  await pageController.nextPage(
                     duration: const Duration(milliseconds: 500),
                     curve: Curves.linearToEaseOut,
-                  )
-                      .then((_) {
-                    sl<PlayerBloc>().add(NextBeatInPlaylistEvent());
-                  });
+                  );
+
+                  sl<PlayerBloc>().add(NextBeatInPlaylistEvent());
+                  // sl<PlayerBloc>().add(UpdateCurrentTrackIndexEvent(
+                      // state.currentTrackIndex + 1));
                 }
               },
               icon: const Icon(

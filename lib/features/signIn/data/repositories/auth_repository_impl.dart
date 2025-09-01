@@ -128,8 +128,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final responseData = response.data;
 
       final user = UserEntity(
-        jwtToken: responseData['access_token'],
-        refreshToken: responseData['refresh_token'],
+        jwtToken: responseData['data']['access_token'],
+        refreshToken: responseData['data']['refresh_token'],
         authType: AuthType.google,
       );
 
