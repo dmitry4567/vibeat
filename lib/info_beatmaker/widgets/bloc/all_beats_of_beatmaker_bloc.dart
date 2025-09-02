@@ -31,10 +31,8 @@ class AllBeatsOfBeatmakerBloc
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['data'];
 
-      List<BeatEntity> listBeats =
+      final List<BeatEntity> listBeats =
           data.map((beat) => BeatEntity.fromJson(beat)).toList();
-
-      listBeats = listBeats.sublist(0, 11);
 
       emit(
         state.copyWith(

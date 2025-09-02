@@ -65,13 +65,14 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
     ),
   );
 
-  // List<BeatEntity> beatsOfBeatmaker = [];
+  String? likesCountByBeatmaker;
 
   @override
   void initState() {
     super.initState();
 
     getBeatmakerInfo();
+    getLikesCountByBeatmaker();
     // getBeatsOfBeatmaker();
     context.read<AllBeatsOfBeatmakerBloc>().add(GetBeats(widget.beatmakerId));
   }
@@ -92,6 +93,27 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
 
       setState(() {
         beatmaker = Beatmaker.fromJson(data);
+      });
+    }
+  }
+
+  void getLikesCountByBeatmaker() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
+    final response = await http.get(
+      Uri.parse(
+          "http://$ip:8080/activityBeat/viewLikesCountByUserId/${widget.beatmakerId}"),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      dynamic data = json.decode(response.body)['data'];
+
+      if (!mounted) return;
+
+      setState(() {
+        likesCountByBeatmaker = data['count'].toString();
       });
     }
   }
@@ -210,7 +232,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  "0",
+                                  likesCountByBeatmaker ?? "0",
                                   style: AppTextStyles.bodyAppbar.copyWith(
                                     fontSize: 10,
                                   ),
@@ -316,8 +338,15 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                     const Text('Все биты', style: AppTextStyles.headline2),
                     TextButton(
                       onPressed: () {
-                        // context.router
-                        //     .push(PlaylistRoute(title: "fsef", beats: []));
+                        context.router.push(
+                          PlaylistRoute(
+                            title: "Все биты",
+                            beats: context
+                                .read<AllBeatsOfBeatmakerBloc>()
+                                .state
+                                .beats,
+                          ),
+                        );
                       },
                       child: Text(
                         "Посмотреть еще",
@@ -413,7 +442,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Дата регистрация",
+                          "Дата регистрации",
                           style: AppTextStyles.bodyText1.copyWith(
                             fontSize: 16,
                           ),
