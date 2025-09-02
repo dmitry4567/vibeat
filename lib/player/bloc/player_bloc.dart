@@ -26,12 +26,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
   static String host = "192.168.43.60";
   // static String host = "192.168.0.136";
 
-  final AudioPlayer player = AudioPlayer();
+  AudioPlayer player = AudioPlayer();
   late ConcatenatingAudioSource playlist;
   late PageController pageController;
   // StreamSubscription<PlaybackEvent>? _playerStateSubscription;
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<Duration?>? _durationSubscription;
+  StreamSubscription<PositionDiscontinuity>? _positionDiscontinuityStream;
   final List<List<Color>> _trackColors = [];
   final apiClient = sl<ApiClient>().dio;
 
@@ -71,7 +72,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
       },
     );
 
-    player.positionDiscontinuityStream.listen((event) {
+    _positionDiscontinuityStream =
+        player.positionDiscontinuityStream.listen((event) {
       if (event.reason == PositionDiscontinuityReason.autoAdvance) {
         if (state.currentTrackIndex < state.trackList.length - 1) {
           // add(UpdatePageControllerEvent(state.currentTrackIndex + 1))
@@ -296,12 +298,36 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
     );
 
     on<PlayCurrentBeatEvent>((event, emit) async {
-      if (state.trackList.isEmpty ||
-          event.beats[0].id != state.trackList[0].id) {
-        try {
-          await player.stop();
-          await player.setAudioSource(ConcatenatingAudioSource(children: []));
+      // Проверяем, нужно ли загружать новый плейлист
+      final bool shouldLoadNewPlaylist =
+          state.trackList.isEmpty || event.beats[0].id != state.trackList[0].id;
 
+      try {
+        if (shouldLoadNewPlaylist) {
+          // Загружаем новый плейлист
+          emit(state.copyWith(
+            isInitialized: true,
+            trackList: [],
+            playerBottom: false, // Временно скрываем плеер во время загрузки
+          ));
+
+          // Останавливаем и очищаем текущий плеер
+          await player.dispose();
+          _positionSubscription?.cancel();
+          _durationSubscription?.cancel();
+          _positionDiscontinuityStream?.cancel();
+
+          player = AudioPlayer();
+          _initializeSubscriptions();
+
+          // await player.stop();
+          // await player.setAudioSource(
+          //   ConcatenatingAudioSource(children: []),
+          //   initialIndex: event.index,
+          //   initialPosition: Duration.zero,
+          // );
+
+          // Создаем новый список треков
           List<Track> trackList = event.beats
               .map((t) => Track(
                     id: t.id,
@@ -314,6 +340,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
                   ))
               .toList();
 
+          // Создаем аудиоисточники
           List<AudioSource> audioSources = trackList
               .map((track) => AudioSource.uri(
                     Uri.parse(track.trackUrl),
@@ -332,16 +359,20 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
             children: audioSources,
           );
 
+          // Устанавливаем новый аудиоисточник с явным указанием индекса
           await player.setAudioSource(
             playlist,
-            initialIndex: event.index,
-            initialPosition: Duration.zero,
+            // initialIndex: event.index,
           );
+
+          // Ждем завершения инициализации
+          await player.load();
 
           final waveformData =
               _generateWaveformForTrack(trackList[event.index]);
 
           emit(state.copyWith(
+            isInitialized: false,
             trackList: trackList,
             currentTrackIndex: event.index,
             playerBottom: true,
@@ -351,93 +382,40 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           ));
 
           await player.play();
-        } catch (e) {
-          print("Error in OpenPlayerWithTrackEvent: $e");
-        }
-      } else {
-        try {
+        } else {
+          // Используем существующий плейлист
           await player.stop();
 
-          final waveformData =
-              _generateWaveformForTrack(state.trackList[event.index]);
-
+          // СНАЧАЛА обновляем состояние с новым индексом
           emit(state.copyWith(
             currentTrackIndex: event.index,
             playerBottom: true,
             isPlaying: true,
-            waveformData: waveformData,
             currentTrackBeatId: state.trackList[event.index].id,
           ));
 
+          // Затем выполняем seek
           await player.seek(Duration.zero, index: event.index);
 
+          // Генерируем waveform для выбранного трека
+          final waveformData =
+              _generateWaveformForTrack(state.trackList[event.index]);
+
+          // Обновляем состояние с waveform
+          emit(state.copyWith(
+            waveformData: waveformData,
+          ));
+
           await player.play();
-        } catch (e) {
-          print("Error in OpenPlayerWithTrackEvent: $e");
         }
+      } catch (e) {
+        print("Error in PlayCurrentBeatEvent: $e");
+        // В случае ошибки восстанавливаем предыдущее состояние
+        emit(state.copyWith(
+          isInitialized: false,
+          playerBottom: state.playerBottom,
+        ));
       }
-      // });
-      // }
-      // player.stop();
-
-      // List<Track> trackList = [];
-
-      // for (var t in event.beats) {
-      //   final track = Track(
-      //     id: t.id,
-      //     name: t.name,
-      //     bitmaker: "icantluvv",
-      //     price: t.price,
-      //     trackUrl: 'http://storage.yandexcloud.net/mp3beats/${t.url}',
-      //     photoUrl: t.picture,
-      //   );
-
-      //   trackList.add(track);
-      //   // Generate waveform data for each track
-      //   _generateWaveformForTrack(track);
-      //   // await _getColorsBackground(track);
-      // }
-
-      // List<AudioSource> audioSources = trackList
-      //     .map(
-      //       (track) => AudioSource.uri(
-      //         Uri.parse(track.trackUrl),
-      //         tag: MediaItem(
-      //           id: track.id,
-      //           album: "Album name",
-      //           artist: track.bitmaker,
-      //           title: track.name,
-      //           artUri: Uri.parse(track.photoUrl),
-      //         ),
-      //       ),
-      //     )
-      //     .toList();
-
-      // playlist = ConcatenatingAudioSource(
-      //   useLazyPreparation: true,
-      //   shuffleOrder: DefaultShuffleOrder(),
-      //   children: audioSources,
-      // );
-
-      // await player.setAudioSource(
-      //   playlist,
-      //   initialIndex: event.index,
-      //   initialPosition: Duration.zero,
-      // );
-
-      // // Set initial waveform data
-      // final initialWaveform =
-      //     _trackWaveforms[trackList[0].trackUrl] ?? _generateDefaultWaveform();
-
-      // player.play();
-
-      // emit(state.copyWith(
-      //   // trackList: trackList,
-      //   currentTrackIndex: event.index,
-      //   currentTrackBeatId: event.beats[event.index].id,
-      //   // colorsOfBackground: _trackColors,
-      //   // waveformData: initialWaveform,
-      // ));
     });
 
     on<PreviousTrackEvent>((event, emit) async {
@@ -820,7 +798,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
     _listeningTimer?.cancel();
     _positionSubscription?.cancel();
     _durationSubscription?.cancel();
-    player.dispose();
+    // player.dispose();
 
     return super.close();
   }

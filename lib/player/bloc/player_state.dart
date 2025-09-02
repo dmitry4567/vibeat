@@ -1,6 +1,7 @@
 part of 'player_bloc.dart';
 
 class PlayerStateApp extends Equatable {
+  final bool isInitialized;
   final bool playerBottom;
   final bool isPlaying;
   final bool isPause;
@@ -27,6 +28,7 @@ class PlayerStateApp extends Equatable {
           : 0.0);
 
   const PlayerStateApp({
+    required this.isInitialized,
     required this.playerBottom,
     required this.isPlaying,
     required this.isPause,
@@ -49,6 +51,7 @@ class PlayerStateApp extends Equatable {
 
   factory PlayerStateApp.initial() {
     return const PlayerStateApp(
+      isInitialized: false,
       playerBottom: true,
       isPlaying: false,
       isPause: false,
@@ -70,6 +73,7 @@ class PlayerStateApp extends Equatable {
   }
 
   PlayerStateApp copyWith({
+    bool? isInitialized,
     bool? playerBottom,
     bool? isPlaying,
     bool? isPause,
@@ -90,6 +94,7 @@ class PlayerStateApp extends Equatable {
     double? dragProgress,
   }) {
     return PlayerStateApp(
+      isInitialized: isInitialized ?? this.isInitialized,
       playerBottom: playerBottom ?? this.playerBottom,
       isPlaying: isPlaying ?? this.isPlaying,
       isPause: isPause ?? this.isPause,
@@ -113,23 +118,24 @@ class PlayerStateApp extends Equatable {
 
   @override
   List<Object?> get props => [
-    playerBottom,
-    isPlaying,
-    isRepeat,
-    isPause,
-    isEnd,
-    loopCurrentFragment,
-    currentTrackIndex,
-    currentTrackBeatId,
-    pathTrack,
-    position,
-    duration,
-    colorsOfBackground,
-    fragmentsMusic,
-    fragmentsNames,
-    indexFragment,
-    trackList,
-    waveformData,
-    dragProgress,
-  ];
+        isInitialized,
+        playerBottom,
+        isPlaying,
+        isRepeat,
+        isPause,
+        isEnd,
+        loopCurrentFragment,
+        currentTrackIndex,
+        currentTrackBeatId,
+        pathTrack,
+        position,
+        duration,
+        colorsOfBackground,
+        fragmentsMusic,
+        fragmentsNames,
+        indexFragment,
+        trackList,
+        waveformData,
+        dragProgress,
+      ];
 }

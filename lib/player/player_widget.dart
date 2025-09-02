@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
@@ -93,9 +94,12 @@ class _PlayerScreenState extends State<PlayerScreen>
     coverWidth = 390 - 60.0;
     percentWidthCover = (coverWidth! * 100.0) / screenWidth!;
 
+    final currentIndex = sl<PlayerBloc>().state.currentTrackIndex;
+
     // Создаем PageController без initialPage, он будет установлен позже
     _pageController = PageController(
       viewportFraction: percentWidthCover! / 100,
+      initialPage: currentIndex,
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -103,7 +107,6 @@ class _PlayerScreenState extends State<PlayerScreen>
       _maxPosition = mediaQuery.size.height;
 
       // Устанавливаем начальную страницу после построения виджета
-      final currentIndex = sl<PlayerBloc>().state.currentTrackIndex;
       _pageController.jumpToPage(currentIndex);
     });
   }
@@ -1132,15 +1135,22 @@ class _ImagesPageBuilderState extends State<ImagesPageBuilder> {
   bool _wasManualScroll = false;
   int _lastExternalTrackIndex = 0;
   bool _isUserInitiatedScroll = false;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    // Устанавливаем начальное значение после инициализации
+    // Немедленно переходим к правильной странице после инициализации
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _lastExternalTrackIndex = sl<PlayerBloc>().state.currentTrackIndex;
-      // Немедленно переходим к правильной странице
-      widget.pageController.jumpToPage(_lastExternalTrackIndex);
+      final state = sl<PlayerBloc>().state;
+
+      if (state.isInitialized && state.trackList.isNotEmpty) {
+        widget.pageController.jumpToPage(state.currentTrackIndex);
+
+        setState(() {
+          _isInitialized = true;
+        });
+      }
     });
   }
 
@@ -1189,6 +1199,18 @@ class _ImagesPageBuilderState extends State<ImagesPageBuilder> {
               }
             },
             builder: (context, state) {
+              if (_isInitialized && state.trackList.isEmpty) {
+                return Center(
+                  child: Skeletonizer(
+                    enabled: true,
+                    child: Container(
+                      width: widget.coverWidth,
+                      height: widget.coverWidth,
+                      color: Colors.grey,
+                    ),
+                  ),
+                );
+              }
               return NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification notification) {
                   if (notification is ScrollStartNotification) {

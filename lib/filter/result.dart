@@ -77,7 +77,8 @@ class _ResultScreenState extends State<ResultScreen> {
       data.add(FeatureModel(name: 'Настроение', text: moodsText));
     }
 
-    if (widget.bpmFrom != 0 && widget.bpmTo != 0) {
+    if ((widget.bpmFrom != 0 && widget.bpmTo != 0) ||
+        (widget.bpmFrom != null && widget.bpmTo != null)) {
       String bpmText = '${widget.bpmFrom} - ${widget.bpmTo}';
 
       data.add(FeatureModel(name: 'BPM', text: bpmText));
