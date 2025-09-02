@@ -57,69 +57,72 @@ class _DashboardPageState extends State<DashboardPage> {
             bottomNavigationBuilder: (_, tabsRouter) {
               return Theme(
                 data: ThemeData(splashColor: Colors.transparent),
-                child: BottomNavigationBar(
-                  iconSize: 32,
-                  currentIndex: tabsRouter.activeIndex,
-                  onTap: (index) {
-                    if (tabsRouter.activeIndex == index) {
-                      tabsRouter.stackRouterOfIndex(index)?.popUntilRoot();
-                    } else {
-                      tabsRouter.setActiveIndex(index);
-                    }
-                  },
-                  type: BottomNavigationBarType.fixed,
-                  backgroundColor: Colors.black,
-                  elevation: 0,
-                  items: [
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        size: 30,
-                        tabsRouter.activeIndex == 0
-                            ? Icons.home
-                            : Icons.home_outlined,
-                        color: tabsRouter.activeIndex == 0
-                            ? Colors.white
-                            : const Color(0xff666666),
+                child: SizedBox(
+                  height: MediaQuery.of(context).padding.bottom + 64,
+                  child: BottomNavigationBar(
+                    iconSize: 32,
+                    currentIndex: tabsRouter.activeIndex,
+                    onTap: (index) {
+                      if (tabsRouter.activeIndex == index) {
+                        tabsRouter.stackRouterOfIndex(index)?.popUntilRoot();
+                      } else {
+                        tabsRouter.setActiveIndex(index);
+                      }
+                    },
+                    type: BottomNavigationBarType.fixed,
+                    backgroundColor: Colors.black,
+                    elevation: 0,
+                    items: [
+                      BottomNavigationBarItem(
+                        icon: Icon(
+                          size: 30,
+                          tabsRouter.activeIndex == 0
+                              ? Icons.home
+                              : Icons.home_outlined,
+                          color: tabsRouter.activeIndex == 0
+                              ? Colors.white
+                              : const Color(0xff666666),
+                        ),
+                        label: '',
                       ),
-                      label: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        size: 30,
-                        tabsRouter.activeIndex == 0
-                            ? Icons.search
-                            : Icons.search_outlined,
-                        color: tabsRouter.activeIndex == 1
-                            ? Colors.white
-                            : const Color(0xff666666),
+                      BottomNavigationBarItem(
+                        icon: Icon(
+                          size: 30,
+                          tabsRouter.activeIndex == 0
+                              ? Icons.search
+                              : Icons.search_outlined,
+                          color: tabsRouter.activeIndex == 1
+                              ? Colors.white
+                              : const Color(0xff666666),
+                        ),
+                        label: '',
                       ),
-                      label: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        size: 30,
-                        tabsRouter.activeIndex == 2
-                            ? Icons.favorite
-                            : Icons.favorite_outline,
-                        color: tabsRouter.activeIndex == 2
-                            ? Colors.white
-                            : const Color(0xff666666),
+                      BottomNavigationBarItem(
+                        icon: Icon(
+                          size: 30,
+                          tabsRouter.activeIndex == 2
+                              ? Icons.favorite
+                              : Icons.favorite_outline,
+                          color: tabsRouter.activeIndex == 2
+                              ? Colors.white
+                              : const Color(0xff666666),
+                        ),
+                        label: '',
                       ),
-                      label: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        size: 30,
-                        tabsRouter.activeIndex == 3
-                            ? Icons.shopping_cart
-                            : Icons.shopping_cart_outlined,
-                        color: tabsRouter.activeIndex == 3
-                            ? Colors.white
-                            : const Color(0xff666666),
+                      BottomNavigationBarItem(
+                        icon: Icon(
+                          size: 30,
+                          tabsRouter.activeIndex == 3
+                              ? Icons.shopping_cart
+                              : Icons.shopping_cart_outlined,
+                          color: tabsRouter.activeIndex == 3
+                              ? Colors.white
+                              : const Color(0xff666666),
+                        ),
+                        label: '',
                       ),
-                      label: '',
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -127,7 +130,8 @@ class _DashboardPageState extends State<DashboardPage> {
           Positioned(
             left: 0,
             right: 0,
-            bottom: 96,
+            // bottom: 96,
+            bottom: MediaQuery.of(context).padding.bottom + 64,
             child: BlocConsumer<PlayerBloc, PlayerStateApp>(
               buildWhen: (previous, current) =>
                   previous.playerBottom != current.playerBottom ||
