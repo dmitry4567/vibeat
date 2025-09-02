@@ -125,8 +125,7 @@ class _ResultScreenState extends State<ResultScreen> {
       List<dynamic> data = json.decode(response.body)['data'];
 
       setState(() {
-        beatData =
-            data.map((json) => BeatEntity.fromJson(json, "false")).toList();
+        beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -461,7 +460,6 @@ class FeatureModel {
 
 class BeatEntity {
   final String id;
-  final bool isCurrentPlaying;
   final String name;
   final String description;
   final String picture;
@@ -479,7 +477,6 @@ class BeatEntity {
 
   const BeatEntity({
     required this.id,
-    required this.isCurrentPlaying,
     required this.name,
     required this.description,
     required this.picture,
@@ -498,7 +495,6 @@ class BeatEntity {
 
   BeatEntity copyWith({
     String? id,
-    bool? isCurrentPlaying,
     String? name,
     String? description,
     String? picture,
@@ -516,7 +512,6 @@ class BeatEntity {
   }) {
     return BeatEntity(
       id: id ?? this.id,
-      isCurrentPlaying: isCurrentPlaying ?? this.isCurrentPlaying,
       name: name ?? this.name,
       description: description ?? this.description,
       picture: picture ?? this.picture,
@@ -534,12 +529,9 @@ class BeatEntity {
     );
   }
 
-  factory BeatEntity.fromJson(
-      Map<String, dynamic> json, String? currentPlayingBeatId) {
+  factory BeatEntity.fromJson(Map<String, dynamic> json) {
     return BeatEntity(
       id: json['id'].toString(),
-      isCurrentPlaying:
-          json['id'].toString() == currentPlayingBeatId ? true : false,
       name: json['name'].toString(),
       description:
           json['description'] != null ? json['description'].toString() : '',

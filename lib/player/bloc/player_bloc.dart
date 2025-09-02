@@ -298,9 +298,18 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
     );
 
     on<PlayCurrentBeatEvent>((event, emit) async {
-      // Проверяем, нужно ли загружать новый плейлист
-      final bool shouldLoadNewPlaylist =
+      bool shouldLoadNewPlaylist =
           state.trackList.isEmpty || event.beats[0].id != state.trackList[0].id;
+
+      // if ((event.beats.length != state.trackList.length) &&
+      //     (event.beats[state.currentTrackIndex].id !=
+      //         state.trackList[state.currentTrackIndex].id) &&
+      //     (event.beats[0].id != state.trackList[0].id) &&
+      //     (event.beats[event.beats.length - 1].id !=
+      //         state.trackList[state.trackList.length - 1].id)) {
+      //   shouldLoadNewPlaylist = true;
+      //   print("new playlist");
+      // }
 
       try {
         if (shouldLoadNewPlaylist) {

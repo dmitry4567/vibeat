@@ -27,7 +27,6 @@ class _SearchScreenState extends State<SearchScreen> {
     5,
     (index) => const BeatEntity(
       id: "",
-      isCurrentPlaying: false,
       name: "",
       description: "",
       picture: "",
@@ -97,7 +96,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
       setState(() {
         beatData =
-            data.map((json) => BeatEntity.fromJson(json, "false")).toList();
+            data.map((json) => BeatEntity.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -281,7 +280,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   sl<PlayerBloc>().add(
                                       PlayCurrentBeatEvent(beatData, index));
 
-                                  // context.router.navigate(const PlayerRoute());
+                                  context.router.navigate(const PlayerRoute());
                                 },
                                 openInfoBeat: () {
                                   context.router.navigate(
@@ -309,7 +308,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                 index: index,
                                 beat: const BeatEntity(
                                   id: "",
-                                  isCurrentPlaying: false,
                                   name: "sefsesfseff",
                                   description: "sefsef",
                                   picture: "",

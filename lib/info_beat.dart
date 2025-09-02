@@ -30,7 +30,6 @@ class InfoBeat extends StatefulWidget {
 class _InfoBeatState extends State<InfoBeat> {
   BeatEntity beat = const BeatEntity(
     id: "",
-    isCurrentPlaying: false,
     name: "",
     description: "",
     picture: "",
@@ -151,7 +150,7 @@ class _InfoBeatState extends State<InfoBeat> {
       if (!mounted) return;
 
       setState(() {
-        beat = BeatEntity.fromJson(data, "false");
+        beat = BeatEntity.fromJson(data);
       });
     }
   }

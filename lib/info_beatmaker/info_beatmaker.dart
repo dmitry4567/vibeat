@@ -44,7 +44,6 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
     5,
     (index) => const BeatEntity(
       id: "",
-      isCurrentPlaying: false,
       name: "jbksbfkdrbgjkdr",
       description: "",
       picture: "",
@@ -125,7 +124,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-        centerTitle: true,
+              centerTitle: true,
               stretch: true,
               backgroundColor: AppColors.background,
               excludeHeaderSemantics: true,
@@ -352,39 +351,35 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                     );
                   }
                   if (state.beats.isNotEmpty) {
-                    return SliverList.builder(
-                      itemCount: 5,
-                      itemBuilder: (context, index) {
-                        return Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                              onTap: () {
-                                sl<PlayerBloc>().add(
-                                  PlayCurrentBeatEvent(
-                                    state.beats,
-                                    index,
-                                  ),
-                                );
+                    return BlocBuilder<PlayerBloc, PlayerStateApp>(
+                      buildWhen: (previous, current) =>
+                          previous.currentTrackBeatId !=
+                          current.currentTrackBeatId,
+                      builder: (context, statePlayer) {
+                        return SliverList.builder(
+                          itemCount: 5,
+                          itemBuilder: (context, index) {
+                            return Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                  onTap: () {
+                                    sl<PlayerBloc>().add(
+                                      PlayCurrentBeatEvent(
+                                        state.beats,
+                                        index,
+                                      ),
+                                    );
 
-                                // context.router.navigate(const PlayerRoute());
-                              },
-                              child: BlocSelector<
-                                  AllBeatsOfBeatmakerBloc,
-                                  AllBeatsOfBeatmakerState,
-                                  BeatEntity>(selector: (state) {
-                                return state.beats.firstWhere(
-                                  (track) => track.id == state.beats[index].id,
-                                  orElse: () =>
-                                      throw Exception('Track not found'),
-                                );
-                              }, builder: (context, track) {
-                                return BeatRowWidget(
-                                  index: index,
-                                  isCurrentPlaying:
-                                      state.beats[index].isCurrentPlaying,
-                                  beat: state.beats[index],
-                                );
-                              })),
+                                    // context.router.navigate(const PlayerRoute());
+                                  },
+                                  child: BeatRowWidget(
+                                    index: index,
+                                    isCurrentPlaying: state.beats[index].id ==
+                                        statePlayer.currentTrackBeatId,
+                                    beat: state.beats[index],
+                                  )),
+                            );
+                          },
                         );
                       },
                     );

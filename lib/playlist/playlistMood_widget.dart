@@ -29,7 +29,6 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
     5,
     (index) => const BeatEntity(
       id: "",
-      isCurrentPlaying: false,
       name: "",
       description: "",
       picture: "",
@@ -72,7 +71,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
 
       setState(() {
         beatData =
-            data.map((json) => BeatEntity.fromJson(json, "false")).toList();
+            data.map((json) => BeatEntity.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {

@@ -63,7 +63,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
           setState(() {
             beatData = dataList
-                .map((item) => BeatEntity.fromJson(item['beat'], "false"))
+                .map((item) => BeatEntity.fromJson(item['beat']))
                 .toList();
           });
         } else {
@@ -106,10 +106,10 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         ),
       ),
       body: Scrollbar(
-      thumbVisibility: false,
-      trackVisibility: true,
-      interactive: true,
-      child: Padding(
+        thumbVisibility: false,
+        trackVisibility: true,
+        interactive: true,
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
           child: CustomScrollView(
             slivers: [
@@ -125,7 +125,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           openPlayer: () {
                             sl<PlayerBloc>()
                                 .add(PlayCurrentBeatEvent(beatData, index));
-        
+
                             context.router.navigate(const PlayerRoute());
                           },
                           openInfoBeat: () {

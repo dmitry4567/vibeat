@@ -74,7 +74,7 @@ Future<void> init() async {
 
   // BLoCs
   sl.registerLazySingleton(() => PlayerBloc());
-  sl.registerLazySingleton(() => AllBeatsOfBeatmakerBloc(playerBloc: sl()));
+  sl.registerLazySingleton(() => AllBeatsOfBeatmakerBloc());
 
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
   sl.registerFactory(() => AnketaBloc(
