@@ -12,7 +12,7 @@ import 'package:vibeat/filter/screen/filter_genre/cubit/genre_cubit.dart';
 import 'package:vibeat/filter/screen/filter_key/cubit/key_cubit.dart';
 import 'package:vibeat/filter/screen/filter_mood/cubit/mood_cubit.dart';
 import 'package:vibeat/filter/screen/filter_tag/bloc/tag_bloc.dart';
-import 'package:vibeat/info_beatmaker/widgets/bloc/all_beats_of_beatmaker_bloc.dart';
+import 'package:vibeat/info_beatmaker/bloc/all_beats_of_beatmaker_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/custom_error.dart';

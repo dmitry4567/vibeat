@@ -7,9 +7,3 @@ class GetBeats extends AllBeatsOfBeatmakerEvent {
 
   GetBeats(this.beatmakerId);
 }
-
-class ToggleListened extends AllBeatsOfBeatmakerEvent {
-  final String beatId;
-
-  ToggleListened(this.beatId);
-}

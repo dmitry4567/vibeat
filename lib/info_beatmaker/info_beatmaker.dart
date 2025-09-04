@@ -12,7 +12,7 @@ import 'package:vibeat/app/injection_container.dart' as di;
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/info_beatmaker/beatmaker.dart';
-import 'package:vibeat/info_beatmaker/widgets/bloc/all_beats_of_beatmaker_bloc.dart';
+import 'package:vibeat/info_beatmaker/bloc/all_beats_of_beatmaker_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -118,25 +118,6 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
     }
   }
 
-  // void getBeatsOfBeatmaker() async {
-  //   final response = await http.get(
-  //     Uri.parse(
-  //         "http://192.168.0.135:7771/api/beat/byBeatmakerId/${widget.beatmakerId}"),
-  //     headers: {'Content-Type': 'application/json'},
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     List<dynamic> data = json.decode(response.body)['data'];
-
-  //     if (!mounted) return;
-
-  //     setState(() {
-  //       beatsOfBeatmaker =
-  //           data.map((beat) => BeatEntity.fromJson(beat)).toList();
-  //     });
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,10 +138,6 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                 background: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Image.network(
-                    //   'https://sun9-63.userapi.com/impg/I_VmpgvyUNSas3TeQcD9cMpEsWtV6LDXOjDM0A/IG8fKJyhALQ.jpg?size=270x270&quality=95&sign=dfd23dbdcb75df2ba50bee0db00e3633&c_uniq_tag=kGLLQ5z1e3ezZUsn-MBxtz4nfWH3lHV3twPptGaJq8U&type=audio&quot',
-                    //   fit: BoxFit.cover,
-                    // ),
                     beatmaker.profilepicture != ""
                         ? Image.network(
                             beatmaker.profilepicture,
@@ -236,31 +213,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                   style: AppTextStyles.bodyAppbar.copyWith(
                                     fontSize: 10,
                                   ),
-                                )
-
-                                // GestureDetector(
-                                //   onTap: () {},
-                                //   child: Container(
-                                //     width: 42,
-                                //     height: 42,
-                                //     decoration: BoxDecoration(
-                                //       color: Colors.white.withOpacity(0.1),
-                                //       shape: BoxShape.circle,
-                                //     ),
-                                //     alignment: AlignmentDirectional.center,
-                                //     child: const Icon(
-                                //       Icons.favorite_outline,
-                                //       size: 20,
-                                //     ),
-                                //   ),
-                                // ),
-                                // const SizedBox(height: 6),
-                                // Text(
-                                //   "0",
-                                //   style: AppTextStyles.bodyAppbar.copyWith(
-                                //     fontSize: 10,
-                                //   ),
-                                // )
+                                ),
                               ],
                             ),
                             Column(
@@ -269,15 +222,12 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                   alignment: AlignmentDirectional.topCenter,
                                   child: MaterialButton(
                                     onPressed: () {
-                                      // sl<PlayerBloc>().add(PlayCurrentBeatEvent(
-                                      //     di
-                                      //         .sl<AllBeatsOfBeatmakerBloc>()
-                                      //         .state
-                                      //         .beats,
-                                      //     0));
-
-                                      // context.router
-                                      //     .navigate(const PlayerRoute());
+                                      sl<PlayerBloc>().add(PlayCurrentBeatEvent(
+                                          di
+                                              .sl<AllBeatsOfBeatmakerBloc>()
+                                              .state
+                                              .beats,
+                                          0));
                                     },
                                     color: AppColors.primary,
                                     textColor: Colors.white,
@@ -701,7 +651,7 @@ class BeatRowWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: isCurrentPlaying
-          ? AppColors.primary.withOpacity(0.2)
+          ? Colors.white.withOpacity(0.08)
           : Colors.transparent,
       padding: const EdgeInsets.only(
         left: 18,
@@ -745,11 +695,6 @@ class BeatRowWidget extends StatelessWidget {
               },
             ),
           ),
-          // Image.network(
-          //   fit: BoxFit.cover,
-          //   width: 60,
-          //   beatsOfBeatmaker[index].picture,
-          // ),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -769,35 +714,6 @@ class BeatRowWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              const Row(
-                children: [
-                  // const SizedBox(
-                  //   width: 12,
-                  //   height: 12,
-                  //   child: CircleAvatar(
-                  //     backgroundImage: NetworkImage(
-                  //       'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
-                  //     ),
-                  //   ),
-                  // ),
-                  // const SizedBox(width: 4),
-                  // Container(
-                  //   padding: const EdgeInsets.only(
-                  //     right: 5,
-                  //   ),
-                  //   child: Column(
-                  //     children: [
-                  //       const SizedBox(height: 2),
-                  //       Text(
-                  //         "smokeynagato",
-                  //         style: AppTextStyles.bodyText2,
-                  //         overflow: TextOverflow.ellipsis,
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                ],
-              ),
             ],
           )
         ],
@@ -805,3 +721,28 @@ class BeatRowWidget extends StatelessWidget {
     );
   }
 }
+
+
+// GestureDetector(
+//                                   onTap: () {},
+//                                   child: Container(
+//                                     width: 42,
+//                                     height: 42,
+//                                     decoration: BoxDecoration(
+//                                       color: Colors.white.withOpacity(0.1),
+//                                       shape: BoxShape.circle,
+//                                     ),
+//                                     alignment: AlignmentDirectional.center,
+//                                     child: const Icon(
+//                                       Icons.favorite_outline,
+//                                       size: 20,
+//                                     ),
+//                                   ),
+//                                 ),
+//                                 const SizedBox(height: 6),
+//                                 Text(
+//                                   "0",
+//                                   style: AppTextStyles.bodyAppbar.copyWith(
+//                                     fontSize: 10,
+//                                   ),
+//                                 ),

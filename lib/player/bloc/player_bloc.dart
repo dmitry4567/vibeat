@@ -33,6 +33,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<Duration?>? _durationSubscription;
   StreamSubscription<PositionDiscontinuity>? _positionDiscontinuityStream;
+  
   final List<List<Color>> _trackColors = [];
   final apiClient = sl<ApiClient>().dio;
 
