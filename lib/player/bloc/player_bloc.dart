@@ -1,23 +1,23 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:math';
-import 'dart:ui';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'dart:convert';
-import 'dart:developer' as d;
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/player/colors_utils.dart';
 import 'package:vibeat/player/model/model_track.dart';
-import 'package:vibeat/utils/image_extractor.dart';
 
 part 'player_event.dart';
 part 'player_state.dart';
@@ -33,8 +33,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<Duration?>? _durationSubscription;
   StreamSubscription<PositionDiscontinuity>? _positionDiscontinuityStream;
-  
-  final List<List<Color>> _trackColors = [];
+
   final apiClient = sl<ApiClient>().dio;
 
   bool isListened = false;
@@ -286,7 +285,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
             emit(state.copyWith(
               trackList: trackList,
               currentTrackIndex: player.currentIndex!,
-              colorsOfBackground: _trackColors,
+              // colorsOfBackground: _trackColors,
               // waveformData: initialWaveform,
             ));
           } else {
@@ -381,6 +380,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           final waveformData =
               _generateWaveformForTrack(trackList[event.index]);
 
+          final bgColors = await _getColorsBackground(trackList[event.index]);
+
           emit(state.copyWith(
             isInitialized: false,
             trackList: trackList,
@@ -388,6 +389,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
             playerBottom: true,
             isPlaying: true,
             waveformData: waveformData,
+            colorsOfBackground: bgColors,
             currentTrackBeatId: trackList[event.index].id,
           ));
 
@@ -411,9 +413,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           final waveformData =
               _generateWaveformForTrack(state.trackList[event.index]);
 
+          final backgroundColors =
+              await _getColorsBackground(state.trackList[event.index]);
+
           // Обновляем состояние с waveform
           emit(state.copyWith(
             waveformData: waveformData,
+            colorsOfBackground: backgroundColors,
           ));
 
           await player.play();
@@ -456,6 +462,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
     on<NextBeatInPlaylistEvent>((event, emit) async {
       if (state.currentTrackIndex < state.trackList.length - 1) {
         int newIndex = state.currentTrackIndex + 1;
+
+        var file = await DefaultCacheManager().getSingleFile(state.trackList[newIndex].photoUrl);
+        final colors = await ProfessionalColorUtils.extractPaletteColorCached(file);
         // int newIndex = player.currentIndex! + 1;
 
         emit(state.copyWith(
@@ -474,7 +483,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
         final waveformData =
             _generateWaveformForTrack(state.trackList[player.currentIndex!]);
 
+        // final bgColors = await _getColorsBackground(state.trackList[newIndex]);
+
         emit(state.copyWith(
+          colorsOfBackground: colors,
           waveformData: waveformData,
           currentTrackBeatId: state.trackList[player.currentIndex!].id,
           loopCurrentFragment: false,
@@ -748,7 +760,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           state.copyWith(
             trackList: updatedTrackList,
             currentTrackIndex: state.currentTrackIndex + 1,
-            colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
+            // colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
             // waveformData: _trackWaveforms[newTrack.trackUrl] ??
             //     _generateDefaultWaveform(),
           ),
@@ -795,12 +807,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
     return List.generate(samples, (i) => 0.5);
   }
 
-  Future<void> _getColorsBackground(Track track) async {
-    List<Color> colors = await ImageExtractor().extractTopAndBottomCenterColors(
-      track.photoUrl,
-    );
+  Future<Color> _getColorsBackground(Track track) async {
+    final color = ProfessionalColorUtils.extractPaletteColorNetwork(track.photoUrl);
 
-    _trackColors.add(colors);
+    return color;
+  }
+
+  Future<Color> _getColorsBackgroundCached(File file) async {
+    final color = ProfessionalColorUtils.extractPaletteColorCached(file);
+
+    return color;
   }
 
   @override

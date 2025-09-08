@@ -13,7 +13,7 @@ class PlayerStateApp extends Equatable {
   final String pathTrack;
   final Duration position;
   final Duration duration;
-  final List<List<Color>> colorsOfBackground;
+  final Color colorsOfBackground;
   final List<int> fragmentsMusic;
   final List<String> fragmentsNames;
   final int indexFragment;
@@ -40,7 +40,7 @@ class PlayerStateApp extends Equatable {
     required this.pathTrack,
     required this.position,
     required this.duration,
-    this.colorsOfBackground = const [],
+    required this.colorsOfBackground,
     required this.fragmentsMusic,
     required this.fragmentsNames,
     this.indexFragment = 0,
@@ -63,7 +63,7 @@ class PlayerStateApp extends Equatable {
       pathTrack: "",
       position: Duration.zero,
       duration: Duration.zero,
-      colorsOfBackground: [],
+      colorsOfBackground: Colors.black,
       fragmentsMusic: [0, 3, 10],
       fragmentsNames: ['Verse', 'Chorus', 'Chorus'],
       indexFragment: 0,
@@ -85,7 +85,7 @@ class PlayerStateApp extends Equatable {
     String? pathTrack,
     Duration? position,
     Duration? duration,
-    List<List<Color>>? colorsOfBackground,
+    Color? colorsOfBackground,
     List<int>? fragmentsMusic,
     List<String>? fragmentsNames,
     int? indexFragment,

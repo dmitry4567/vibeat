@@ -543,29 +543,57 @@ class _PlayerScreenState extends State<PlayerScreen>
               Stack(
                 children: [
                   Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(55),
-                        topLeft: Radius.circular(55),
-                      ),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [primaryColor, secondaryColor],
-                          ),
-                        ),
-                      ),
+                    child: Container(
+                      color: Colors.black,
                     ),
                   ),
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withOpacity(0.5),
-                    ),
+                  BlocBuilder<PlayerBloc, PlayerStateApp>(
+                    buildWhen: (previous, current) =>
+                        previous.colorsOfBackground !=
+                        current.colorsOfBackground,
+                    builder: (context, state) {
+                      if (state.colorsOfBackground != Colors.black) {
+                        final hsl =
+                            HSLColor.fromColor(state.colorsOfBackground);
+
+                        return Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(55),
+                              topLeft: Radius.circular(55),
+                            ),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    hsl
+                                        .withLightness((hsl.lightness + 0.2)
+                                            .clamp(0.5, 0.7))
+                                        .toColor(),
+                                    state.colorsOfBackground,
+                                    hsl
+                                        .withLightness((hsl.lightness * 0.7)
+                                            .clamp(0.3, 0.5))
+                                        .toColor(),
+                                    hsl
+                                        .withLightness((hsl.lightness * 0.4)
+                                            .clamp(0.15, 0.25))
+                                        .toColor(),
+                                  ],
+                                  stops: const [0.0, 0.4, 0.7, 1.0],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Container();
+                    },
                   ),
                 ],
               ),
