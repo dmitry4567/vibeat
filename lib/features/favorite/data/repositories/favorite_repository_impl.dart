@@ -17,6 +17,25 @@ class FavoriteRepositoryImpl implements FavoriteRepository {
   final FavoriteLocalDataSource localDataSource;
 
   @override
+  ResultVoid syncRemoteLocalFavoriteBeats() async {
+    try {
+      final result = await remoteDataSource.getFavoriteBeats();
+
+      Set<String> beatsIds = {};
+
+      for (BeatModel beat in result) {
+        beatsIds.add(beat.id);
+      }
+
+      await localDataSource.initLocalData(beatIds: beatsIds);
+
+      return const Right(null);
+    } on APIException catch (e) {
+      return Left(ApiFailure.fromException(e));
+    }
+  }
+
+  @override
   ResultFuture<List<BeatModel>> getFavoriteBeats() async {
     try {
       final result = await remoteDataSource.getFavoriteBeats();

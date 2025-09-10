@@ -105,7 +105,7 @@ class AppRouter extends RootStackRouter {
             AutoRoute(
               path: 'favorite',
               page: const EmptyShellRoute('favorite'),
-              maintainState: false,
+              // maintainState: false,
               children: [
                 AutoRoute(path: '', page: FavoriteRoute.page),
                 AutoRoute(path: 'favorite/playlist', page: PlaylistRoute.page),

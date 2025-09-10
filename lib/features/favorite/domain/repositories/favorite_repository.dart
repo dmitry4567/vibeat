@@ -4,6 +4,7 @@ import 'package:vibeat/core/utils/typedef.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 
 abstract class FavoriteRepository {
+  ResultVoid syncRemoteLocalFavoriteBeats();
   ResultFuture<List<BeatModel>> getFavoriteBeats();
   ResultVoid addToFavorite({required String beatId});
   ResultVoid removeFromFavorite({required String beatId});

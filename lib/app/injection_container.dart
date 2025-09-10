@@ -115,6 +115,7 @@ Future<void> init() async {
       googleSignIn: sl(),
       secureStorage: sl(),
       apiClient: sl(),
+      favoriteRepository: sl(),
     ),
   );
 

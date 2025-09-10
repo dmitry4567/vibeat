@@ -1,7 +1,7 @@
-
 import 'package:hive/hive.dart';
 
 abstract class FavoriteLocalDataSource {
+  Future<void> initLocalData({required Set<String> beatIds});
   Future<void> addToFavorite({required String beatId});
   Future<void> removeFromFavorite({required String beatId});
   bool isFavorite(String beatId);
@@ -12,6 +12,11 @@ class FavoriteLocalDataSourceImpl implements FavoriteLocalDataSource {
   const FavoriteLocalDataSourceImpl({required this.box});
 
   final Box<Set<String>> box;
+
+  @override
+  Future<void> initLocalData({required Set<String> beatIds}) async {
+    await box.put('tracks', beatIds);
+  }
 
   @override
   Future<void> addToFavorite({required String beatId}) async {
@@ -35,8 +40,8 @@ class FavoriteLocalDataSourceImpl implements FavoriteLocalDataSource {
   }
 
   @override
-  void clearAllDB() {
-    box.clear();
+  Future<void> clearAllDB() async {
+    await box.clear();
   }
 }
 
