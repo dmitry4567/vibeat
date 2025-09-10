@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/core/errors/exceptions.dart';
+import 'package:vibeat/core/errors/failure.dart';
+import 'package:vibeat/core/network/network_info.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 
 abstract class FavoriteRemoteDataSource {
@@ -10,9 +12,11 @@ abstract class FavoriteRemoteDataSource {
 }
 
 class FavoriteRemoteDataSourceImpl implements FavoriteRemoteDataSource {
-  const FavoriteRemoteDataSourceImpl({required this.apiClient});
+  const FavoriteRemoteDataSourceImpl(
+      {required this.apiClient, required this.networkInfo});
 
   final ApiClient apiClient;
+  final NetworkInfo networkInfo;
 
   @override
   Future<void> addToFavorite({required String beatId}) async {
@@ -58,6 +62,11 @@ class FavoriteRemoteDataSourceImpl implements FavoriteRemoteDataSource {
 
   @override
   Future<List<BeatModel>> getFavoriteBeats() async {
+    final isConnected = await networkInfo.isConnected;
+    if (!isConnected) {
+      throw const NoInternetException();
+    }
+
     final response =
         await apiClient.get('activityBeat/viewMyLikes', options: Options());
 

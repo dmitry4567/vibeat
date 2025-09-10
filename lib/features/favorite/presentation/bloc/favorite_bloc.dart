@@ -28,7 +28,14 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
       final result = await _getFavoriteBeats();
 
       result.fold(
-        (failure) => emit(FavoriteBeatsError(failure.message)),
+        (failure) {
+          switch (failure.runtimeType) {
+            case NoInternetFailure:
+              emit(const FavoriteBeatsNoInternetError());
+            case ApiFailure:
+              emit(FavoriteBeatsError(failure.message));
+          }
+        },
         (result) => emit(FavoriteBeatsLoaded(result)),
       );
     });

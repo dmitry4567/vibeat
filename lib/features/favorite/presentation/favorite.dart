@@ -215,6 +215,30 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                 );
                               },
                             );
+                    } else if (state is FavoriteBeatsNoInternetError) {
+                      return const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.signal_wifi_connected_no_internet_4,
+                                size: 60,
+                              ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                              Text(
+                                "Нет подключения к интернету",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     }
                     return const SliverToBoxAdapter();
                   },

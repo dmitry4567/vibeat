@@ -17,3 +17,11 @@ class ApiFailure extends Failure {
   ApiFailure.fromException(APIException exception)
       : this(message: exception.message, statusCode: exception.statusCode);
 }
+
+class NoInternetFailure extends Failure {
+  const NoInternetFailure()
+      : super(
+          message: 'No internet connection',
+          statusCode: 503,
+        );
+}

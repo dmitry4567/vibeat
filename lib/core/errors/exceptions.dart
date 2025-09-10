@@ -16,3 +16,11 @@ class ServerException extends Equatable implements Failure {
 class APIException extends ServerException {
   const APIException({required super.message, required super.statusCode});
 }
+
+class NoInternetException extends ServerException {
+  const NoInternetException()
+      : super(
+          message: 'No internet connection',
+          statusCode: 503,
+        );
+}

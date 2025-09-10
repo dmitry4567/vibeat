@@ -32,3 +32,7 @@ class FavoriteBeatsError extends FavoriteState {
   @override
   List<Object?> get props => [message];
 }
+
+class FavoriteBeatsNoInternetError extends FavoriteState {
+  const FavoriteBeatsNoInternetError();
+}

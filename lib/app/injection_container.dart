@@ -148,7 +148,10 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton<FavoriteRemoteDataSource>(
-    () => FavoriteRemoteDataSourceImpl(apiClient: sl()),
+    () => FavoriteRemoteDataSourceImpl(
+      networkInfo: sl(),
+      apiClient: sl(),
+    ),
   );
 
   sl.registerLazySingleton<FavoriteLocalDataSource>(

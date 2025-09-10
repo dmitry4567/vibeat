@@ -43,6 +43,8 @@ class FavoriteRepositoryImpl implements FavoriteRepository {
       return Right(result);
     } on APIException catch (e) {
       return Left(ApiFailure.fromException(e));
+    } on NoInternetException catch (_) {
+      return const Left(NoInternetFailure());
     }
   }
 
