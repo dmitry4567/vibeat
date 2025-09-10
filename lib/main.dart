@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/app_router.dart';
 import 'package:vibeat/app/router.dart';
 import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';

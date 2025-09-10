@@ -37,7 +37,7 @@ class BeatModel extends Beat {
           genres: [],
           moods: [],
           tags: [],
-          key: KeyModel(
+          key: const KeyModel(
             name: "",
             key: "",
             isSelected: false,

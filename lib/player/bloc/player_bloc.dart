@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:math';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:math';
@@ -15,10 +14,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/core/api_client.dart';
-import 'package:vibeat/features/favorite/data/datasources/favorite_local_data_source.dart';
-import 'package:vibeat/features/favorite/data/datasources/favorite_remote_data_source.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
-import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/player/colors_utils.dart';
 import 'package:vibeat/player/model/model_track.dart';
 

@@ -1,10 +1,7 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
-import 'package:vibeat/filter/result.dart';
-import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -11,7 +11,6 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/features/favorite/data/datasources/favorite_local_data_source.dart';
-import 'package:vibeat/features/favorite/domain/repositories/favorite_repository.dart';
 import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/player/widgets/like_button.dart';

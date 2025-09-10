@@ -10,7 +10,6 @@ import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/app/injection_container.dart' as di;
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
-import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/info_beatmaker/beatmaker.dart';
 import 'package:vibeat/info_beatmaker/bloc/all_beats_of_beatmaker_bloc.dart';

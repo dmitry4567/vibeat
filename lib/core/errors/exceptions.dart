@@ -4,7 +4,9 @@ import 'package:vibeat/core/errors/failure.dart';
 class ServerException extends Equatable implements Failure {
   const ServerException({required this.message, required this.statusCode});
 
+  @override
   final String message;
+  @override
   final int statusCode;
 
   @override
