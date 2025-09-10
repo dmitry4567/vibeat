@@ -15,6 +15,9 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/core/api_client.dart';
+import 'package:vibeat/features/favorite/data/datasources/favorite_local_data_source.dart';
+import 'package:vibeat/features/favorite/data/datasources/favorite_remote_data_source.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/player/colors_utils.dart';
 import 'package:vibeat/player/model/model_track.dart';
@@ -363,6 +366,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
                   ))
               .toList();
 
+          emit(state.copyWith(
+            currentTrackIndex: event.index,
+            currentTrackBeatId: trackList[event.index].id,
+          ));
+
           playlist = ConcatenatingAudioSource(
             useLazyPreparation: true,
             children: audioSources,
@@ -385,12 +393,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           emit(state.copyWith(
             isInitialized: false,
             trackList: trackList,
-            currentTrackIndex: event.index,
             playerBottom: true,
             isPlaying: true,
             waveformData: waveformData,
             colorsOfBackground: bgColors,
-            currentTrackBeatId: trackList[event.index].id,
           ));
 
           await player.play();
@@ -401,9 +407,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           // СНАЧАЛА обновляем состояние с новым индексом
           emit(state.copyWith(
             currentTrackIndex: event.index,
+            currentTrackBeatId: state.trackList[event.index].id,
             playerBottom: true,
             isPlaying: true,
-            currentTrackBeatId: state.trackList[event.index].id,
           ));
 
           // Затем выполняем seek
@@ -436,8 +442,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
 
     on<PreviousTrackEvent>((event, emit) async {
       if (player.currentIndex! > 0) {
+        int newIndex = state.currentTrackIndex - 1;
+
+        var file = await DefaultCacheManager()
+            .getSingleFile(state.trackList[newIndex].photoUrl);
+        final colors =
+            await ProfessionalColorUtils.extractPaletteColorCached(file);
+
         emit(state.copyWith(
           currentTrackIndex: player.currentIndex! - 1,
+          currentTrackBeatId: state.trackList[player.currentIndex! - 1].id,
         ));
 
         await player.seekToPrevious();
@@ -453,8 +467,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
             _generateWaveformForTrack(state.trackList[player.currentIndex!]);
 
         emit(state.copyWith(
+          colorsOfBackground: colors,
           waveformData: waveformData,
-          currentTrackBeatId: state.trackList[player.currentIndex!].id,
+          loopCurrentFragment: false,
         ));
       }
     });
@@ -463,12 +478,15 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
       if (state.currentTrackIndex < state.trackList.length - 1) {
         int newIndex = state.currentTrackIndex + 1;
 
-        var file = await DefaultCacheManager().getSingleFile(state.trackList[newIndex].photoUrl);
-        final colors = await ProfessionalColorUtils.extractPaletteColorCached(file);
+        var file = await DefaultCacheManager()
+            .getSingleFile(state.trackList[newIndex].photoUrl);
+        final colors =
+            await ProfessionalColorUtils.extractPaletteColorCached(file);
         // int newIndex = player.currentIndex! + 1;
 
         emit(state.copyWith(
           currentTrackIndex: newIndex,
+          currentTrackBeatId: state.trackList[newIndex].id,
         ));
 
         await player.seekToNext();
@@ -483,12 +501,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
         final waveformData =
             _generateWaveformForTrack(state.trackList[player.currentIndex!]);
 
-        // final bgColors = await _getColorsBackground(state.trackList[newIndex]);
-
         emit(state.copyWith(
           colorsOfBackground: colors,
           waveformData: waveformData,
-          currentTrackBeatId: state.trackList[player.currentIndex!].id,
           loopCurrentFragment: false,
         ));
 
@@ -579,6 +594,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
     on<UpdateCurrentTrackIndexEvent>((event, emit) async {
       emit(state.copyWith(
         currentTrackIndex: event.index,
+        currentTrackBeatId: state.trackList[event.index].id,
       ));
 
       await player.seek(null, index: event.index);
@@ -595,7 +611,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
 
       emit(state.copyWith(
         waveformData: waveformData,
-        currentTrackBeatId: state.trackList[player.currentIndex!].id,
         loopCurrentFragment: false,
       ));
 
@@ -808,7 +823,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
   }
 
   Future<Color> _getColorsBackground(Track track) async {
-    final color = ProfessionalColorUtils.extractPaletteColorNetwork(track.photoUrl);
+    final color =
+        ProfessionalColorUtils.extractPaletteColorNetwork(track.photoUrl);
 
     return color;
   }

@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
-import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
@@ -23,9 +23,9 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   List<GenreModel> genresData = [];
-  List<BeatEntity> placeholderBeat = List.generate(
+  List<BeatModel> placeholderBeat = List.generate(
     5,
-    (index) => const BeatEntity(
+    (index) => const BeatModel(
       id: "",
       name: "",
       description: "",
@@ -58,7 +58,7 @@ class _SearchScreenState extends State<SearchScreen> {
         isSelected: false),
   );
 
-  List<BeatEntity> beatData = [];
+  List<BeatModel> beatData = [];
 
   final TextEditingController textController1 = TextEditingController();
 
@@ -95,8 +95,7 @@ class _SearchScreenState extends State<SearchScreen> {
       List<dynamic> data = json.decode(response.body)['data'];
 
       setState(() {
-        beatData =
-            data.map((json) => BeatEntity.fromJson(json)).toList();
+        beatData = data.map((json) => BeatModel.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -306,7 +305,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 openInfoBeat: () {},
                                 isLoading: true,
                                 index: index,
-                                beat: const BeatEntity(
+                                beat: const BeatModel(
                                   id: "",
                                   name: "sefsesfseff",
                                   description: "sefsef",
@@ -575,7 +574,7 @@ class GenreWidget extends StatelessWidget {
 }
 
 class NewBeatWidget extends StatelessWidget {
-  final BeatEntity beat;
+  final BeatModel beat;
   final int index;
   final double width;
   final double marginRight;
@@ -585,6 +584,18 @@ class NewBeatWidget extends StatelessWidget {
   final VoidCallback openInfoBeat;
 
   const NewBeatWidget({
+    super.key,
+    required this.beat,
+    required this.index,
+    required this.width,
+    required this.marginRight,
+    required this.gridItemWidth,
+    required this.isLoading,
+    required this.openPlayer,
+    required this.openInfoBeat,
+  });
+
+  const NewBeatWidget.v2({
     super.key,
     required this.beat,
     required this.index,

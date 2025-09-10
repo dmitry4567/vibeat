@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
@@ -43,7 +44,7 @@ class ResultScreen extends StatefulWidget {
 class _ResultScreenState extends State<ResultScreen> {
   final List<FeatureModel> data = [];
 
-  List<BeatEntity> beatData = [];
+  List<BeatModel> beatData = [];
 
   @override
   void initState() {
@@ -125,7 +126,7 @@ class _ResultScreenState extends State<ResultScreen> {
       List<dynamic> data = json.decode(response.body)['data'];
 
       setState(() {
-        beatData = data.map((json) => BeatEntity.fromJson(json)).toList();
+        beatData = data.map((json) => BeatModel.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -331,7 +332,7 @@ class FeatureModel {
 
 // class BeatWidget extends StatelessWidget {
 //   final double gridItemWidth;
-//   final BeatEntity beat;
+//   final BeatModel beat;
 
 //   const BeatWidget({
 //     super.key,
@@ -458,111 +459,111 @@ class FeatureModel {
 //   }
 // }
 
-class BeatEntity {
-  final String id;
-  final String name;
-  final String description;
-  final String picture;
-  final String beatmakerId;
-  final String beatmakerName;
-  final String url;
-  final int price;
-  final int plays;
-  final List<GenreModel> genres;
-  final List<MoodModel> moods;
-  final List<TagModel> tags;
-  final KeyModel key;
-  final int bpm;
-  final int createAt;
+// class BeatModel {
+//   final String id;
+//   final String name;
+//   final String description;
+//   final String picture;
+//   final String beatmakerId;
+//   final String beatmakerName;
+//   final String url;
+//   final int price;
+//   final int plays;
+//   final List<GenreModel> genres;
+//   final List<MoodModel> moods;
+//   final List<TagModel> tags;
+//   final KeyModel key;
+//   final int bpm;
+//   final int createAt;
 
-  const BeatEntity({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.picture,
-    required this.beatmakerId,
-    required this.beatmakerName,
-    required this.url,
-    required this.price,
-    required this.plays,
-    required this.genres,
-    required this.moods,
-    required this.tags,
-    required this.key,
-    required this.bpm,
-    required this.createAt,
-  });
+//   const BeatModel({
+//     required this.id,
+//     required this.name,
+//     required this.description,
+//     required this.picture,
+//     required this.beatmakerId,
+//     required this.beatmakerName,
+//     required this.url,
+//     required this.price,
+//     required this.plays,
+//     required this.genres,
+//     required this.moods,
+//     required this.tags,
+//     required this.key,
+//     required this.bpm,
+//     required this.createAt,
+//   });
 
-  BeatEntity copyWith({
-    String? id,
-    String? name,
-    String? description,
-    String? picture,
-    String? beatmakerId,
-    String? beatmakerName,
-    String? url,
-    int? price,
-    int? plays,
-    List<GenreModel>? genres,
-    List<MoodModel>? moods,
-    List<TagModel>? tags,
-    KeyModel? key,
-    int? bpm,
-    int? createAt,
-  }) {
-    return BeatEntity(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      picture: picture ?? this.picture,
-      beatmakerId: beatmakerId ?? this.beatmakerId,
-      beatmakerName: beatmakerName ?? this.beatmakerName,
-      url: url ?? this.url,
-      price: price ?? this.price,
-      plays: plays ?? this.plays,
-      genres: genres ?? this.genres,
-      moods: moods ?? this.moods,
-      tags: tags ?? this.tags,
-      key: key ?? this.key,
-      bpm: bpm ?? this.bpm,
-      createAt: createAt ?? this.createAt,
-    );
-  }
+//   BeatModel copyWith({
+//     String? id,
+//     String? name,
+//     String? description,
+//     String? picture,
+//     String? beatmakerId,
+//     String? beatmakerName,
+//     String? url,
+//     int? price,
+//     int? plays,
+//     List<GenreModel>? genres,
+//     List<MoodModel>? moods,
+//     List<TagModel>? tags,
+//     KeyModel? key,
+//     int? bpm,
+//     int? createAt,
+//   }) {
+//     return BeatModel(
+//       id: id ?? this.id,
+//       name: name ?? this.name,
+//       description: description ?? this.description,
+//       picture: picture ?? this.picture,
+//       beatmakerId: beatmakerId ?? this.beatmakerId,
+//       beatmakerName: beatmakerName ?? this.beatmakerName,
+//       url: url ?? this.url,
+//       price: price ?? this.price,
+//       plays: plays ?? this.plays,
+//       genres: genres ?? this.genres,
+//       moods: moods ?? this.moods,
+//       tags: tags ?? this.tags,
+//       key: key ?? this.key,
+//       bpm: bpm ?? this.bpm,
+//       createAt: createAt ?? this.createAt,
+//     );
+//   }
 
-  factory BeatEntity.fromJson(Map<String, dynamic> json) {
-    return BeatEntity(
-      id: json['id'].toString(),
-      name: json['name'].toString(),
-      description:
-          json['description'] != null ? json['description'].toString() : '',
-      picture: 'http://${json['picture'].toString()}',
-      // "http://storage.yandexcloud.net/imagesall/${json['picture'].toString()}",
-      // picture: "http://i.ytimg.com/vi_webp/kGcnGpRterE/maxresdefault.webp",
-      beatmakerId: json['beatmakerId'].toString(),
-      beatmakerName: json['beatmakerName'].toString(),
-      url: json['url'].toString(),
-      price: int.parse(json['price'].toString()),
-      plays: int.parse(json['plays'].toString()),
-      genres: json['genres'] != null
-          ? (json['genres'] as List<dynamic>)
-              .map((genre) => GenreModel.fromJson(genre))
-              .toList()
-          : [],
-      moods: json['moods'] != null
-          ? (json['moods'] as List<dynamic>)
-              .map((mood) => MoodModel.fromJson(mood))
-              .toList()
-          : [],
-      tags: json['tags'] != null
-          ? (json['tags'] as List<dynamic>)
-              .map((tag) => TagModel.fromJson(tag))
-              .toList()
-          : [],
-      key: json['key'] != null
-          ? KeyModel.fromJson(json['key'])
-          : const KeyModel(key: '', name: '', isSelected: false),
-      bpm: int.parse(json['bpm'].toString()),
-      createAt: int.parse(json['created_at'].toString()),
-    );
-  }
-}
+//   factory BeatModel.fromJson(Map<String, dynamic> json) {
+//     return BeatModel(
+//       id: json['id'].toString(),
+//       name: json['name'].toString(),
+//       description:
+//           json['description'] != null ? json['description'].toString() : '',
+//       picture: 'http://${json['picture'].toString()}',
+//       // "http://storage.yandexcloud.net/imagesall/${json['picture'].toString()}",
+//       // picture: "http://i.ytimg.com/vi_webp/kGcnGpRterE/maxresdefault.webp",
+//       beatmakerId: json['beatmakerId'].toString(),
+//       beatmakerName: json['beatmakerName'].toString(),
+//       url: json['url'].toString(),
+//       price: int.parse(json['price'].toString()),
+//       plays: int.parse(json['plays'].toString()),
+//       genres: json['genres'] != null
+//           ? (json['genres'] as List<dynamic>)
+//               .map((genre) => GenreModel.fromJson(genre))
+//               .toList()
+//           : [],
+//       moods: json['moods'] != null
+//           ? (json['moods'] as List<dynamic>)
+//               .map((mood) => MoodModel.fromJson(mood))
+//               .toList()
+//           : [],
+//       tags: json['tags'] != null
+//           ? (json['tags'] as List<dynamic>)
+//               .map((tag) => TagModel.fromJson(tag))
+//               .toList()
+//           : [],
+//       key: json['key'] != null
+//           ? KeyModel.fromJson(json['key'])
+//           : const KeyModel(key: '', name: '', isSelected: false),
+//       bpm: int.parse(json['bpm'].toString()),
+//       createAt: int.parse(json['created_at'].toString()),
+//     );
+//   }
+// }

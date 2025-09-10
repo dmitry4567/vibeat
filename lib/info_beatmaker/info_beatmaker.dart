@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/app/injection_container.dart' as di;
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/info_beatmaker/beatmaker.dart';
@@ -40,9 +41,9 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
     ),
   );
 
-  List<BeatEntity> placeholderBeat = List.generate(
+  List<BeatModel> placeholderBeat = List.generate(
     5,
-    (index) => const BeatEntity(
+    (index) => const BeatModel(
       id: "",
       name: "jbksbfkdrbgjkdr",
       description: "",
@@ -324,6 +325,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                             index: index,
                             isCurrentPlaying: false,
                             beat: placeholderBeat[index],
+                            buttonMore: false,
                           ),
                         );
                       },
@@ -356,6 +358,8 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                     isCurrentPlaying: state.beats[index].id ==
                                         statePlayer.currentTrackBeatId,
                                     beat: state.beats[index],
+                                    buttonMore: true,
+                                    funcMore: () {},
                                   )),
                             );
                           },
@@ -636,16 +640,20 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
 }
 
 class BeatRowWidget extends StatelessWidget {
-  const BeatRowWidget({
+  BeatRowWidget({
     super.key,
     required this.index,
     required this.isCurrentPlaying,
     required this.beat,
+    required this.buttonMore,
+    this.funcMore,
   });
 
   final int index;
   final bool isCurrentPlaying;
-  final BeatEntity beat;
+  final BeatModel beat;
+  bool buttonMore = false;
+  VoidCallback? funcMore;
 
   @override
   Widget build(BuildContext context) {
@@ -696,26 +704,34 @@ class BeatRowWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(
-                "${beat.price} RUB",
-                style: AppTextStyles.bodyPrice2.copyWith(height: 1),
-              ),
-              const SizedBox(height: 6),
-              SizedBox(
-                width: 280,
-                child: Text(
-                  beat.name,
-                  style: AppTextStyles.headline1,
-                  overflow: TextOverflow.ellipsis,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text(
+                  "${beat.price} RUB",
+                  style: AppTextStyles.bodyPrice2.copyWith(height: 1),
                 ),
-              ),
-              const SizedBox(height: 6),
-            ],
-          )
+                const SizedBox(height: 6),
+                SizedBox(
+                  width: 280,
+                  child: Text(
+                    beat.name,
+                    style: AppTextStyles.headline1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 6),
+              ],
+            ),
+          ),
+          buttonMore
+              ? IconButton(
+                  onPressed: funcMore,
+                  icon: const Icon(Icons.more_vert),
+                )
+              : const SizedBox(),
         ],
       ),
     );

@@ -13,7 +13,8 @@ import 'package:auto_route/auto_route.dart' as _i23;
 import 'package:flutter/material.dart' as _i24;
 import 'package:vibeat/app/bottom_nav_bar.dart' as _i3;
 import 'package:vibeat/cart.dart' as _i2;
-import 'package:vibeat/favorite/favorite.dart' as _i5;
+import 'package:vibeat/features/favorite/data/models/beat_model.dart' as _i19;
+import 'package:vibeat/features/favorite/presentation/favorite.dart' as _i5;
 import 'package:vibeat/features/anketa/presentation/pages/anketa.dart' as _i1;
 import 'package:vibeat/features/signIn/presentation/pages/debug_screen.dart'
     as _i4;
@@ -44,7 +45,7 @@ import 'package:vibeat/search.dart' as _i20;
 /// [_i1.AnketaScreen]
 class AnketaRoute extends _i23.PageRouteInfo<void> {
   const AnketaRoute({List<_i23.PageRouteInfo>? children})
-    : super(AnketaRoute.name, initialChildren: children);
+      : super(AnketaRoute.name, initialChildren: children);
 
   static const String name = 'AnketaRoute';
 
@@ -60,7 +61,7 @@ class AnketaRoute extends _i23.PageRouteInfo<void> {
 /// [_i2.CartScreen]
 class CartRoute extends _i23.PageRouteInfo<void> {
   const CartRoute({List<_i23.PageRouteInfo>? children})
-    : super(CartRoute.name, initialChildren: children);
+      : super(CartRoute.name, initialChildren: children);
 
   static const String name = 'CartRoute';
 
@@ -76,7 +77,7 @@ class CartRoute extends _i23.PageRouteInfo<void> {
 /// [_i3.DashboardPage]
 class DashboardRoute extends _i23.PageRouteInfo<void> {
   const DashboardRoute({List<_i23.PageRouteInfo>? children})
-    : super(DashboardRoute.name, initialChildren: children);
+      : super(DashboardRoute.name, initialChildren: children);
 
   static const String name = 'DashboardRoute';
 
@@ -92,7 +93,7 @@ class DashboardRoute extends _i23.PageRouteInfo<void> {
 /// [_i4.DebugScreen]
 class DebugRoute extends _i23.PageRouteInfo<void> {
   const DebugRoute({List<_i23.PageRouteInfo>? children})
-    : super(DebugRoute.name, initialChildren: children);
+      : super(DebugRoute.name, initialChildren: children);
 
   static const String name = 'DebugRoute';
 
@@ -108,7 +109,7 @@ class DebugRoute extends _i23.PageRouteInfo<void> {
 /// [_i5.FavoriteScreen]
 class FavoriteRoute extends _i23.PageRouteInfo<void> {
   const FavoriteRoute({List<_i23.PageRouteInfo>? children})
-    : super(FavoriteRoute.name, initialChildren: children);
+      : super(FavoriteRoute.name, initialChildren: children);
 
   static const String name = 'FavoriteRoute';
 
@@ -124,7 +125,7 @@ class FavoriteRoute extends _i23.PageRouteInfo<void> {
 /// [_i6.FilterBpmScreen]
 class FilterBpmRoute extends _i23.PageRouteInfo<void> {
   const FilterBpmRoute({List<_i23.PageRouteInfo>? children})
-    : super(FilterBpmRoute.name, initialChildren: children);
+      : super(FilterBpmRoute.name, initialChildren: children);
 
   static const String name = 'FilterBpmRoute';
 
@@ -140,7 +141,7 @@ class FilterBpmRoute extends _i23.PageRouteInfo<void> {
 /// [_i7.FilterGenreScreen]
 class FilterGenreRoute extends _i23.PageRouteInfo<void> {
   const FilterGenreRoute({List<_i23.PageRouteInfo>? children})
-    : super(FilterGenreRoute.name, initialChildren: children);
+      : super(FilterGenreRoute.name, initialChildren: children);
 
   static const String name = 'FilterGenreRoute';
 
@@ -156,7 +157,7 @@ class FilterGenreRoute extends _i23.PageRouteInfo<void> {
 /// [_i8.FilterKeyScreen]
 class FilterKeyRoute extends _i23.PageRouteInfo<void> {
   const FilterKeyRoute({List<_i23.PageRouteInfo>? children})
-    : super(FilterKeyRoute.name, initialChildren: children);
+      : super(FilterKeyRoute.name, initialChildren: children);
 
   static const String name = 'FilterKeyRoute';
 
@@ -172,7 +173,7 @@ class FilterKeyRoute extends _i23.PageRouteInfo<void> {
 /// [_i9.FilterMoodScreen]
 class FilterMoodRoute extends _i23.PageRouteInfo<void> {
   const FilterMoodRoute({List<_i23.PageRouteInfo>? children})
-    : super(FilterMoodRoute.name, initialChildren: children);
+      : super(FilterMoodRoute.name, initialChildren: children);
 
   static const String name = 'FilterMoodRoute';
 
@@ -188,7 +189,7 @@ class FilterMoodRoute extends _i23.PageRouteInfo<void> {
 /// [_i10.FilterScreen]
 class FilterRoute extends _i23.PageRouteInfo<void> {
   const FilterRoute({List<_i23.PageRouteInfo>? children})
-    : super(FilterRoute.name, initialChildren: children);
+      : super(FilterRoute.name, initialChildren: children);
 
   static const String name = 'FilterRoute';
 
@@ -204,7 +205,7 @@ class FilterRoute extends _i23.PageRouteInfo<void> {
 /// [_i11.FilterTagScreen]
 class FilterTagRoute extends _i23.PageRouteInfo<void> {
   const FilterTagRoute({List<_i23.PageRouteInfo>? children})
-    : super(FilterTagRoute.name, initialChildren: children);
+      : super(FilterTagRoute.name, initialChildren: children);
 
   static const String name = 'FilterTagRoute';
 
@@ -220,7 +221,7 @@ class FilterTagRoute extends _i23.PageRouteInfo<void> {
 /// [_i12.HeadScreen]
 class HeadRoute extends _i23.PageRouteInfo<void> {
   const HeadRoute({List<_i23.PageRouteInfo>? children})
-    : super(HeadRoute.name, initialChildren: children);
+      : super(HeadRoute.name, initialChildren: children);
 
   static const String name = 'HeadRoute';
 
@@ -240,10 +241,10 @@ class InfoBeat extends _i23.PageRouteInfo<InfoBeatArgs> {
     required String beatId,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         InfoBeat.name,
-         args: InfoBeatArgs(key: key, beatId: beatId),
-         initialChildren: children,
-       );
+          InfoBeat.name,
+          args: InfoBeatArgs(key: key, beatId: beatId),
+          initialChildren: children,
+        );
 
   static const String name = 'InfoBeat';
 
@@ -277,10 +278,10 @@ class InfoBeatmaker extends _i23.PageRouteInfo<InfoBeatmakerArgs> {
     required String beatmakerId,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         InfoBeatmaker.name,
-         args: InfoBeatmakerArgs(key: key, beatmakerId: beatmakerId),
-         initialChildren: children,
-       );
+          InfoBeatmaker.name,
+          args: InfoBeatmakerArgs(key: key, beatmakerId: beatmakerId),
+          initialChildren: children,
+        );
 
   static const String name = 'InfoBeatmaker';
 
@@ -310,7 +311,7 @@ class InfoBeatmakerArgs {
 /// [_i15.PlayerScreen]
 class PlayerRoute extends _i23.PageRouteInfo<void> {
   const PlayerRoute({List<_i23.PageRouteInfo>? children})
-    : super(PlayerRoute.name, initialChildren: children);
+      : super(PlayerRoute.name, initialChildren: children);
 
   static const String name = 'PlayerRoute';
 
@@ -330,10 +331,10 @@ class PlaylistMoodRoute extends _i23.PageRouteInfo<PlaylistMoodRouteArgs> {
     required _i25.MoodModel mood,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         PlaylistMoodRoute.name,
-         args: PlaylistMoodRouteArgs(key: key, mood: mood),
-         initialChildren: children,
-       );
+          PlaylistMoodRoute.name,
+          args: PlaylistMoodRouteArgs(key: key, mood: mood),
+          initialChildren: children,
+        );
 
   static const String name = 'PlaylistMoodRoute';
 
@@ -365,13 +366,13 @@ class PlaylistRoute extends _i23.PageRouteInfo<PlaylistRouteArgs> {
   PlaylistRoute({
     _i24.Key? key,
     required String title,
-    required List<_i19.BeatEntity> beats,
+    required List<_i19.BeatModel> beats,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         PlaylistRoute.name,
-         args: PlaylistRouteArgs(key: key, title: title, beats: beats),
-         initialChildren: children,
-       );
+          PlaylistRoute.name,
+          args: PlaylistRouteArgs(key: key, title: title, beats: beats),
+          initialChildren: children,
+        );
 
   static const String name = 'PlaylistRoute';
 
@@ -395,7 +396,7 @@ class PlaylistRouteArgs {
 
   final String title;
 
-  final List<_i19.BeatEntity> beats;
+  final List<_i19.BeatModel> beats;
 
   @override
   String toString() {
@@ -407,7 +408,7 @@ class PlaylistRouteArgs {
 /// [_i18.ProfileScreen]
 class ProfileRoute extends _i23.PageRouteInfo<void> {
   const ProfileRoute({List<_i23.PageRouteInfo>? children})
-    : super(ProfileRoute.name, initialChildren: children);
+      : super(ProfileRoute.name, initialChildren: children);
 
   static const String name = 'ProfileRoute';
 
@@ -433,19 +434,19 @@ class ResultRoute extends _i23.PageRouteInfo<ResultRouteArgs> {
     String? query,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         ResultRoute.name,
-         args: ResultRouteArgs(
-           key: key,
-           genres: genres,
-           tags: tags,
-           keys: keys,
-           moods: moods,
-           bpmFrom: bpmFrom,
-           bpmTo: bpmTo,
-           query: query,
-         ),
-         initialChildren: children,
-       );
+          ResultRoute.name,
+          args: ResultRouteArgs(
+            key: key,
+            genres: genres,
+            tags: tags,
+            keys: keys,
+            moods: moods,
+            bpmFrom: bpmFrom,
+            bpmTo: bpmTo,
+            query: query,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'ResultRoute';
 
@@ -507,7 +508,7 @@ class ResultRouteArgs {
 /// [_i20.SearchScreen]
 class SearchRoute extends _i23.PageRouteInfo<void> {
   const SearchRoute({List<_i23.PageRouteInfo>? children})
-    : super(SearchRoute.name, initialChildren: children);
+      : super(SearchRoute.name, initialChildren: children);
 
   static const String name = 'SearchRoute';
 
@@ -523,7 +524,7 @@ class SearchRoute extends _i23.PageRouteInfo<void> {
 /// [_i21.SignInScreen]
 class SignInRoute extends _i23.PageRouteInfo<void> {
   const SignInRoute({List<_i23.PageRouteInfo>? children})
-    : super(SignInRoute.name, initialChildren: children);
+      : super(SignInRoute.name, initialChildren: children);
 
   static const String name = 'SignInRoute';
 
@@ -539,7 +540,7 @@ class SignInRoute extends _i23.PageRouteInfo<void> {
 /// [_i22.SignUpScreen]
 class SignUpRoute extends _i23.PageRouteInfo<void> {
   const SignUpRoute({List<_i23.PageRouteInfo>? children})
-    : super(SignUpRoute.name, initialChildren: children);
+      : super(SignUpRoute.name, initialChildren: children);
 
   static const String name = 'SignUpRoute';
 

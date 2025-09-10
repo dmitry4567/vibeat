@@ -10,7 +10,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/features/favorite/data/datasources/favorite_local_data_source.dart';
+import 'package:vibeat/features/favorite/domain/repositories/favorite_repository.dart';
+import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/player/widgets/like_button.dart';
 import 'package:vibeat/player/widgets/player_control_widget.dart';
 
 import '../utils/theme.dart';
@@ -734,18 +738,28 @@ class _PlayerScreenState extends State<PlayerScreen>
                           child: Row(
                             children: [
                               IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  sl<FavoriteLocalDataSource>().clearAllDB();
+                                },
                                 icon: const Icon(
                                   Icons.shopping_cart,
                                 ),
                                 color: AppColors.iconPrimary,
                               ),
-                              IconButton(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.favorite_border,
-                                ),
-                                color: AppColors.iconPrimary,
+                              BlocBuilder<PlayerBloc, PlayerStateApp>(
+                                buildWhen: (previous, current) =>
+                                    previous.currentTrackIndex !=
+                                    current.currentTrackIndex,
+                                builder: (context, state) {
+                                  return LikeButton(
+                                    isLiked: context
+                                        .read<FavoriteBloc>()
+                                        .isFavoriteBeat(
+                                            state.currentTrackBeatId)
+                                        .getOrElse(() => false),
+                                    beatId: state.currentTrackBeatId,
+                                  );
+                                },
                               ),
                               IconButton(
                                 onPressed: () {},

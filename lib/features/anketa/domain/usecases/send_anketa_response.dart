@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:vibeat/core/error/failures.dart';
+import 'package:vibeat/core/errors/failure.dart';
 import 'package:vibeat/features/anketa/domain/repositories/anketa_repositories.dart';
 
 class SendAnketaResponse {

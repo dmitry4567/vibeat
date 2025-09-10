@@ -4,6 +4,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vibeat/app/app_router.dart';
 import 'package:vibeat/app/router.dart';
+import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
 import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/filter/bloc/filter_bloc.dart';
@@ -20,9 +21,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:vibeat/app/injection_container.dart' as di;
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   await di.init();
 
   await Firebase.initializeApp(
@@ -48,6 +49,9 @@ Future<void> main() async {
           ),
           BlocProvider(
             create: (context) => di.sl<AllBeatsOfBeatmakerBloc>(),
+          ),
+          BlocProvider(
+            create: (context) => di.sl<FavoriteBloc>(),
           ),
           BlocProvider(create: (_) => FilterBloc()),
           BlocProvider(create: (_) => GenreCubit()),

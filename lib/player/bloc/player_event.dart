@@ -79,7 +79,7 @@ class UpdatePlayerBottomEvent extends PlayerEvent {
 ///
 
 class PlayCurrentBeatEvent extends PlayerEvent {
-  final List<BeatEntity> beats;
+  final List<BeatModel> beats;
   final int index;
 
   PlayCurrentBeatEvent(this.beats, this.index);

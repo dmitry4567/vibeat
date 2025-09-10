@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
-import 'package:vibeat/core/api_client.dart';
-import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
+import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
@@ -28,7 +29,7 @@ class InfoBeat extends StatefulWidget {
 }
 
 class _InfoBeatState extends State<InfoBeat> {
-  BeatEntity beat = const BeatEntity(
+  BeatModel beat = const BeatModel(
     id: "",
     name: "",
     description: "",
@@ -51,7 +52,7 @@ class _InfoBeatState extends State<InfoBeat> {
   );
 
   int countLikes = 0;
-  bool isLike = false;
+  bool isLiked = false;
 
   final List<String> tags = [
     '#hardstyle',
@@ -75,44 +76,49 @@ class _InfoBeatState extends State<InfoBeat> {
 
     getLikesCountByBeat();
     getBeatInfo();
+
+    isLiked = context
+        .read<FavoriteBloc>()
+        .isFavoriteBeat(widget.beatId)
+        .getOrElse(() => false);
   }
 
-  Future<void> postNewLike() async {
-    final apiClient = sl<ApiClient>().dio;
+  // Future<void> postNewLike() async {
+  //   final apiClient = sl<ApiClient>().dio;
 
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    final ip = sharedPreferences.getString("ip");
+  //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  //   final ip = sharedPreferences.getString("ip");
 
-    final responseLike = await apiClient.post(
-      "http://$ip:8080/activityBeat/postNewLike",
-      data: {
-        'beatId': widget.beatId,
-      },
-    );
+  //   final responseLike = await apiClient.post(
+  //     "http://$ip:8080/activityBeat/postNewLike",
+  //     data: {
+  //       'beatId': widget.beatId,
+  //     },
+  //   );
 
-    if (responseLike.statusCode == 205) {
-      final responseDelete = await apiClient
-          .delete("http://$ip:8080/activityBeat/${widget.beatId}");
+  //   if (responseLike.statusCode == 205) {
+  //     final responseDelete = await apiClient
+  //         .delete("http://$ip:8080/activityBeat/${widget.beatId}");
 
-      if (responseDelete.statusCode == 200) {
-        setState(() {
-          // countLikes -= 1;
-          isLike = false;
-        });
-      }
-      return;
-    }
+  //     if (responseDelete.statusCode == 200) {
+  //       setState(() {
+  //         // countLikes -= 1;
+  //         isLike = false;
+  //       });
+  //     }
+  //     return;
+  //   }
 
-    if (responseLike.statusCode == 201) {
-      setState(() {
-        isLike = true;
-      });
-      // setState(() {
-      //   isLike = !isLike;
-      //   countLikes += isLike ? 1 : -1;
-      // });
-    } else {}
-  }
+  //   if (responseLike.statusCode == 201) {
+  //     setState(() {
+  //       isLike = true;
+  //     });
+  //     // setState(() {
+  //     //   isLike = !isLike;
+  //     //   countLikes += isLike ? 1 : -1;
+  //     // });
+  //   } else {}
+  // }
 
   void getLikesCountByBeat() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -150,7 +156,7 @@ class _InfoBeatState extends State<InfoBeat> {
       if (!mounted) return;
 
       setState(() {
-        beat = BeatEntity.fromJson(data);
+        beat = BeatModel.fromJson(data);
       });
     }
   }
@@ -246,13 +252,28 @@ class _InfoBeatState extends State<InfoBeat> {
                                   alignment: AlignmentDirectional.topCenter,
                                   child: MaterialButton(
                                     onPressed: () async {
-                                      await postNewLike();
+                                      if (isLiked) {
+                                        sl<FavoriteBloc>().add(
+                                            DeleteFavoriteEvent(
+                                                beatId: widget.beatId));
+
+                                        isLiked = false;
+                                        countLikes -= 1;
+                                        setState(() {});
+                                      } else {
+                                        sl<FavoriteBloc>().add(AddFavoriteEvent(
+                                            beatId: widget.beatId));
+
+                                        isLiked = true;
+                                        countLikes += 1;
+                                        setState(() {});
+                                      }
                                     },
                                     color: Colors.white.withOpacity(0.1),
                                     textColor: Colors.white,
                                     shape: const CircleBorder(),
                                     child: Icon(
-                                      isLike
+                                      isLiked
                                           ? Icons.favorite
                                           : Icons.favorite_outline,
                                       size: 18,

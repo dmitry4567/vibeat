@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:http/http.dart' as http;
@@ -31,8 +32,8 @@ class AllBeatsOfBeatmakerBloc
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['data'];
 
-      final List<BeatEntity> listBeats =
-          data.map((beat) => BeatEntity.fromJson(beat)).toList();
+      final List<BeatModel> listBeats =
+          data.map((beat) => BeatModel.fromJson(beat)).toList();
 
       emit(
         state.copyWith(

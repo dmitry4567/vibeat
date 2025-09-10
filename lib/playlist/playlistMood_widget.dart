@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/result.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
@@ -24,10 +25,10 @@ class PlaylistMoodScreen extends StatefulWidget {
 }
 
 class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
-  List<BeatEntity> beatData = [];
-  List<BeatEntity> placeholderBeat = List.generate(
+  List<BeatModel> beatData = [];
+  List<BeatModel> placeholderBeat = List.generate(
     5,
-    (index) => const BeatEntity(
+    (index) => const BeatModel(
       id: "",
       name: "",
       description: "",
@@ -71,7 +72,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
 
       setState(() {
         beatData =
-            data.map((json) => BeatEntity.fromJson(json)).toList();
+            data.map((json) => BeatModel.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {

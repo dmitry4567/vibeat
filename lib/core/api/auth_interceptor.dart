@@ -43,7 +43,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
   ) async {
     final statusCode = err.response?.statusCode;
 
-    if (statusCode != 401) {
+    if (statusCode != 401 || statusCode == null) {
       return handler.resolve(err.response!);
     }
 

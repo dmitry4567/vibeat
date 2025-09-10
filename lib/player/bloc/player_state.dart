@@ -7,6 +7,7 @@ class PlayerStateApp extends Equatable {
   final bool isPause;
   final bool isRepeat;
   final bool isEnd;
+  final bool isLiked;
   final bool loopCurrentFragment;
   final int currentTrackIndex;
   final String currentTrackBeatId;
@@ -34,6 +35,7 @@ class PlayerStateApp extends Equatable {
     required this.isPause,
     required this.isRepeat,
     required this.isEnd,
+    this.isLiked = false,
     required this.loopCurrentFragment,
     required this.currentTrackIndex,
     required this.currentTrackBeatId,
@@ -57,6 +59,7 @@ class PlayerStateApp extends Equatable {
       isPause: false,
       isRepeat: false,
       isEnd: false,
+      isLiked: false,
       loopCurrentFragment: false,
       currentTrackIndex: 0,
       currentTrackBeatId: "",
@@ -79,6 +82,7 @@ class PlayerStateApp extends Equatable {
     bool? isPause,
     bool? isRepeat,
     bool? isEnd,
+    bool? isLiked,
     bool? loopCurrentFragment,
     int? currentTrackIndex,
     String? currentTrackBeatId,
@@ -100,6 +104,7 @@ class PlayerStateApp extends Equatable {
       isPause: isPause ?? this.isPause,
       isRepeat: isRepeat ?? this.isRepeat,
       isEnd: isEnd ?? this.isEnd,
+      isLiked: isLiked ?? this.isLiked,
       loopCurrentFragment: loopCurrentFragment ?? this.loopCurrentFragment,
       currentTrackIndex: currentTrackIndex ?? this.currentTrackIndex,
       currentTrackBeatId: currentTrackBeatId ?? this.currentTrackBeatId,
@@ -124,6 +129,7 @@ class PlayerStateApp extends Equatable {
         isRepeat,
         isPause,
         isEnd,
+        isLiked,
         loopCurrentFragment,
         currentTrackIndex,
         currentTrackBeatId,
