@@ -18,7 +18,7 @@ class PlayerStateApp extends Equatable {
   final List<int> fragmentsMusic;
   final List<String> fragmentsNames;
   final int indexFragment;
-  final List<Track> trackList;
+  final List<TrackAudioSource> trackList;
   final List<double> waveformData;
   final double? dragProgress;
 
@@ -66,7 +66,7 @@ class PlayerStateApp extends Equatable {
       pathTrack: "",
       position: Duration.zero,
       duration: Duration.zero,
-      colorsOfBackground: Colors.black,
+      colorsOfBackground: Colors.grey,
       fragmentsMusic: [0, 3, 10],
       fragmentsNames: ['Verse', 'Chorus', 'Chorus'],
       indexFragment: 0,
@@ -93,7 +93,7 @@ class PlayerStateApp extends Equatable {
     List<int>? fragmentsMusic,
     List<String>? fragmentsNames,
     int? indexFragment,
-    List<Track>? trackList,
+    List<TrackAudioSource>? trackList,
     List<double>? waveformData,
     double? dragProgress,
   }) {

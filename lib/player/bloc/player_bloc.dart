@@ -221,80 +221,80 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
       emit(state.copyWith(duration: event.duration));
     });
 
-    on<GetRecommendEvent>(
-      (event, emit) async {
-        try {
-          final response = await http.get(
-            Uri.parse("http://$host:3000/music/rec/rec"),
-          );
+    // on<GetRecommendEvent>(
+    //   (event, emit) async {
+    //     try {
+    //       final response = await http.get(
+    //         Uri.parse("http://$host:3000/music/rec/rec"),
+    //       );
 
-          if (response.statusCode == 200) {
-            final trackData = jsonDecode(response.body);
+    //       if (response.statusCode == 200) {
+    //         final trackData = jsonDecode(response.body);
 
-            List<Track> trackList = [];
+    //         List<Track> trackList = [];
 
-            for (var t in trackData) {
-              final track = Track(
-                id: t["id"],
-                name: t["name"],
-                bitmaker: t["bitmaker"],
-                price: int.parse(t["price"]),
-                trackUrl: t["trackUrl"],
-                photoUrl: t["photoUrl"],
-              );
+    //         for (var t in trackData) {
+    //           final track = Track(
+    //             id: t["id"],
+    //             name: t["name"],
+    //             bitmaker: t["bitmaker"],
+    //             price: int.parse(t["price"]),
+    //             trackUrl: t["trackUrl"],
+    //             photoUrl: t["photoUrl"],
+    //           );
 
-              trackList.add(track);
-              // Generate waveform data for each track
-              // _generateWaveformForTrack(track);
-              // await _getColorsBackground(track);
-            }
+    //           trackList.add(track);
+    //           // Generate waveform data for each track
+    //           // _generateWaveformForTrack(track);
+    //           // await _getColorsBackground(track);
+    //         }
 
-            List<AudioSource> audioSources = trackList
-                .map(
-                  (track) => AudioSource.uri(
-                    Uri.parse(track.trackUrl),
-                    tag: MediaItem(
-                      id: track.id,
-                      album: "Album name",
-                      artist: track.bitmaker,
-                      title: track.name,
-                      artUri: Uri.parse(track.photoUrl),
-                    ),
-                  ),
-                )
-                .toList();
+    //         List<AudioSource> audioSources = trackList
+    //             .map(
+    //               (track) => AudioSource.uri(
+    //                 Uri.parse(track.trackUrl),
+    //                 tag: MediaItem(
+    //                   id: track.id,
+    //                   album: "Album name",
+    //                   artist: track.bitmaker,
+    //                   title: track.name,
+    //                   artUri: Uri.parse(track.photoUrl),
+    //                 ),
+    //               ),
+    //             )
+    //             .toList();
 
-            playlist = ConcatenatingAudioSource(
-              useLazyPreparation: true,
-              shuffleOrder: DefaultShuffleOrder(),
-              children: audioSources,
-            );
+    //         playlist = ConcatenatingAudioSource(
+    //           useLazyPreparation: true,
+    //           shuffleOrder: DefaultShuffleOrder(),
+    //           children: audioSources,
+    //         );
 
-            await player.setAudioSource(
-              playlist,
-              preload: true,
-              initialIndex: 0,
-              initialPosition: Duration.zero,
-            );
+    //         await player.setAudioSource(
+    //           playlist,
+    //           preload: true,
+    //           initialIndex: 0,
+    //           initialPosition: Duration.zero,
+    //         );
 
-            // Set initial waveform data
-            // final initialWaveform = _trackWaveforms[trackList[0].trackUrl] ??
-            //     _generateDefaultWaveform();
+    //         // Set initial waveform data
+    //         // final initialWaveform = _trackWaveforms[trackList[0].trackUrl] ??
+    //         //     _generateDefaultWaveform();
 
-            emit(state.copyWith(
-              trackList: trackList,
-              currentTrackIndex: player.currentIndex!,
-              // colorsOfBackground: _trackColors,
-              // waveformData: initialWaveform,
-            ));
-          } else {
-            throw Exception("Failed to load new track");
-          }
-        } catch (e) {
-          print(e);
-        }
-      },
-    );
+    //         emit(state.copyWith(
+    //           trackList: trackList,
+    //           currentTrackIndex: player.currentIndex!,
+    //           // colorsOfBackground: _trackColors,
+    //           // waveformData: initialWaveform,
+    //         ));
+    //       } else {
+    //         throw Exception("Failed to load new track");
+    //       }
+    //     } catch (e) {
+    //       print(e);
+    //     }
+    //   },
+    // );
 
     on<PlayCurrentBeatEvent>((event, emit) async {
       bool shouldLoadNewPlaylist =
@@ -317,6 +317,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
             isInitialized: true,
             trackList: [],
             playerBottom: false, // Временно скрываем плеер во время загрузки
+            colorsOfBackground: Colors.grey,
           ));
 
           // Останавливаем и очищаем текущий плеер
@@ -335,36 +336,24 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           //   initialPosition: Duration.zero,
           // );
 
-          // Создаем новый список треков
-          List<Track> trackList = event.beats
-              .map((t) => Track(
-                    id: t.id,
-                    name: t.name,
-                    bitmaker: "icantluvv",
-                    price: t.price,
-                    trackUrl:
-                        'http://storage.yandexcloud.net/mp3beats/${t.url}',
-                    photoUrl: t.picture,
-                  ))
-              .toList();
+          final audioSources = event.beats.map((t) {
+            final trackUrl = 'http://storage.yandexcloud.net/mp3beats/${t.url}';
+            final photoUrl = t.picture;
 
-          // Создаем аудиоисточники
-          List<AudioSource> audioSources = trackList
-              .map((track) => AudioSource.uri(
-                    Uri.parse(track.trackUrl),
-                    tag: MediaItem(
-                      id: track.id,
-                      album: "Album name",
-                      artist: track.bitmaker,
-                      title: track.name,
-                      artUri: Uri.parse(track.photoUrl),
-                    ),
-                  ))
-              .toList();
+            return TrackAudioSource(
+              id: t.id,
+              name: t.name,
+              bitmaker: t.beatmakerName,
+              price: t.price,
+              trackUrl: trackUrl,
+              photoUrl: photoUrl,
+            );
+          }).toList();
 
           emit(state.copyWith(
+            trackList: audioSources,
             currentTrackIndex: event.index,
-            currentTrackBeatId: trackList[event.index].id,
+            currentTrackBeatId: audioSources[event.index].id,
           ));
 
           playlist = ConcatenatingAudioSource(
@@ -382,17 +371,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           await player.load();
 
           final waveformData =
-              _generateWaveformForTrack(trackList[event.index]);
+              _generateWaveformForTrack(audioSources[event.index]);
 
-          final bgColors = await _getColorsBackground(trackList[event.index]);
+          var file = await DefaultCacheManager()
+              .getSingleFile(state.trackList[event.index].photoUrl);
+          final bgColors =
+              await ProfessionalColorUtils.extractPaletteColorCached(file);
 
           emit(state.copyWith(
+            colorsOfBackground: bgColors,
             isInitialized: false,
-            trackList: trackList,
             playerBottom: true,
             isPlaying: true,
             waveformData: waveformData,
-            colorsOfBackground: bgColors,
           ));
 
           await player.play();
@@ -415,13 +406,15 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           final waveformData =
               _generateWaveformForTrack(state.trackList[event.index]);
 
-          final backgroundColors =
-              await _getColorsBackground(state.trackList[event.index]);
+          var file = await DefaultCacheManager()
+              .getSingleFile(state.trackList[event.index].photoUrl);
+          final bgColors =
+              await ProfessionalColorUtils.extractPaletteColorCached(file);
 
           // Обновляем состояние с waveform
           emit(state.copyWith(
             waveformData: waveformData,
-            colorsOfBackground: backgroundColors,
+            colorsOfBackground: bgColors,
           ));
 
           await player.play();
@@ -442,7 +435,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
 
         var file = await DefaultCacheManager()
             .getSingleFile(state.trackList[newIndex].photoUrl);
-        final colors =
+        final bgColors =
             await ProfessionalColorUtils.extractPaletteColorCached(file);
 
         emit(state.copyWith(
@@ -463,7 +456,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
             _generateWaveformForTrack(state.trackList[player.currentIndex!]);
 
         emit(state.copyWith(
-          colorsOfBackground: colors,
+          colorsOfBackground: bgColors,
           waveformData: waveformData,
           loopCurrentFragment: false,
         ));
@@ -605,7 +598,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
       final waveformData =
           _generateWaveformForTrack(state.trackList[player.currentIndex!]);
 
+      var file = await DefaultCacheManager()
+          .getSingleFile(state.trackList[player.currentIndex!].photoUrl);
+      final bgColors =
+          await ProfessionalColorUtils.extractPaletteColorCached(file);
+
       emit(state.copyWith(
+        colorsOfBackground: bgColors,
         waveformData: waveformData,
         loopCurrentFragment: false,
       ));
@@ -627,51 +626,51 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
       // }
     });
 
-    on<NextTrackEvent>((event, emit) async {
-      // Load more tracks if we're near the end
-      final response = await http.get(
-        Uri.parse("http://$host:3000/music/rec/rec2"),
-      );
+    // on<NextTrackEvent>((event, emit) async {
+    //   // Load more tracks if we're near the end
+    //   final response = await http.get(
+    //     Uri.parse("http://$host:3000/music/rec/rec2"),
+    //   );
 
-      if (response.statusCode == 200) {
-        final t = jsonDecode(response.body);
+    //   if (response.statusCode == 200) {
+    //     final t = jsonDecode(response.body);
 
-        final newTrack = Track(
-          id: t["id"],
-          name: t["name"].toString(),
-          bitmaker: t["bitmaker"].toString(),
-          price: int.parse(t["price"]),
-          trackUrl: t["trackUrl"],
-          photoUrl: t["photoUrl"],
-        );
+    //     final newTrack = Track(
+    //       id: t["id"],
+    //       name: t["name"].toString(),
+    //       bitmaker: t["bitmaker"].toString(),
+    //       price: int.parse(t["price"]),
+    //       trackUrl: t["trackUrl"],
+    //       photoUrl: t["photoUrl"],
+    //     );
 
-        _generateWaveformForTrack(newTrack);
-        // await _getColorsBackground(newTrack);
+    //     _generateWaveformForTrack(newTrack);
+    //     // await _getColorsBackground(newTrack);
 
-        final updatedTrackList = List<Track>.from(state.trackList)
-          ..add(newTrack);
+    //     final updatedTrackList = List<Track>.from(state.trackList)
+    //       ..add(newTrack);
 
-        final newChild = AudioSource.uri(
-          Uri.parse(newTrack.trackUrl),
-          tag: MediaItem(
-            id: newTrack.id,
-            album: "Album name",
-            artist: newTrack.bitmaker,
-            title: newTrack.name,
-            artUri: Uri.parse(newTrack.photoUrl),
-          ),
-        );
+    //     final newChild = AudioSource.uri(
+    //       Uri.parse(newTrack.trackUrl),
+    //       tag: MediaItem(
+    //         id: newTrack.id,
+    //         album: "Album name",
+    //         artist: newTrack.bitmaker,
+    //         title: newTrack.name,
+    //         artUri: Uri.parse(newTrack.photoUrl),
+    //       ),
+    //     );
 
-        await playlist.add(newChild);
+    //     await playlist.add(newChild);
 
-        final nextIndex = state.currentTrackIndex + 1;
+    //     final nextIndex = state.currentTrackIndex + 1;
 
-        await player.seek(Duration.zero, index: nextIndex);
-        await player.play();
+    //     await player.seek(Duration.zero, index: nextIndex);
+    //     await player.play();
 
-        emit(state.copyWith(trackList: updatedTrackList));
-      }
-    });
+    //     emit(state.copyWith(trackList: updatedTrackList));
+    //   }
+    // });
 
     on<NextFragmentEvent>((event, emit) async {
       if (state.indexFragment < state.fragmentsMusic.length - 1) {
@@ -749,40 +748,40 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
       emit(state.copyWith(dragProgress: event.progress));
     });
 
-    on<LoadNextTrackEvent>((event, emit) async {
-      try {
-        final newTrack = Track(
-          id: "2",
-          name: "name",
-          bitmaker: "icantluvv",
-          price: 2000,
-          trackUrl: "http://$host:3000/music/2.wav",
-          photoUrl: "http://$host:3000/photo/2.png",
-        );
+    // on<LoadNextTrackEvent>((event, emit) async {
+    //   try {
+    //     final newTrack = Track(
+    //       id: "2",
+    //       name: "name",
+    //       bitmaker: "icantluvv",
+    //       price: 2000,
+    //       trackUrl: "http://$host:3000/music/2.wav",
+    //       photoUrl: "http://$host:3000/photo/2.png",
+    //     );
 
-        // Generate waveform for new track
-        _generateWaveformForTrack(newTrack);
-        // await _getColorsBackground(newTrack);
+    //     // Generate waveform for new track
+    //     _generateWaveformForTrack(newTrack);
+    //     // await _getColorsBackground(newTrack);
 
-        final updatedTrackList = List<Track>.from(state.trackList)
-          ..add(newTrack);
+    //     final updatedTrackList = List<Track>.from(state.trackList)
+    //       ..add(newTrack);
 
-        emit(
-          state.copyWith(
-            trackList: updatedTrackList,
-            currentTrackIndex: state.currentTrackIndex + 1,
-            // colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
-            // waveformData: _trackWaveforms[newTrack.trackUrl] ??
-            //     _generateDefaultWaveform(),
-          ),
-        );
-      } catch (e) {
-        print("Error loading track: $e");
-      }
-    });
+    //     emit(
+    //       state.copyWith(
+    //         trackList: updatedTrackList,
+    //         currentTrackIndex: state.currentTrackIndex + 1,
+    //         // colorsOfBackground: [_trackColors[state.currentTrackIndex + 1]],
+    //         // waveformData: _trackWaveforms[newTrack.trackUrl] ??
+    //         //     _generateDefaultWaveform(),
+    //       ),
+    //     );
+    //   } catch (e) {
+    //     print("Error loading track: $e");
+    //   }
+    // });
   }
 
-  List<double> _generateWaveformForTrack(Track track) {
+  List<double> _generateWaveformForTrack(TrackAudioSource track) {
     final random = Random(track.trackUrl.hashCode);
     final List<double> waveform = [];
     const int samples = 55;
@@ -818,7 +817,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
     return List.generate(samples, (i) => 0.5);
   }
 
-  Future<Color> _getColorsBackground(Track track) async {
+  Future<Color> _getColorsBackground(TrackAudioSource track) async {
     final color =
         ProfessionalColorUtils.extractPaletteColorNetwork(track.photoUrl);
 
