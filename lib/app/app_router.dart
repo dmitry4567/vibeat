@@ -56,7 +56,7 @@ class AppRouter extends RootStackRouter {
             ),
             AutoRoute(
               path: 'search',
-              initial: true,
+              // initial: true,
               page: const EmptyShellRoute('search'),
               children: [
                 AutoRoute(path: '', page: SearchRoute.page),
@@ -143,7 +143,11 @@ class AppRouter extends RootStackRouter {
                 ),
               ],
             ),
-            AutoRoute(path: 'cart', page: CartRoute.page),
+            AutoRoute(
+              path: 'cart',
+              initial: true,
+              page: CartRoute.page,
+            ),
           ],
         ),
         AutoRoute(
