@@ -20,7 +20,7 @@ class AnketaRemoteDataSourceImpl implements AnketaRemoteDataSource {
   Future<List<AnketaModel>> getAnketa() async {
     try {
       final data = await _apiClient.get(
-        '/allGenres',
+        '/metadataBeat/genres',
         options: d.Options(),
       );
 
@@ -29,20 +29,19 @@ class AnketaRemoteDataSourceImpl implements AnketaRemoteDataSource {
             'Failed to load anketa. Status code: ${data.statusCode}');
       }
 
-      if (data.data == null || data.data['genres'] == null) {
+      if (data.data == null || data.data['data'] == null) {
         throw Exception('Invalid response data format');
       }
 
-      final List<AnketaModel> genres = (data.data['genres'] as List)
-          .map((e) => AnketaModel(text: e?.toString() ?? ''))
+      final List<AnketaModel> genres = (data.data['data'] as List)
+          .map((genre) => AnketaModel.fromJson(genre))
           .toList();
 
       return genres;
     } on d.DioException catch (e) {
       log('DioException in getAnketa: $e');
       throw Exception('Failed to load anketa: $e');
-    } on Exception 
-    catch (e) {
+    } on Exception catch (e) {
       log('Error in getAnketa: $e');
       throw Exception('Failed to load anketa: $e');
     }
@@ -50,20 +49,21 @@ class AnketaRemoteDataSourceImpl implements AnketaRemoteDataSource {
 
   @override
   Future<String> sendAnketaResponse(String genres) async {
-    final data = await _apiClient.post(
-      '/saveAnketa',
-      options: d.Options(),
-      data: {
-        'genres': genres,
-      },
-    );
+    // final data = await _apiClient.post(
+    //   '/saveAnketa',
+    //   options: d.Options(),
+    //   data: {
+    //     'genres': genres,
+    //   },
+    // );
 
-    if (data.statusCode != 200) {
-      throw Exception('Failed to load anketa');
-    }
-    final responseData = data.data;
-    log(responseData['message']);
+    // if (data.statusCode != 200) {
+    //   throw Exception('Failed to load anketa');
+    // }
 
-    return responseData['message'];
+    // final responseData = data.data;
+
+    // return responseData['message'];
+    return "true";
   }
 }

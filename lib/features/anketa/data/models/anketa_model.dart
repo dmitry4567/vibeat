@@ -1,17 +1,20 @@
 class AnketaModel {
-  final String text;
+  final String id;
+  final String name;
 
-  AnketaModel({required this.text});
+  AnketaModel({required this.id, required this.name});
 
   factory AnketaModel.fromJson(Map<String, dynamic> json) {
     return AnketaModel(
-      text: json['text'],
+      id: json['id'].toString(),
+      name: json['name'].toString(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'text': text,
+      'id': id,
+      'name': name,
     };
   }
 }
