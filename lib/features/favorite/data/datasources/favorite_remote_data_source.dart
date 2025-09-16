@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/core/errors/exceptions.dart';
-import 'package:vibeat/core/errors/failure.dart';
 import 'package:vibeat/core/network/network_info.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 

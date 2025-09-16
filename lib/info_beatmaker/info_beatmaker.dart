@@ -16,6 +16,7 @@ import 'package:vibeat/info_beatmaker/bloc/all_beats_of_beatmaker_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:vibeat/widgets/beat_widget.dart';
 
 @RoutePage()
 class InfoBeatmaker extends StatefulWidget {
@@ -325,6 +326,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                             isCurrentPlaying: false,
                             beat: placeholderBeat[index],
                             buttonMore: false,
+                            typeOfBeat: TypeOfBeat.defaultBeat,
                           ),
                         );
                       },
@@ -359,6 +361,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                     beat: state.beats[index],
                                     buttonMore: true,
                                     funcMore: () {},
+                                    typeOfBeat: TypeOfBeat.defaultBeat,
                                   )),
                             );
                           },
@@ -637,127 +640,3 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
     );
   }
 }
-
-class BeatRowWidget extends StatelessWidget {
-  BeatRowWidget({
-    super.key,
-    required this.index,
-    required this.isCurrentPlaying,
-    required this.beat,
-    required this.buttonMore,
-    this.funcMore,
-  });
-
-  final int index;
-  final bool isCurrentPlaying;
-  final BeatModel beat;
-  bool buttonMore = false;
-  VoidCallback? funcMore;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: isCurrentPlaying
-          ? Colors.white.withOpacity(0.08)
-          : Colors.transparent,
-      padding: const EdgeInsets.only(
-        left: 18,
-        right: 18,
-        top: 10,
-        bottom: 10,
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(6)),
-            child: Image.network(
-              fit: BoxFit.fitHeight,
-              width: 60,
-              height: 60,
-              beat.picture,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) {
-                  return child;
-                }
-                return const Skeletonizer(
-                  enabled: true,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(6)),
-                    child: SizedBox(
-                      width: 60,
-                      height: 60,
-                    ),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(6)),
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text(
-                  "${beat.price} RUB",
-                  style: AppTextStyles.bodyPrice2.copyWith(height: 1),
-                ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  width: 280,
-                  child: Text(
-                    beat.name,
-                    style: AppTextStyles.headline1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 6),
-              ],
-            ),
-          ),
-          buttonMore
-              ? IconButton(
-                  onPressed: funcMore,
-                  icon: const Icon(Icons.more_vert),
-                )
-              : const SizedBox(),
-        ],
-      ),
-    );
-  }
-}
-
-
-// GestureDetector(
-//                                   onTap: () {},
-//                                   child: Container(
-//                                     width: 42,
-//                                     height: 42,
-//                                     decoration: BoxDecoration(
-//                                       color: Colors.white.withOpacity(0.1),
-//                                       shape: BoxShape.circle,
-//                                     ),
-//                                     alignment: AlignmentDirectional.center,
-//                                     child: const Icon(
-//                                       Icons.favorite_outline,
-//                                       size: 20,
-//                                     ),
-//                                   ),
-//                                 ),
-//                                 const SizedBox(height: 6),
-//                                 Text(
-//                                   "0",
-//                                   style: AppTextStyles.bodyAppbar.copyWith(
-//                                     fontSize: 10,
-//                                   ),
-//                                 ),

@@ -86,7 +86,7 @@ class MyAutoRouterObserver extends AutoRouterObserver {
     d.log("pop prev ${previousRoute!.settings.name}");
     d.log("pop ${route.settings.name}");
 
-    final routeData = (route.settings as AutoRoutePage).routeData;
+    // final routeData = (route.settings as AutoRoutePage).routeData;
 
     // if (route.settings.name == "ResultRoute") {
     //   bloc.add(UpdatePlayerBottomEvent(false));

@@ -10,7 +10,7 @@ _Beatmaker _$BeatmakerFromJson(Map<String, dynamic> json) => _Beatmaker(
       id: json['id'] as String,
       username: json['username'] as String,
       profilepicture: json['profilepicture'] as String,
-      metadata: Metadata.fromJson(json['metadata'] as Map<String, dynamic>),
+      metadata: Metadata.fromJson(json['Metadata'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$BeatmakerToJson(_Beatmaker instance) =>

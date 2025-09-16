@@ -9,10 +9,9 @@ import 'package:vibeat/core/constants/strings.dart';
 import 'package:vibeat/core/hooks/grid_type.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
-import 'package:vibeat/info_beatmaker/info_beatmaker.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
-import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
+import 'package:vibeat/widgets/beat_widget.dart';
 
 @RoutePage()
 class FavoriteScreen extends StatefulWidget {
@@ -127,6 +126,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                           gridItemWidth: gridItemWidth,
                                           isLoading: false,
                                           beat: state.favoriteBeats[index],
+                                          typeOfBeat: TypeOfBeat.favoritebeat,
                                         ),
                                       );
                                     },
@@ -157,6 +157,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                           beat: state.favoriteBeats[index],
                                           buttonMore: true,
                                           funcMore: () {},
+                                          typeOfBeat: TypeOfBeat.favoritebeat,
                                         ),
                                       ),
                                     ),
@@ -191,6 +192,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                         gridItemWidth: gridItemWidth,
                                         isLoading: true,
                                         beat: BeatModel.placeholder(),
+                                        typeOfBeat: TypeOfBeat.favoritebeat,
                                       ),
                                     );
                                   },
@@ -210,6 +212,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                       beat: BeatModel.placeholder(),
                                       buttonMore: true,
                                       funcMore: () {},
+                                      typeOfBeat: TypeOfBeat.favoritebeat,
                                     ),
                                   ),
                                 );
