@@ -30,9 +30,17 @@ class TagBloc extends Bloc<TagEvent, TagState> {
             await http.get(Uri.parse('http://$ip:8080/metadata/tags'));
 
         if (response.statusCode == 200) {
-          final List<dynamic> data = json.decode(response.body)['data'];
+          List<dynamic> data = json.decode(response.body)['data'];
 
-          _trendTags = data.map((json) => TagModel.fromJson(json)).toList();
+          _trendTags = data
+              .map((json) => TagModel.fromJson(json))
+              .toList()
+              .sublist(0, 20);
+
+          final selectedTagIds =
+              state.selectedTags.map((tag) => tag.id).toSet();
+              
+          _trendTags.removeWhere((tag) => selectedTagIds.contains(tag.id));
 
           emit(state.copyWith(
             tags: state.selectedTags + _trendTags,
@@ -81,8 +89,8 @@ class TagBloc extends Bloc<TagEvent, TagState> {
           await SharedPreferences.getInstance();
       final ip = sharedPreferences.getString("ip");
 
-      final response = await http.get(Uri.parse(
-          'http://$ip:8080/metadata/tagsByName/${event.query}'));
+      final response = await http
+          .get(Uri.parse('http://$ip:8080/metadata/tagsByName/${event.query}'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body)['data'];

@@ -385,12 +385,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
             isTimeStamps: false,
           ));
 
-          for (var i = 0; i < state.trackList.length; i++) {
-            if (state.trackList[i].timeStamps != null) {
-              print(i);
-              print(state.trackList[i].timeStamps.toString());
-            }
-          }
+          // for (var i = 0; i < state.trackList.length; i++) {
+          //   if (state.trackList[i].timeStamps != null) {
+          //     print(i);
+          //     print(state.trackList[i].timeStamps.toString());
+          //   }
+          // }
 
           if (state.trackList[event.index].timeStamps != null) {
             List<int> fragmentsMusic = [0];
