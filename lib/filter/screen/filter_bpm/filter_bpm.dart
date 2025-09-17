@@ -257,18 +257,18 @@ class _FilterBpmScreenState extends State<FilterBpmScreen> {
                       return;
                     }
 
-                    if (int.parse(_fromController.text != ""
-                            ? _fromController.text
-                            : "0") >
-                        int.parse(_toController.text != ""
-                            ? _toController.text
-                            : "0")) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        setupSnackBar("Неверные данные"),
-                      );
+                    // if (int.parse(_fromController.text != ""
+                    //         ? _fromController.text
+                    //         : "0") >
+                    //     int.parse(_toController.text != ""
+                    //         ? _toController.text
+                    //         : "0")) {
+                    //   ScaffoldMessenger.of(context).showSnackBar(
+                    //     setupSnackBar("Неверные данные"),
+                    //   );
 
-                      return;
-                    }
+                    //   return;
+                    // }
 
                     context.read<BpmCubit>().updateBpm(
                           _fromController.text,
