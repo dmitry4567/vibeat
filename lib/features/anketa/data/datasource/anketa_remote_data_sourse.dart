@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:vibeat/core/api_client.dart';
+import 'package:vibeat/core/api/api_client.dart';
 import 'package:vibeat/features/anketa/data/models/anketa_model.dart';
 import 'package:dio/dio.dart' as d;
 

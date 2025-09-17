@@ -44,6 +44,7 @@ class _SearchScreenState extends State<SearchScreen> {
         isSelected: false,
       ),
       bpm: 0,
+      timeStamps: [],
       createAt: 0,
     ),
   );
@@ -324,6 +325,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     isSelected: false,
                                   ),
                                   bpm: 0,
+                                  timeStamps: [],
                                   createAt: 0,
                                 ),
                                 width: width,
@@ -680,9 +682,21 @@ class NewBeatWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  Text(
-                    "${getRandomNumber(10, 20) * 100} RUB",
-                    style: AppTextStyles.bodyPrice2,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${beat.price} RUB",
+                        style: AppTextStyles.bodyPrice2,
+                      ),
+                      beat.timeStamps.isNotEmpty
+                          ? Icon(
+                              size: 14,
+                              Icons.access_time,
+                              color: Colors.orange.withOpacity(0.75),
+                            )
+                          : const SizedBox(),
+                    ],
                   ),
                   Text(
                     beat.name,
@@ -790,7 +804,7 @@ class NewBeatWidget extends StatelessWidget {
                           children: [
                             const SizedBox(height: 1),
                             Text(
-                              random.nextInt(1000).toString(),
+                              beat.plays.toString(),
                               style: AppTextStyles.bodyText2
                                   .copyWith(fontSize: 10),
                               overflow: TextOverflow.ellipsis,

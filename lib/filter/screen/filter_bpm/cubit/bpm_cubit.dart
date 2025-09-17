@@ -14,7 +14,14 @@ class BpmCubit extends Cubit<BpmState> {
     emit(BpmChanged(from: value, to: state.to));
   }
 
-  void updateBpm(int from, int to) {
-    emit(BpmChanged(from: from, to: to));
+  void updateBpm(String from, String to) {
+    final intFrom = int.parse(from != "" ? from : "0");
+    final intTo = int.parse(to != "" ? to : "0");
+
+    emit(BpmChanged(from: intFrom, to: intTo));
+  }
+
+  void clearSelection() {
+    emit(const BpmInitial());
   }
 }

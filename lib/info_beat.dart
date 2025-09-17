@@ -48,6 +48,7 @@ class _InfoBeatState extends State<InfoBeat> {
       isSelected: false,
     ),
     bpm: 0,
+    timeStamps: [],
     createAt: 0,
   );
 

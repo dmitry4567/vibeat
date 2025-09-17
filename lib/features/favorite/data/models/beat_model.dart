@@ -20,10 +20,11 @@ class BeatModel extends Beat {
     required super.tags,
     required super.key,
     required super.bpm,
+    required super.timeStamps,
     required super.createAt,
   });
 
-  BeatModel.placeholder()
+  const BeatModel.placeholder()
       : this(
           id: "",
           name: "sefsesfseff",
@@ -34,15 +35,16 @@ class BeatModel extends Beat {
           url: "",
           price: 0,
           plays: 0,
-          genres: [],
-          moods: [],
-          tags: [],
+          genres: const [],
+          moods: const [],
+          tags: const [],
           key: const KeyModel(
             name: "",
             key: "",
             isSelected: false,
           ),
           bpm: 0,
+          timeStamps: const [],
           createAt: 0,
         );
 
@@ -61,6 +63,7 @@ class BeatModel extends Beat {
     List<TagModel>? tags,
     KeyModel? key,
     int? bpm,
+    List<TimeStampModel>? timeStamps,
     int? createAt,
   }) {
     return BeatModel(
@@ -78,6 +81,7 @@ class BeatModel extends Beat {
       tags: tags ?? this.tags,
       key: key ?? this.key,
       bpm: bpm ?? this.bpm,
+      timeStamps: timeStamps ?? this.timeStamps,
       createAt: createAt ?? this.createAt,
     );
   }
@@ -115,7 +119,30 @@ class BeatModel extends Beat {
           ? KeyModel.fromJson(json['key'])
           : const KeyModel(key: '', name: '', isSelected: false),
       bpm: int.parse(json['bpm'].toString()),
+      timeStamps: json['timestamps'] != null
+          ? (json['timestamps'] as List<dynamic>)
+              .map((timestamp) => TimeStampModel.fromJson(timestamp))
+              .toList()
+          : [],
       createAt: int.parse(json['created_at'].toString()),
+    );
+  }
+}
+
+class TimeStampModel extends TimeStamp {
+  const TimeStampModel({
+    required super.id,
+    required super.title,
+    required super.startTime,
+    required super.endTime,
+  });
+
+  factory TimeStampModel.fromJson(Map<String, dynamic> json) {
+    return TimeStampModel(
+      id: json['id'].toString(),
+      title: json['title'].toString(),
+      startTime: int.parse(json['start_time'].toString()),
+      endTime: int.parse(json['end_time'].toString()),
     );
   }
 }

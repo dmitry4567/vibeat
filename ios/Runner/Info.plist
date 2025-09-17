@@ -45,7 +45,11 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Приложению требуется доступ к интернету для загрузки данных</string>
 	<key>NSNearbyInteractionUsageDescription</key>
 	<string>We use nearby interaction to connect with devices close to you for enhanced functionality.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

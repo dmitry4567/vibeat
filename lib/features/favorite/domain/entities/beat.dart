@@ -20,6 +20,7 @@ class Beat extends Equatable {
     required this.tags,
     required this.key,
     required this.bpm,
+    required this.timeStamps,
     required this.createAt,
   });
 
@@ -43,6 +44,7 @@ class Beat extends Equatable {
             name: "",
           ),
           bpm: 0,
+          timeStamps: const [],
           createAt: 0,
         );
 
@@ -60,6 +62,7 @@ class Beat extends Equatable {
   final List<TagModel> tags;
   final KeyModel key;
   final int bpm;
+  final List<TimeStamp> timeStamps;
   final int createAt;
 
   @override
@@ -78,6 +81,29 @@ class Beat extends Equatable {
         tags,
         key,
         bpm,
+        timeStamps,
         createAt,
+      ];
+}
+
+class TimeStamp extends Equatable {
+  final String id;
+  final String title;
+  final int startTime;
+  final int endTime;
+
+  const TimeStamp({
+    required this.id,
+    required this.title,
+    required this.startTime,
+    required this.endTime,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        title,
+        startTime,
+        endTime,
       ];
 }

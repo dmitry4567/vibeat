@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:vibeat/core/api_client.dart';
+import 'package:vibeat/core/api/api_client.dart';
 import 'package:vibeat/core/constants/strings.dart';
 import 'package:vibeat/core/errors/exceptions.dart';
 import 'package:vibeat/core/errors/failure.dart';

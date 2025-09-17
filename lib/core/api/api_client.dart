@@ -55,11 +55,13 @@ class ApiClient {
     // ));
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters, required Options options}) async {
+  Future<Response> get(String path,
+      {Map<String, dynamic>? queryParameters, required Options options}) async {
     return dio.get(path, queryParameters: queryParameters);
   }
 
-  Future<Response> post(String path, {dynamic data, required Options options}) async {
+  Future<Response> post(String path,
+      {dynamic data, required Options options}) async {
     return dio.post(path, data: data);
   }
 

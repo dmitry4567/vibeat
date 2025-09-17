@@ -1,5 +1,6 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:vibeat/features/favorite/domain/entities/beat.dart';
 
 class TrackAudioSource extends ProgressiveAudioSource {
   final String id;
@@ -8,6 +9,9 @@ class TrackAudioSource extends ProgressiveAudioSource {
   final int price;
   final String photoUrl;
   final String trackUrl;
+  final int bpm;
+  final String tune;
+  List<TimeStamp>? timeStamps;
 
   TrackAudioSource({
     required this.id,
@@ -16,6 +20,9 @@ class TrackAudioSource extends ProgressiveAudioSource {
     required this.price,
     required this.trackUrl,
     required this.photoUrl,
+    required this.bpm,
+    required this.tune,
+    this.timeStamps,
   }) : super(
           Uri.parse(trackUrl),
           tag: MediaItem(
