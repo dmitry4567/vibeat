@@ -82,7 +82,7 @@ Future<void> init() async {
 
   final ip = sl<SharedPreferences>().getString("ip");
   if (ip == null) {
-    sl<SharedPreferences>().setString("ip", "192.168.0.135");
+    sl<SharedPreferences>().setString("ip", "172.20.10.2");
   }
 
   // Initialize API Client
