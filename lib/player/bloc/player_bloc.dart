@@ -332,14 +332,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
 
           // player = AudioPlayer();
           // _initializeSubscriptions();
-          player.setAudioSource(ConcatenatingAudioSource(children: []));
+          // player.setAudioSource(ConcatenatingAudioSource(children: []));
 
           // await player.stop();
-          // await player.setAudioSource(
-          //   ConcatenatingAudioSource(children: []),
-          //   initialIndex: event.index,
-          //   initialPosition: Duration.zero,
-          // );
+          player.setAudioSource(
+            ConcatenatingAudioSource(children: []),
+            initialIndex: event.index,
+            initialPosition: Duration.zero,
+          );
 
           // final audioSources = event.beats.map((t) {
           //   final trackUrl = 'http://storage.yandexcloud.net/mp3beats/${t.url}';
@@ -363,7 +363,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerStateApp> {
           // Устанавливаем новый аудиоисточник с явным указанием индекса
           player.setAudioSource(
             playlist,
-            // initialIndex: event.index,
+            initialIndex: event.index,
           );
 
           emit(state.copyWith(
