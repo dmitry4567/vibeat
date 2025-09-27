@@ -5,7 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/core/constants/strings.dart';
 import 'package:vibeat/core/errors/exceptions.dart';
-import 'package:vibeat/core/errors/failure.dart';
 import 'package:vibeat/features/favorite/domain/repositories/favorite_repository.dart';
 import 'package:vibeat/features/signIn/domain/entities/user_entity.dart';
 import 'package:vibeat/features/signIn/domain/repositories/auth_repository.dart';

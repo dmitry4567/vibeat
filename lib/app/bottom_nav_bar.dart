@@ -1,4 +1,3 @@
-
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -156,13 +155,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   _isProgrammaticChange = true;
                   currentPage = state.currentTrackIndex;
 
-                  // if (state.currentTrackIndex != 0) {
-                  _carouselController.jumpToPage(
-                    state.currentTrackIndex,
-                    // duration: const Duration(milliseconds: 300),
-                    // curve: Curves.easeInOut,
-                  );
-                  // }
+                  if (_carouselController.ready) {
+                    _carouselController.jumpToPage(state.currentTrackIndex);
+                  }
                 }
               },
               builder: (context, state) {
