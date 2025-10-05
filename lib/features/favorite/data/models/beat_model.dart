@@ -119,3 +119,68 @@ class BeatModel extends Beat {
     );
   }
 }
+
+class SimilarBeatModel {
+   final String id;
+  final String name;
+  final String picture;
+  final String beatmakerId = "1";
+  final String beatmakerName = "1";
+  final String url;
+  final int price;
+  // final int plays;
+
+  const SimilarBeatModel(
+      {required this.id,
+      required this.name,
+      required this.picture,
+      required this.url,
+      required this.price,
+      // required this.plays,
+      });
+
+  SimilarBeatModel.placeholder()
+      : this(
+          id: "",
+          name: "sefsesfseff",
+          picture: "",
+          url: "",
+          price: 0,
+          // plays: 0,
+        );
+
+  SimilarBeatModel copyWith({
+    String? id,
+    String? name,
+    String? picture,
+    String? beatmakerId,
+    String? beatmakerName,
+    String? url,
+    int? price,
+    // int? plays,
+  }) {
+    return SimilarBeatModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      picture: picture ?? this.picture,
+      url: url ?? this.url,
+      price: price ?? this.price,
+      // plays: plays ?? this.plays,
+    );
+  }
+
+  factory SimilarBeatModel.fromJson(Map<String, dynamic> json) {
+    return SimilarBeatModel(
+      id: json['beat_id'].toString(),
+      name: json['file'].toString(),
+      picture: 'http://${json['picture'].toString()}',
+      // "http://storage.yandexcloud.net/imagesall/${json['picture'].toString()}",
+      // picture: "http://i.ytimg.com/vi_webp/kGcnGpRterE/maxresdefault.webp",
+      // beatmakerId: json['beatmakerId'].toString(),
+      // beatmakerName: json['beatmakerName'].toString(),
+      url: json['url'].toString(),
+      price: int.parse(json['price'].toString()),
+      // plays: int.parse(json['plays'].toString()),
+    );
+  }
+}

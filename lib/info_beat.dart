@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -8,9 +9,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
+import 'package:vibeat/features/favorite/domain/entities/beat.dart';
 import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:http/http.dart' as http;
@@ -69,6 +72,8 @@ class _InfoBeatState extends State<InfoBeat> {
     '#detroit',
   ];
 
+  List<SimilarBeatModel> beatData = [];
+
   @override
   void initState() {
     super.initState();
@@ -76,6 +81,7 @@ class _InfoBeatState extends State<InfoBeat> {
 
     getLikesCountByBeat();
     getBeatInfo();
+    getSimilarBeats();
 
     isLiked = context
         .read<FavoriteBloc>()
@@ -120,6 +126,55 @@ class _InfoBeatState extends State<InfoBeat> {
   //   } else {}
   // }
 
+  List<BeatModel> placeholderBeat = List.generate(
+    5,
+    (index) => const BeatModel(
+      id: "",
+      name: "",
+      description: "",
+      picture: "",
+      beatmakerId: "",
+      beatmakerName: "",
+      url: "",
+      price: 1000,
+      plays: 1000,
+      genres: [],
+      moods: [],
+      tags: [],
+      key: KeyModel(
+        name: "",
+        key: "",
+        isSelected: false,
+      ),
+      bpm: 0,
+      createAt: 0,
+    ),
+  );
+
+  void getSimilarBeats() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
+
+    final response = await http.post(
+      Uri.parse("http://$ip:8080/similar_tracks"),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({'track_id': widget.beatId}),
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+
+      setState(() {
+        beatData = data.map((json) => SimilarBeatModel.fromJson(json)).toList();
+      });
+    }
+    if (response.statusCode == 500) {
+      beatData = [];
+    }
+  }
+
   void getLikesCountByBeat() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     final ip = sharedPreferences.getString("ip");
@@ -163,10 +218,12 @@ class _InfoBeatState extends State<InfoBeat> {
 
   @override
   Widget build(BuildContext context) {
+    const double paddingWidth = 18.0;
     const double marginRight = 20.0;
 
     final size = MediaQuery.of(context).size;
     final width = size.width * 0.38;
+    final gridItemWidth = (size.width - paddingWidth * 2 - 20) / 2;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -569,125 +626,96 @@ class _InfoBeatState extends State<InfoBeat> {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: List.generate(
-                        5,
-                        (index) {
-                          return Skeletonizer(
-                            enabled: false,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(6),
-                              ),
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Container(
+                      children: beatData.isNotEmpty
+                          ? List.generate(beatData.length, (index) {
+                              return Skeletonizer(
+                                enabled: false,
+                                child: NewBeatWidgetSimilar(
+                                  openPlayer: () {
+                                    final List<BeatModel> beatModel = [];
+
+                                    for (var beat in beatData) {
+                                      final BeatModel b = BeatModel(
+                                        id: beat.id,
+                                        name: beat.name,
+                                        description: "description",
+                                        picture: beat.picture,
+                                        beatmakerId: "beatmakerId",
+                                        beatmakerName: "beatmakerName",
+                                        url: beat.url,
+                                        price: beat.price,
+                                        plays: 120,
+                                        genres: const [],
+                                        moods: const [],
+                                        tags: const [],
+                                        key: const KeyModel(
+                                            name: "1",
+                                            key: "Em",
+                                            isSelected: false),
+                                        bpm: 120,
+                                        createAt: 1,
+                                      );
+
+                                      beatModel.add(b);
+                                    }
+
+                                    sl<PlayerBloc>().add(
+                                        PlayCurrentBeatEvent(beatModel, index));
+
+                                    context.router
+                                        .navigate(const PlayerRoute());
+                                  },
+                                  openInfoBeat: () {
+                                    // context.router.navigate(
+                                    //   InfoBeat(
+                                    //     beatId: beatData[index].id,
+                                    //   ),
+                                    // );
+                                  },
+                                  isLoading: false,
+                                  index: index,
+                                  beat: beatData[index],
                                   width: width,
-                                  margin:
-                                      const EdgeInsets.only(right: marginRight),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Image.asset(
-                                        fit: BoxFit.fitWidth,
-                                        width: width,
-                                        "assets/images/image1.png",
-                                      ),
-                                      const SizedBox(
-                                        height: 6,
-                                      ),
-                                      const Text(
-                                        "1000 RUB",
-                                        style: AppTextStyles.bodyPrice2,
-                                      ),
-                                      const Text(
-                                        "Detroit type beat sefsef sef",
-                                        style: AppTextStyles.headline1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(
-                                        height: 8,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              children: [
-                                                const SizedBox(
-                                                  width: 12,
-                                                  height: 12,
-                                                  child: CircleAvatar(
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                      'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  width: 4,
-                                                ),
-                                                Expanded(
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                      right: 5,
-                                                    ),
-                                                    child: Column(
-                                                      children: [
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
-                                                          style: AppTextStyles
-                                                              .bodyText2,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.volume_down_outlined,
-                                                size: 12,
-                                                color: AppColors
-                                                    .unselectedItemColor,
-                                              ),
-                                              Column(
-                                                children: [
-                                                  const SizedBox(
-                                                    height: 1,
-                                                  ),
-                                                  Text(
-                                                    "100k",
-                                                    style: AppTextStyles
-                                                        .bodyText2
-                                                        .copyWith(fontSize: 10),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                  marginRight: marginRight,
+                                  gridItemWidth: gridItemWidth,
                                 ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                              );
+                            })
+                          : List.generate(placeholderBeat.length, (index) {
+                              return Skeletonizer(
+                                enabled: true,
+                                child: NewBeatWidget(
+                                  openPlayer: () {},
+                                  openInfoBeat: () {},
+                                  isLoading: true,
+                                  index: index,
+                                  beat: const BeatModel(
+                                    id: "",
+                                    name: "sefsesfseff",
+                                    description: "sefsef",
+                                    picture: "",
+                                    beatmakerId: "",
+                                    beatmakerName: "sefsef",
+                                    url: "",
+                                    price: 0,
+                                    plays: 0,
+                                    genres: [],
+                                    moods: [],
+                                    tags: [],
+                                    key: KeyModel(
+                                      name: "",
+                                      key: "",
+                                      isSelected: false,
+                                    ),
+                                    bpm: 0,
+                                    createAt: 0,
+                                  ),
+                                  width: width,
+                                  marginRight: marginRight,
+                                  gridItemWidth: gridItemWidth,
+                                ),
+                              );
+                            }),
                     ),
                   ),
                   const SizedBox(height: 80),
@@ -729,6 +757,243 @@ class TagCard extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white.withOpacity(0.35),
+        ),
+      ),
+    );
+  }
+}
+
+class NewBeatWidgetSimilar extends StatelessWidget {
+  final SimilarBeatModel beat;
+  final int index;
+  final double width;
+  final double marginRight;
+  final double gridItemWidth;
+  final bool isLoading;
+  final VoidCallback openPlayer;
+  final VoidCallback openInfoBeat;
+
+  const NewBeatWidgetSimilar({
+    super.key,
+    required this.beat,
+    required this.index,
+    required this.width,
+    required this.marginRight,
+    required this.gridItemWidth,
+    required this.isLoading,
+    required this.openPlayer,
+    required this.openInfoBeat,
+  });
+
+  const NewBeatWidgetSimilar.v2({
+    super.key,
+    required this.beat,
+    required this.index,
+    required this.width,
+    required this.marginRight,
+    required this.gridItemWidth,
+    required this.isLoading,
+    required this.openPlayer,
+    required this.openInfoBeat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Random random = Random();
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(Radius.circular(6)),
+      child: Container(
+        width: width,
+        margin: EdgeInsets.only(right: marginRight),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: openPlayer,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(6)),
+                child: Image.network(
+                  fit: BoxFit.fitHeight,
+                  width: gridItemWidth,
+                  height: gridItemWidth - marginRight,
+                  beat.picture,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child;
+                    }
+                    return Skeletonizer(
+                      enabled: true,
+                      child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(6)),
+                        child: SizedBox(
+                          width: gridItemWidth,
+                          height: gridItemWidth - marginRight,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return !isLoading
+                        ? ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(6)),
+                            child: Container(
+                              width: gridItemWidth,
+                              height: gridItemWidth - marginRight,
+                              color: Colors.grey,
+                              child: const Icon(Icons.error),
+                            ),
+                          )
+                        : ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(6)),
+                            child: Container(
+                              width: gridItemWidth,
+                              height: gridItemWidth - marginRight,
+                              color: Colors.grey,
+                            ),
+                          );
+                  },
+                ),
+              ),
+            ),
+            // Image.asset(
+            //   fit: BoxFit.fitWidth,
+            //   width: width,
+            //   "assets/images/image1.png",
+            // ),
+            GestureDetector(
+              onTap: openInfoBeat,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 4),
+                  Text(
+                    "${getRandomNumber(10, 20) * 100} RUB",
+                    style: AppTextStyles.bodyPrice2,
+                  ),
+                  Text(
+                    beat.name,
+                    style: AppTextStyles.headline1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+
+            GestureDetector(
+              onTap: () {
+                context.router
+                    .navigate(InfoBeatmaker(beatmakerId: beat.beatmakerId));
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // isLoading
+                          //     ? ClipRRect(
+                          //         borderRadius: const BorderRadius.all(
+                          //             Radius.circular(6)),
+                          //         child: Container(
+                          //           width: 12,
+                          //           height: 12,
+                          //           color: Colors.grey,
+                          //         ),
+                          //       )
+                          //     : ClipRRect(
+                          //         borderRadius: const BorderRadius.all(
+                          //             Radius.circular(6)),
+                          //         child: Image.network(
+                          //           fit: BoxFit.fitHeight,
+                          //           width: 12,
+                          //           height: 12,
+                          //           'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
+                          //           loadingBuilder:
+                          //               (context, child, loadingProgress) {
+                          //             if (loadingProgress == null) {
+                          //               return child;
+                          //             }
+                          //             return Skeletonizer(
+                          //               enabled: true,
+                          //               child: ClipRRect(
+                          //                 borderRadius: const BorderRadius.all(
+                          //                     Radius.circular(6)),
+                          //                 child: Container(
+                          //                   width: 12,
+                          //                   height: 12,
+                          //                   color: Colors.black,
+                          //                 ),
+                          //               ),
+                          //             );
+                          //           },
+                          //           errorBuilder: (context, error, stackTrace) {
+                          //             return ClipRRect(
+                          //               borderRadius: const BorderRadius.all(
+                          //                   Radius.circular(6)),
+                          //               child: Container(
+                          //                 width: 12,
+                          //                 height: 12,
+                          //                 color: Colors.black,
+                          //               ),
+                          //             );
+                          //           },
+                          //         ),
+                          //       ),
+                          // const SizedBox(width: 4),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.only(
+                                right: 5,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    beat.beatmakerName == ''
+                                        ? "beatmaker1"
+                                        : beat.beatmakerName,
+                                    style: AppTextStyles.bodyText2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.volume_down_outlined,
+                          size: 12,
+                          color: AppColors.unselectedItemColor,
+                        ),
+                        Column(
+                          children: [
+                            const SizedBox(height: 1),
+                            Text(
+                              random.nextInt(1000).toString(),
+                              style: AppTextStyles.bodyText2
+                                  .copyWith(fontSize: 10),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
