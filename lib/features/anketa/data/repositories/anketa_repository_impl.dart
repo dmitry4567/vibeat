@@ -20,7 +20,7 @@ class AnketaRepositoryImpl implements AnketaRepository {
       try {
         final genres = await remoteDataSource.getAnketa();
 
-        return Right(genres.map((e) => AnketaEntity(text: e.text)).toList());
+        return Right(genres.map((e) => AnketaEntity(text: e.name)).toList());
       } on Failure catch (e) {
         return Left(ApiFailure(message: e.message, statusCode: e.statusCode));
       }
