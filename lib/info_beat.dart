@@ -154,8 +154,8 @@ class _InfoBeatState extends State<InfoBeatScreen> {
     final ip = sharedPreferences.getString("ip");
 
     final response = await http.post(
-      Uri.parse("http://192.168.0.135:8003/similar_tracks"),
-      // Uri.parse("http://$ip:8080/similar_tracks"),
+      // Uri.parse("http://192.168.0.135:8003/similar_tracks"),
+      Uri.parse("http://$ip:8080/similar_tracks"),
       headers: {
         'Content-Type': 'application/json',
       },
