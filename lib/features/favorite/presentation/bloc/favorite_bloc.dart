@@ -53,17 +53,24 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     });
 
     on<DeleteFavoriteEvent>((event, emit) async {
-      emit(const GettingFavoritesBeats());
+      // emit(const GettingFavoritesBeats());
 
       final result = await _removeFromFavorite(
           RemoveFromFavoriteParam(beatId: event.beatId));
 
       result.fold(
-        (failure) => emit(FavoriteBeatsError(failure.message)),
-        (_) {
-          add(GetFavoriteBeatsEvent());
-        },
-      );
+          (failure) => emit(
+                FavoriteBeatsError(failure.message),
+              ), (_) {
+        // final newState = state as FavoriteBeatsLoaded;
+
+        // final beats = newState.favoriteBeats
+        //     .where((beat) => beat.id != event.beatId)
+        //     .toList();
+
+        // // emit(FavoriteBeatsLoaded(beats));
+        add(GetFavoriteBeatsEvent());
+      });
     });
   }
 

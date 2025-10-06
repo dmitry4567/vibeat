@@ -12,6 +12,7 @@ import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:http/http.dart' as http;
+import 'package:vibeat/widgets/beat_widget.dart';
 
 @RoutePage()
 class SearchScreen extends StatefulWidget {
@@ -294,6 +295,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 width: width,
                                 marginRight: marginRight,
                                 gridItemWidth: gridItemWidth,
+                                typeOfBeat: TypeOfBeat.defaultBeat,
                               ),
                             );
                           })
@@ -329,6 +331,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 width: width,
                                 marginRight: marginRight,
                                 gridItemWidth: gridItemWidth,
+                                typeOfBeat: TypeOfBeat.defaultBeat,
                               ),
                             );
                           }),
@@ -571,246 +574,4 @@ class GenreWidget extends StatelessWidget {
       ),
     );
   }
-}
-
-class NewBeatWidget extends StatelessWidget {
-  final BeatModel beat;
-  final int index;
-  final double width;
-  final double marginRight;
-  final double gridItemWidth;
-  final bool isLoading;
-  final VoidCallback openPlayer;
-  final VoidCallback openInfoBeat;
-
-  const NewBeatWidget({
-    super.key,
-    required this.beat,
-    required this.index,
-    required this.width,
-    required this.marginRight,
-    required this.gridItemWidth,
-    required this.isLoading,
-    required this.openPlayer,
-    required this.openInfoBeat,
-  });
-
-  const NewBeatWidget.v2({
-    super.key,
-    required this.beat,
-    required this.index,
-    required this.width,
-    required this.marginRight,
-    required this.gridItemWidth,
-    required this.isLoading,
-    required this.openPlayer,
-    required this.openInfoBeat,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Random random = Random();
-
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(6)),
-      child: Container(
-        width: width,
-        margin: EdgeInsets.only(right: marginRight),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: openPlayer,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(6)),
-                child: Image.network(
-                  fit: BoxFit.fitHeight,
-                  width: gridItemWidth,
-                  height: gridItemWidth - marginRight,
-                  beat.picture,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    }
-                    return Skeletonizer(
-                      enabled: true,
-                      child: ClipRRect(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(6)),
-                        child: SizedBox(
-                          width: gridItemWidth,
-                          height: gridItemWidth - marginRight,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return !isLoading
-                        ? ClipRRect(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(6)),
-                            child: Container(
-                              width: gridItemWidth,
-                              height: gridItemWidth - marginRight,
-                              color: Colors.grey,
-                              child: const Icon(Icons.error),
-                            ),
-                          )
-                        : ClipRRect(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(6)),
-                            child: Container(
-                              width: gridItemWidth,
-                              height: gridItemWidth - marginRight,
-                              color: Colors.grey,
-                            ),
-                          );
-                  },
-                ),
-              ),
-            ),
-            // Image.asset(
-            //   fit: BoxFit.fitWidth,
-            //   width: width,
-            //   "assets/images/image1.png",
-            // ),
-            GestureDetector(
-              onTap: openInfoBeat,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 4),
-                  Text(
-                    "${getRandomNumber(10, 20) * 100} RUB",
-                    style: AppTextStyles.bodyPrice2,
-                  ),
-                  Text(
-                    beat.name,
-                    style: AppTextStyles.headline1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-
-            GestureDetector(
-              onTap: () {
-                context.router
-                    .navigate(InfoBeatmaker(beatmakerId: beat.beatmakerId));
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          // isLoading
-                          //     ? ClipRRect(
-                          //         borderRadius: const BorderRadius.all(
-                          //             Radius.circular(6)),
-                          //         child: Container(
-                          //           width: 12,
-                          //           height: 12,
-                          //           color: Colors.grey,
-                          //         ),
-                          //       )
-                          //     : ClipRRect(
-                          //         borderRadius: const BorderRadius.all(
-                          //             Radius.circular(6)),
-                          //         child: Image.network(
-                          //           fit: BoxFit.fitHeight,
-                          //           width: 12,
-                          //           height: 12,
-                          //           'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
-                          //           loadingBuilder:
-                          //               (context, child, loadingProgress) {
-                          //             if (loadingProgress == null) {
-                          //               return child;
-                          //             }
-                          //             return Skeletonizer(
-                          //               enabled: true,
-                          //               child: ClipRRect(
-                          //                 borderRadius: const BorderRadius.all(
-                          //                     Radius.circular(6)),
-                          //                 child: Container(
-                          //                   width: 12,
-                          //                   height: 12,
-                          //                   color: Colors.black,
-                          //                 ),
-                          //               ),
-                          //             );
-                          //           },
-                          //           errorBuilder: (context, error, stackTrace) {
-                          //             return ClipRRect(
-                          //               borderRadius: const BorderRadius.all(
-                          //                   Radius.circular(6)),
-                          //               child: Container(
-                          //                 width: 12,
-                          //                 height: 12,
-                          //                 color: Colors.black,
-                          //               ),
-                          //             );
-                          //           },
-                          //         ),
-                          //       ),
-                          // const SizedBox(width: 4),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.only(
-                                right: 5,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    beat.beatmakerName == ''
-                                        ? "beatmaker1"
-                                        : beat.beatmakerName,
-                                    style: AppTextStyles.bodyText2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.volume_down_outlined,
-                          size: 12,
-                          color: AppColors.unselectedItemColor,
-                        ),
-                        Column(
-                          children: [
-                            const SizedBox(height: 1),
-                            Text(
-                              random.nextInt(1000).toString(),
-                              style: AppTextStyles.bodyText2
-                                  .copyWith(fontSize: 10),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-int getRandomNumber(int min, int max) {
-  Random random = Random();
-  return min + random.nextInt(max - min + 1);
 }

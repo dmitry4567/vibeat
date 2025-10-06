@@ -12,9 +12,9 @@ import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
 import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
-import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:http/http.dart' as http;
+import 'package:vibeat/widgets/beat_widget.dart';
 
 @RoutePage()
 class ResultScreen extends StatefulWidget {
@@ -198,6 +198,7 @@ class _ResultScreenState extends State<ResultScreen> {
                               ),
                             );
                           },
+                          typeOfBeat: TypeOfBeat.defaultBeat,
                         ),
                       );
                     },

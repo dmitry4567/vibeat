@@ -9,9 +9,9 @@ import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
-import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:http/http.dart' as http;
+import 'package:vibeat/widgets/beat_widget.dart';
 
 @RoutePage()
 class PlaylistMoodScreen extends StatefulWidget {
@@ -70,8 +70,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
       List<dynamic> data = json.decode(response.body)['data'];
 
       setState(() {
-        beatData =
-            data.map((json) => BeatModel.fromJson(json)).toList();
+        beatData = data.map((json) => BeatModel.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -132,6 +131,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
                                   ),
                                 );
                               },
+                              typeOfBeat: TypeOfBeat.defaultBeat,
                             ),
                           );
                         },
