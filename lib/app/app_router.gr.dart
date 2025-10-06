@@ -234,31 +234,31 @@ class HeadRoute extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i13.InfoBeat]
-class InfoBeat extends _i23.PageRouteInfo<InfoBeatArgs> {
-  InfoBeat({
+/// [_i13.InfoBeatScreen]
+class InfoBeatRoute extends _i23.PageRouteInfo<InfoBeatRouteArgs> {
+  InfoBeatRoute({
     _i24.Key? key,
     required String beatId,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         InfoBeat.name,
-         args: InfoBeatArgs(key: key, beatId: beatId),
+         InfoBeatRoute.name,
+         args: InfoBeatRouteArgs(key: key, beatId: beatId),
          initialChildren: children,
        );
 
-  static const String name = 'InfoBeat';
+  static const String name = 'InfoBeatRoute';
 
   static _i23.PageInfo page = _i23.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<InfoBeatArgs>();
-      return _i13.InfoBeat(key: args.key, beatId: args.beatId);
+      final args = data.argsAs<InfoBeatRouteArgs>();
+      return _i13.InfoBeatScreen(key: args.key, beatId: args.beatId);
     },
   );
 }
 
-class InfoBeatArgs {
-  const InfoBeatArgs({this.key, required this.beatId});
+class InfoBeatRouteArgs {
+  const InfoBeatRouteArgs({this.key, required this.beatId});
 
   final _i24.Key? key;
 
@@ -266,36 +266,39 @@ class InfoBeatArgs {
 
   @override
   String toString() {
-    return 'InfoBeatArgs{key: $key, beatId: $beatId}';
+    return 'InfoBeatRouteArgs{key: $key, beatId: $beatId}';
   }
 }
 
 /// generated route for
-/// [_i14.InfoBeatmaker]
-class InfoBeatmaker extends _i23.PageRouteInfo<InfoBeatmakerArgs> {
-  InfoBeatmaker({
+/// [_i14.InfoBeatmakerScreen]
+class InfoBeatmakerRoute extends _i23.PageRouteInfo<InfoBeatmakerRouteArgs> {
+  InfoBeatmakerRoute({
     _i24.Key? key,
     required String beatmakerId,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         InfoBeatmaker.name,
-         args: InfoBeatmakerArgs(key: key, beatmakerId: beatmakerId),
+         InfoBeatmakerRoute.name,
+         args: InfoBeatmakerRouteArgs(key: key, beatmakerId: beatmakerId),
          initialChildren: children,
        );
 
-  static const String name = 'InfoBeatmaker';
+  static const String name = 'InfoBeatmakerRoute';
 
   static _i23.PageInfo page = _i23.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<InfoBeatmakerArgs>();
-      return _i14.InfoBeatmaker(key: args.key, beatmakerId: args.beatmakerId);
+      final args = data.argsAs<InfoBeatmakerRouteArgs>();
+      return _i14.InfoBeatmakerScreen(
+        key: args.key,
+        beatmakerId: args.beatmakerId,
+      );
     },
   );
 }
 
-class InfoBeatmakerArgs {
-  const InfoBeatmakerArgs({this.key, required this.beatmakerId});
+class InfoBeatmakerRouteArgs {
+  const InfoBeatmakerRouteArgs({this.key, required this.beatmakerId});
 
   final _i24.Key? key;
 
@@ -303,7 +306,7 @@ class InfoBeatmakerArgs {
 
   @override
   String toString() {
-    return 'InfoBeatmakerArgs{key: $key, beatmakerId: $beatmakerId}';
+    return 'InfoBeatmakerRouteArgs{key: $key, beatmakerId: $beatmakerId}';
   }
 }
 

@@ -1118,7 +1118,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                             const Duration(milliseconds: 300))
                                         .then((_) {
                                       router.push(
-                                        InfoBeat(
+                                        InfoBeatRoute(
                                           beatId: beatId,
                                         ),
                                       );

@@ -70,8 +70,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
       List<dynamic> data = json.decode(response.body)['data'];
 
       setState(() {
-        beatData =
-            data.map((json) => BeatModel.fromJson(json)).toList();
+        beatData = data.map((json) => BeatModel.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -127,8 +126,15 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
                               },
                               openInfoBeat: () {
                                 context.router.navigate(
-                                  InfoBeat(
+                                  InfoBeatRoute(
                                     beatId: beatData[index].id,
+                                  ),
+                                );
+                              },
+                              openInfoBeatmaker: () {
+                                context.router.navigate(
+                                  InfoBeatmakerRoute(
+                                    beatmakerId: beatData[index].beatmakerId,
                                   ),
                                 );
                               },

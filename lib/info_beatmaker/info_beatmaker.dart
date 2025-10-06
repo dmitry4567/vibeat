@@ -18,16 +18,16 @@ import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 @RoutePage()
-class InfoBeatmaker extends StatefulWidget {
-  const InfoBeatmaker({super.key, required this.beatmakerId});
+class InfoBeatmakerScreen extends StatefulWidget {
+  const InfoBeatmakerScreen({super.key, required this.beatmakerId});
 
   final String beatmakerId;
 
   @override
-  State<InfoBeatmaker> createState() => _InfoBeatmakerState();
+  State<InfoBeatmakerScreen> createState() => _InfoBeatmakerState();
 }
 
-class _InfoBeatmakerState extends State<InfoBeatmaker> {
+class _InfoBeatmakerState extends State<InfoBeatmakerScreen> {
   Beatmaker beatmaker = const Beatmaker(
     id: '',
     username: '',

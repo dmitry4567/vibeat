@@ -193,8 +193,15 @@ class _ResultScreenState extends State<ResultScreen> {
                           },
                           openInfoBeat: () {
                             context.router.navigate(
-                              InfoBeat(
+                              InfoBeatRoute(
                                 beatId: beatData[index].id,
+                              ),
+                            );
+                          },
+                          openInfoBeatmaker: () {
+                            context.router.navigate(
+                              InfoBeatmakerRoute(
+                                beatmakerId: beatData[index].beatmakerId,
                               ),
                             );
                           },

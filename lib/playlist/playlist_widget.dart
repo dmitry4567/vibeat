@@ -68,8 +68,15 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                           },
                           openInfoBeat: () {
                             context.router.navigate(
-                              InfoBeat(
+                              InfoBeatRoute(
                                 beatId: widget.beats[index].id,
+                              ),
+                            );
+                          },
+                          openInfoBeatmaker: () {
+                            context.router.navigate(
+                              InfoBeatmakerRoute(
+                                beatmakerId: widget.beats[index].beatmakerId,
                               ),
                             );
                           },

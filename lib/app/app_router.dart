@@ -24,7 +24,7 @@ class AppRouter extends RootStackRouter {
                 ),
                 CustomRoute(
                   path: 'head/infoBeatmaker',
-                  page: InfoBeatmaker.page,
+                  page: InfoBeatmakerRoute.page,
                   customRouteBuilder: <T>(
                     BuildContext context,
                     Widget child,
@@ -37,21 +37,21 @@ class AppRouter extends RootStackRouter {
                     );
                   },
                 ),
-                CustomRoute(
-                  path: 'head/infoBeat',
-                  page: InfoBeat.page,
-                  customRouteBuilder: <T>(
-                    BuildContext context,
-                    Widget child,
-                    AutoRoutePage<T> page,
-                  ) {
-                    return CupertinoPageRoute(
-                      builder: (context) => child,
-                      settings: page,
-                      fullscreenDialog: page.fullscreenDialog,
-                    );
-                  },
-                ),
+                // CustomRoute(
+                //   path: 'head/infoBeat',
+                //   page: InfoBeat.page,
+                //   customRouteBuilder: <T>(
+                //     BuildContext context,
+                //     Widget child,
+                //     AutoRoutePage<T> page,
+                //   ) {
+                //     return CupertinoPageRoute(
+                //       builder: (context) => child,
+                //       settings: page,
+                //       fullscreenDialog: page.fullscreenDialog,
+                //     );
+                //   },
+                // ),
               ],
             ),
             AutoRoute(
@@ -72,7 +72,7 @@ class AppRouter extends RootStackRouter {
                 AutoRoute(path: 'search/result', page: ResultRoute.page),
                 CustomRoute(
                   path: 'search/infoBeatmaker',
-                  page: InfoBeatmaker.page,
+                  page: InfoBeatmakerRoute.page,
                   customRouteBuilder: <T>(
                     BuildContext context,
                     Widget child,
@@ -85,21 +85,21 @@ class AppRouter extends RootStackRouter {
                     );
                   },
                 ),
-                CustomRoute(
-                  path: 'search/infoBeat',
-                  page: InfoBeat.page,
-                  customRouteBuilder: <T>(
-                    BuildContext context,
-                    Widget child,
-                    AutoRoutePage<T> page,
-                  ) {
-                    return CupertinoPageRoute(
-                      builder: (context) => child,
-                      settings: page,
-                      fullscreenDialog: page.fullscreenDialog,
-                    );
-                  },
-                ),
+                // CustomRoute(
+                //   path: 'search/infoBeat',
+                //   page: InfoBeat.page,
+                //   customRouteBuilder: <T>(
+                //     BuildContext context,
+                //     Widget child,
+                //     AutoRoutePage<T> page,
+                //   ) {
+                //     return CupertinoPageRoute(
+                //       builder: (context) => child,
+                //       settings: page,
+                //       fullscreenDialog: page.fullscreenDialog,
+                //     );
+                //   },
+                // ),
               ],
             ),
             AutoRoute(
@@ -111,7 +111,7 @@ class AppRouter extends RootStackRouter {
                 AutoRoute(path: 'favorite/playlist', page: PlaylistRoute.page),
                 CustomRoute(
                   path: 'favorite/infoBeatmaker',
-                  page: InfoBeatmaker.page,
+                  page: InfoBeatmakerRoute.page,
                   customRouteBuilder: <T>(
                     BuildContext context,
                     Widget child,
@@ -126,7 +126,7 @@ class AppRouter extends RootStackRouter {
                 ),
                 CustomRoute(
                   path: 'favorite/infoBeat',
-                  page: InfoBeat.page,
+                  page: InfoBeatRoute.page,
                   customRouteBuilder: <T>(
                     BuildContext context,
                     Widget child,
@@ -158,12 +158,12 @@ class AppRouter extends RootStackRouter {
         ),
         AutoRoute(
           path: '/infoBeatmaker',
-          page: InfoBeatmaker.page,
+          page: InfoBeatmakerRoute.page,
         ),
-        // AutoRoute(
-        //   path: '/infoBeat',
-        //   page: InfoBeat.page,
-        // ),
+        AutoRoute(
+          path: '/infoBeat',
+          page: InfoBeatRoute.page,
+        ),
         // CustomRoute(
         //   path: '/infoBeat',
         //   page: InfoBeat.page,

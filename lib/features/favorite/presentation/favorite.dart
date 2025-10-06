@@ -115,9 +115,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                           },
                                           openInfoBeat: () {
                                             context.router.navigate(
-                                              InfoBeat(
+                                              InfoBeatRoute(
                                                 beatId: state
                                                     .favoriteBeats[index].id,
+                                              ),
+                                            );
+                                          },
+                                          openInfoBeatmaker: () {
+                                            context.router.navigate(
+                                              InfoBeatmakerRoute(
+                                                beatmakerId: state
+                                                    .favoriteBeats[index]
+                                                    .beatmakerId,
                                               ),
                                             );
                                           },
@@ -185,6 +194,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                       child: NewBeatWidget(
                                         openPlayer: () {},
                                         openInfoBeat: () {},
+                                        openInfoBeatmaker: () {},
                                         index: index,
                                         width: width,
                                         marginRight: 0,
