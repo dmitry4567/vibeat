@@ -61,6 +61,7 @@ class _InfoBeatmakerState extends State<InfoBeatmakerScreen> {
         isSelected: false,
       ),
       bpm: 0,
+      timeStamps: [],
       createAt: 0,
     ),
   );

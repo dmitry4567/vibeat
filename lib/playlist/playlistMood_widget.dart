@@ -46,6 +46,7 @@ class _PlaylistMoodScreenState extends State<PlaylistMoodScreen> {
         isSelected: false,
       ),
       bpm: 0,
+      timeStamps: [],
       createAt: 0,
     ),
   );

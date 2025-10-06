@@ -78,11 +78,33 @@ class _ResultScreenState extends State<ResultScreen> {
       data.add(FeatureModel(name: 'Настроение', text: moodsText));
     }
 
-    if (widget.bpmFrom != null && widget.bpmTo != null) {
-      if (widget.bpmFrom != 0 && widget.bpmTo != 0) {
-        String bpmText = '${widget.bpmFrom} - ${widget.bpmTo}';
+    // if (widget.bpmFrom != null && widget.bpmTo != null) {
+    //   if (widget.bpmFrom != 0 && widget.bpmTo != 0) {
+    //     String bpmText = '${widget.bpmFrom} - ${widget.bpmTo}';
 
-        data.add(FeatureModel(name: 'BPM', text: bpmText));
+    //     data.add(FeatureModel(name: 'BPM', text: bpmText));
+    //   }
+    // } else if (widget.bpmFrom != null && widget.bpmTo == 0) {
+    //   String bpmText = widget.bpmFrom.toString();
+
+    //   data.add(FeatureModel(name: 'BPM до', text: bpmText));
+    // } else if (widget.bpmTo != 0) {
+    //   String bpmText = widget.bpmTo.toString();
+
+    //   data.add(FeatureModel(name: 'BPM до', text: bpmText));
+    // }
+
+    if (widget.bpmFrom != null) {
+      if (widget.bpmFrom != 0) {
+        String bpmText = widget.bpmFrom.toString();
+        data.add(FeatureModel(name: 'BPM от', text: bpmText));
+      }
+    }
+    if (widget.bpmTo != null) {
+      if (widget.bpmTo != 0) {
+        String bpmText = widget.bpmTo.toString();
+
+        data.add(FeatureModel(name: 'BPM до', text: bpmText));
       }
     }
 
@@ -106,9 +128,11 @@ class _ResultScreenState extends State<ResultScreen> {
     if (widget.moods?.isNotEmpty ?? false) {
       filters['moods'] = widget.keys!.map((key) => int.parse(key.key)).toList();
     }
-    if (widget.bpmFrom != 0 || widget.bpmTo != 0) {
-      filters['max_bpm'] = widget.bpmTo;
+    if (widget.bpmFrom != 0) {
       filters['min_bpm'] = widget.bpmFrom;
+    }
+    if (widget.bpmTo != 0) {
+      filters['max_bpm'] = widget.bpmTo;
     }
 
     log(filters.toString());
@@ -162,61 +186,68 @@ class _ResultScreenState extends State<ResultScreen> {
           padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
           child: CustomScrollView(
             slivers: [
-              data.isNotEmpty
+              data.isNotEmpty && beatData.isNotEmpty
                   ? SliverPersistentHeader(
                       pinned: false,
                       delegate: _ResultHeaderDelegate(
                         data: data,
+                        countBeats: beatData.length,
                       ),
                     )
                   : const SliverToBoxAdapter(),
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 8, bottom: 80),
-                sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    childCount: beatData.length,
-                    (context, index) {
-                      return Skeletonizer(
-                        enabled: false,
-                        child: NewBeatWidget(
-                          gridItemWidth: gridItemWidth,
-                          beat: beatData[index],
-                          index: index,
-                          width: width,
-                          marginRight: 0,
-                          isLoading: false,
-                          openPlayer: () {
-                            sl<PlayerBloc>()
-                                .add(PlayCurrentBeatEvent(beatData, index));
+              beatData.isNotEmpty
+                  ? SliverPadding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 80),
+                      sliver: SliverGrid(
+                        delegate: SliverChildBuilderDelegate(
+                          childCount: beatData.length,
+                          (context, index) {
+                            return Skeletonizer(
+                              enabled: false,
+                              child: NewBeatWidget(
+                                gridItemWidth: gridItemWidth,
+                                beat: beatData[index],
+                                index: index,
+                                width: width,
+                                marginRight: 0,
+                                isLoading: false,
+                                openPlayer: () {
+                                  sl<PlayerBloc>().add(
+                                      PlayCurrentBeatEvent(beatData, index));
 
-                            context.router.navigate(const PlayerRoute());
-                          },
-                          openInfoBeat: () {
-                            context.router.navigate(
-                              InfoBeatRoute(
-                                beatId: beatData[index].id,
-                              ),
-                            );
-                          },
-                          openInfoBeatmaker: () {
-                            context.router.navigate(
-                              InfoBeatmakerRoute(
-                                beatmakerId: beatData[index].beatmakerId,
+                                  context.router.navigate(const PlayerRoute());
+                                },
+                                openInfoBeat: () {
+                                  context.router.navigate(
+                                    InfoBeatRoute(
+                                      beatId: beatData[index].id,
+                                    ),
+                                  );
+                                },
+                                openInfoBeatmaker: () {},
                               ),
                             );
                           },
                         ),
-                      );
-                    },
-                  ),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisExtent: gridItemWidth + 71,
-                    crossAxisSpacing: 20,
-                    mainAxisSpacing: 20,
-                  ),
-                ),
-              ),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisExtent: gridItemWidth + 71,
+                          crossAxisSpacing: 20,
+                          mainAxisSpacing: 20,
+                        ),
+                      ),
+                    )
+                  : const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Text(
+                          "Нет данных",
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),
@@ -227,8 +258,12 @@ class _ResultScreenState extends State<ResultScreen> {
 
 class _ResultHeaderDelegate extends SliverPersistentHeaderDelegate {
   final List<FeatureModel> data;
+  final int countBeats;
 
-  _ResultHeaderDelegate({required this.data});
+  _ResultHeaderDelegate({
+    required this.data,
+    required this.countBeats,
+  });
 
   @override
   Widget build(
@@ -241,9 +276,18 @@ class _ResultHeaderDelegate extends SliverPersistentHeaderDelegate {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            "Результаты поиска",
-            style: AppTextStyles.headline2,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Результаты поиска",
+                style: AppTextStyles.headline2,
+              ),
+              Text(
+                "Кол-во: $countBeats",
+                style: AppTextStyles.timePlayer,
+              ),
+            ],
           ),
           const SizedBox(
             height: 20,

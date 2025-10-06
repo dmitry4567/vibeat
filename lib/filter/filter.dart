@@ -176,7 +176,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
             onPressed: () {
               context.read<GenreCubit>().clearSelection();
               context.read<TagBloc>().add(CleanTags());
-              context.read<BpmCubit>().updateBpm(0, 0);
+              context.read<BpmCubit>().updateBpm("0", "0");
               context.read<KeyCubit>().clearSelection();
               context.read<MoodCubit>().clearSelection();
 

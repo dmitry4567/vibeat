@@ -49,6 +49,7 @@ class _InfoBeatState extends State<InfoBeatScreen> {
       isSelected: false,
     ),
     bpm: 0,
+    timeStamps: [],
     createAt: 0,
   );
 
@@ -145,6 +146,7 @@ class _InfoBeatState extends State<InfoBeatScreen> {
         isSelected: false,
       ),
       bpm: 0,
+      timeStamps: [],
       createAt: 0,
     ),
   );
@@ -687,6 +689,7 @@ class _InfoBeatState extends State<InfoBeatScreen> {
                                       isSelected: false,
                                     ),
                                     bpm: 0,
+                                    timeStamps: [],
                                     createAt: 0,
                                   ),
                                   width: width,

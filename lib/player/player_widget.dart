@@ -561,10 +561,10 @@ class _PlayerScreenState extends State<PlayerScreen>
 
                         return Positioned.fill(
                           child: ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(55),
-                              topLeft: Radius.circular(55),
-                            ),
+                            // borderRadius: const BorderRadius.only(
+                            //   topRight: Radius.circular(55),
+                            //   topLeft: Radius.circular(55),
+                            // ),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeInOut,
@@ -653,7 +653,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                           state
                                               .trackList[
                                                   state.currentTrackIndex]
-                                              .name,
+                                              .name.trim(),
                                           style: AppTextStyles.headline1,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -741,7 +741,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                   sl<FavoriteLocalDataSource>().clearAllDB();
                                 },
                                 icon: const Icon(
-                                  Icons.shopping_cart,
+                                  Icons.shopping_cart_outlined,
                                 ),
                                 color: AppColors.iconPrimary,
                               ),
@@ -801,14 +801,32 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 child: BlocBuilder<PlayerBloc, PlayerStateApp>(
                                   buildWhen: (previous, current) =>
                                       previous.indexFragment !=
-                                      current.indexFragment,
+                                          current.indexFragment ||
+                                      previous.isTimeStamps !=
+                                          current.isTimeStamps,
                                   builder: (context, state) {
-                                    return Text(
-                                      state.fragmentsNames[state.indexFragment],
-                                      style: AppTextStyles.bodyPrice1.copyWith(
-                                        fontSize: 12,
-                                        color: Colors.white,
-                                        height: 1.375,
+                                    return AnimatedSwitcher(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      child: Align(
+                                        key: ValueKey<String>(state.isTimeStamps
+                                            ? state.fragmentsNames[
+                                                state.indexFragment]
+                                            : ""),
+                                        alignment: Alignment
+                                            .centerLeft, // или нужное выравнивание
+                                        child: Text(
+                                          state.isTimeStamps
+                                              ? state.fragmentsNames[
+                                                  state.indexFragment]
+                                              : "",
+                                          style:
+                                              AppTextStyles.bodyPrice1.copyWith(
+                                            fontSize: 12,
+                                            color: Colors.white,
+                                            height: 1.375,
+                                          ),
+                                        ),
                                       ),
                                     );
                                   },
@@ -993,62 +1011,104 @@ class _PlayerScreenState extends State<PlayerScreen>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    sl<PlayerBloc>().add(
-                                      PreviousFragmentEvent(),
+                                BlocBuilder<PlayerBloc, PlayerStateApp>(
+                                  buildWhen: (previous, current) =>
+                                      previous.isTimeStamps !=
+                                      current.isTimeStamps,
+                                  builder: (context, state) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        sl<PlayerBloc>().add(
+                                          PreviousFragmentEvent(),
+                                        );
+                                      },
+                                      child: state.isTimeStamps
+                                          ? SvgPicture.asset(
+                                              "assets/svg/left_arrow.svg")
+                                          : SvgPicture.asset(
+                                              color:
+                                                  Colors.white.withOpacity(0.4),
+                                              "assets/svg/left_arrow.svg"),
                                     );
                                   },
-                                  child: SvgPicture.asset(
-                                      "assets/svg/left_arrow.svg"),
                                 ),
                                 const SizedBox(
                                   width: 10,
                                 ),
-                                InkWell(
-                                  onTap: () {
-                                    sl<PlayerBloc>().add(
-                                      ToggleLoopFragmentEvent(),
-                                    );
-                                  },
-                                  child:
-                                      BlocBuilder<PlayerBloc, PlayerStateApp>(
-                                    buildWhen: (previous, current) =>
-                                        previous.loopCurrentFragment !=
-                                        current.loopCurrentFragment,
-                                    builder: (context, state) {
-                                      return Container(
-                                        decoration: BoxDecoration(
-                                          color: state.loopCurrentFragment
-                                              ? Colors.white
-                                              : Colors.white.withOpacity(0.4),
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(12)),
-                                        ),
-                                        width: 64,
-                                        height: 47,
-                                        child: Icon(
-                                          Icons.repeat_one,
-                                          color: state.loopCurrentFragment
-                                              ? Colors.black.withOpacity(0.5)
-                                              : const Color.fromARGB(
-                                                  255, 255, 255, 255),
+                                BlocBuilder<PlayerBloc, PlayerStateApp>(
+                                  buildWhen: (previous, current) =>
+                                      previous.loopCurrentFragment !=
+                                          current.loopCurrentFragment ||
+                                      previous.isTimeStamps !=
+                                          current.isTimeStamps,
+                                  builder: (context, state) {
+                                    if (state.isTimeStamps) {
+                                      return InkWell(
+                                        onTap: () {
+                                          sl<PlayerBloc>().add(
+                                            ToggleLoopFragmentEvent(),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: state.loopCurrentFragment
+                                                ? Colors.white
+                                                : Colors.white.withOpacity(0.4),
+                                            borderRadius:
+                                                const BorderRadius.all(
+                                                    Radius.circular(12)),
+                                          ),
+                                          width: 64,
+                                          height: 47,
+                                          child: Icon(
+                                            Icons.repeat_one,
+                                            color: state.loopCurrentFragment
+                                                ? Colors.black.withOpacity(0.5)
+                                                : const Color.fromARGB(
+                                                    255, 255, 255, 255),
+                                          ),
                                         ),
                                       );
-                                    },
-                                  ),
+                                    }
+
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.3),
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(12)),
+                                      ),
+                                      width: 64,
+                                      height: 47,
+                                      child: Icon(
+                                        Icons.repeat_one,
+                                        color: Colors.white.withOpacity(0.3),
+                                      ),
+                                    );
+                                  },
                                 ),
                                 const SizedBox(
                                   width: 10,
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    sl<PlayerBloc>().add(
-                                      NextFragmentEvent(),
+                                BlocBuilder<PlayerBloc, PlayerStateApp>(
+                                  buildWhen: (previous, current) =>
+                                      previous.isTimeStamps !=
+                                      current.isTimeStamps,
+                                  builder: (context, state) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        sl<PlayerBloc>().add(
+                                          NextFragmentEvent(),
+                                        );
+                                      },
+                                      child: state.isTimeStamps
+                                          ? SvgPicture.asset(
+                                              "assets/svg/right_arrow.svg")
+                                          : SvgPicture.asset(
+                                              color:
+                                                  Colors.white.withOpacity(0.4),
+                                              "assets/svg/right_arrow.svg"),
                                     );
                                   },
-                                  child: SvgPicture.asset(
-                                      "assets/svg/right_arrow.svg"),
                                 ),
                               ],
                             ),
@@ -1057,49 +1117,57 @@ class _PlayerScreenState extends State<PlayerScreen>
                         Positioned(
                           left: 12,
                           bottom: 14,
-                          child: Column(
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
+                          child: BlocBuilder<PlayerBloc, PlayerStateApp>(
+                            builder: (context, state) {
+                              return Column(
                                 children: [
-                                  SvgPicture.asset("assets/svg/bpm.svg"),
-                                  const SizedBox(
-                                    width: 4,
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      SvgPicture.asset("assets/svg/bpm.svg"),
+                                      const SizedBox(
+                                        width: 4,
+                                      ),
+                                      Text(
+                                        state.trackList[state.currentTrackIndex]
+                                            .bpm
+                                            .toString(),
+                                        style:
+                                            AppTextStyles.timePlayer.copyWith(
+                                          color: Colors.white.withOpacity(0.8),
+                                          fontSize: 12,
+                                          height: 0.9,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    "163",
-                                    style: AppTextStyles.timePlayer.copyWith(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 12,
-                                      height: 0.9,
-                                    ),
+                                  const SizedBox(
+                                    height: 6,
+                                  ),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      const SizedBox(
+                                        width: 1,
+                                      ),
+                                      SvgPicture.asset("assets/svg/tune.svg"),
+                                      const SizedBox(
+                                        width: 9,
+                                      ),
+                                      Text(
+                                        state.trackList[state.currentTrackIndex].tune,
+                                        style:
+                                            AppTextStyles.timePlayer.copyWith(
+                                          color: Colors.white.withOpacity(0.8),
+                                          fontSize: 12,
+                                          height: 0.9,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                              ),
-                              const SizedBox(
-                                height: 6,
-                              ),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  const SizedBox(
-                                    width: 1,
-                                  ),
-                                  SvgPicture.asset("assets/svg/tune.svg"),
-                                  const SizedBox(
-                                    width: 9,
-                                  ),
-                                  Text(
-                                    "Em",
-                                    style: AppTextStyles.timePlayer.copyWith(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 12,
-                                      height: 0.9,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ),
                         BlocBuilder<PlayerBloc, PlayerStateApp>(

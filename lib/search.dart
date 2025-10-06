@@ -44,6 +44,7 @@ class _SearchScreenState extends State<SearchScreen> {
         isSelected: false,
       ),
       bpm: 0,
+      timeStamps: [],
       createAt: 0,
     ),
   );
@@ -288,13 +289,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ),
                                   );
                                 },
-                                openInfoBeatmaker: () {
-                                  context.router.navigate(
-                                    InfoBeatmakerRoute(
-                                      beatmakerId: beatData[index].beatmakerId,
-                                    ),
-                                  );
-                                },
+                                openInfoBeatmaker: () {},
                                 isLoading: false,
                                 index: index,
                                 beat: beatData[index],
@@ -313,7 +308,28 @@ class _SearchScreenState extends State<SearchScreen> {
                                 openInfoBeatmaker: () {},
                                 isLoading: true,
                                 index: index,
-                                beat: BeatModel.placeholder(),
+                                beat: const BeatModel(
+                                  id: "",
+                                  name: "sefsesfseff",
+                                  description: "sefsef",
+                                  picture: "",
+                                  beatmakerId: "",
+                                  beatmakerName: "sefsef",
+                                  url: "",
+                                  price: 0,
+                                  plays: 0,
+                                  genres: [],
+                                  moods: [],
+                                  tags: [],
+                                  key: KeyModel(
+                                    name: "",
+                                    key: "",
+                                    isSelected: false,
+                                  ),
+                                  bpm: 0,
+                                  timeStamps: [],
+                                  createAt: 0,
+                                ),
                                 width: width,
                                 marginRight: marginRight,
                                 gridItemWidth: gridItemWidth,
@@ -600,8 +616,6 @@ class NewBeatWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Random random = Random();
-
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(6)),
       child: Container(
@@ -671,9 +685,21 @@ class NewBeatWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  Text(
-                    "${beat.price} RUB",
-                    style: AppTextStyles.bodyPrice2,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${beat.price} RUB",
+                        style: AppTextStyles.bodyPrice2,
+                      ),
+                      beat.timeStamps.isNotEmpty
+                          ? Icon(
+                              size: 14,
+                              Icons.access_time,
+                              color: Colors.orange.withOpacity(0.75),
+                            )
+                          : const SizedBox(),
+                    ],
                   ),
                   Text(
                     beat.name,
@@ -767,28 +793,26 @@ class NewBeatWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    beat.plays != 0
-                        ? Row(
-                            children: [
-                              Icon(
-                                Icons.volume_down_outlined,
-                                size: 12,
-                                color: AppColors.unselectedItemColor,
-                              ),
-                              Column(
-                                children: [
-                                  const SizedBox(height: 1),
-                                  Text(
-                                    beat.plays.toString(),
-                                    style: AppTextStyles.bodyText2
-                                        .copyWith(fontSize: 10),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          )
-                        : const SizedBox(),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.volume_down_outlined,
+                          size: 12,
+                          color: AppColors.unselectedItemColor,
+                        ),
+                        Column(
+                          children: [
+                            const SizedBox(height: 1),
+                            Text(
+                              beat.plays.toString(),
+                              style: AppTextStyles.bodyText2
+                                  .copyWith(fontSize: 10),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
