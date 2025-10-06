@@ -9,25 +9,25 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/app/injection_container.dart' as di;
-import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/info_beatmaker/beatmaker.dart';
-import 'package:vibeat/info_beatmaker/widgets/bloc/all_beats_of_beatmaker_bloc.dart';
+import 'package:vibeat/info_beatmaker/bloc/all_beats_of_beatmaker_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 @RoutePage()
-class InfoBeatmaker extends StatefulWidget {
-  const InfoBeatmaker({super.key, required this.beatmakerId});
+class InfoBeatmakerScreen extends StatefulWidget {
+  const InfoBeatmakerScreen({super.key, required this.beatmakerId});
 
   final String beatmakerId;
 
   @override
-  State<InfoBeatmaker> createState() => _InfoBeatmakerState();
+  State<InfoBeatmakerScreen> createState() => _InfoBeatmakerState();
 }
 
-class _InfoBeatmakerState extends State<InfoBeatmaker> {
+class _InfoBeatmakerState extends State<InfoBeatmakerScreen> {
   Beatmaker beatmaker = const Beatmaker(
     id: '',
     username: '',
@@ -40,11 +40,10 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
     ),
   );
 
-  List<BeatEntity> placeholderBeat = List.generate(
+  List<BeatModel> placeholderBeat = List.generate(
     5,
-    (index) => const BeatEntity(
+    (index) => const BeatModel(
       id: "",
-      isCurrentPlaying: false,
       name: "jbksbfkdrbgjkdr",
       description: "",
       picture: "",
@@ -66,13 +65,14 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
     ),
   );
 
-  // List<BeatEntity> beatsOfBeatmaker = [];
+  String? likesCountByBeatmaker;
 
   @override
   void initState() {
     super.initState();
 
     getBeatmakerInfo();
+    getLikesCountByBeatmaker();
     // getBeatsOfBeatmaker();
     context.read<AllBeatsOfBeatmakerBloc>().add(GetBeats(widget.beatmakerId));
   }
@@ -97,24 +97,26 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
     }
   }
 
-  // void getBeatsOfBeatmaker() async {
-  //   final response = await http.get(
-  //     Uri.parse(
-  //         "http://192.168.0.135:7771/api/beat/byBeatmakerId/${widget.beatmakerId}"),
-  //     headers: {'Content-Type': 'application/json'},
-  //   );
+  void getLikesCountByBeatmaker() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final ip = sharedPreferences.getString("ip");
 
-  //   if (response.statusCode == 200) {
-  //     List<dynamic> data = json.decode(response.body)['data'];
+    final response = await http.get(
+      Uri.parse(
+          "http://$ip:8080/activityBeat/viewLikesCountByUserId/${widget.beatmakerId}"),
+      headers: {'Content-Type': 'application/json'},
+    );
 
-  //     if (!mounted) return;
+    if (response.statusCode == 200) {
+      dynamic data = json.decode(response.body)['data'];
 
-  //     setState(() {
-  //       beatsOfBeatmaker =
-  //           data.map((beat) => BeatEntity.fromJson(beat)).toList();
-  //     });
-  //   }
-  // }
+      if (!mounted) return;
+
+      setState(() {
+        likesCountByBeatmaker = data['count'].toString();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +127,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-        centerTitle: true,
+              centerTitle: true,
               stretch: true,
               backgroundColor: AppColors.background,
               excludeHeaderSemantics: true,
@@ -136,10 +138,6 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                 background: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Image.network(
-                    //   'https://sun9-63.userapi.com/impg/I_VmpgvyUNSas3TeQcD9cMpEsWtV6LDXOjDM0A/IG8fKJyhALQ.jpg?size=270x270&quality=95&sign=dfd23dbdcb75df2ba50bee0db00e3633&c_uniq_tag=kGLLQ5z1e3ezZUsn-MBxtz4nfWH3lHV3twPptGaJq8U&type=audio&quot',
-                    //   fit: BoxFit.cover,
-                    // ),
                     beatmaker.profilepicture != ""
                         ? Image.network(
                             beatmaker.profilepicture,
@@ -211,35 +209,11 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  "0",
+                                  likesCountByBeatmaker ?? "0",
                                   style: AppTextStyles.bodyAppbar.copyWith(
                                     fontSize: 10,
                                   ),
-                                )
-
-                                // GestureDetector(
-                                //   onTap: () {},
-                                //   child: Container(
-                                //     width: 42,
-                                //     height: 42,
-                                //     decoration: BoxDecoration(
-                                //       color: Colors.white.withOpacity(0.1),
-                                //       shape: BoxShape.circle,
-                                //     ),
-                                //     alignment: AlignmentDirectional.center,
-                                //     child: const Icon(
-                                //       Icons.favorite_outline,
-                                //       size: 20,
-                                //     ),
-                                //   ),
-                                // ),
-                                // const SizedBox(height: 6),
-                                // Text(
-                                //   "0",
-                                //   style: AppTextStyles.bodyAppbar.copyWith(
-                                //     fontSize: 10,
-                                //   ),
-                                // )
+                                ),
                               ],
                             ),
                             Column(
@@ -248,15 +222,12 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                                   alignment: AlignmentDirectional.topCenter,
                                   child: MaterialButton(
                                     onPressed: () {
-                                      // sl<PlayerBloc>().add(PlayCurrentBeatEvent(
-                                      //     di
-                                      //         .sl<AllBeatsOfBeatmakerBloc>()
-                                      //         .state
-                                      //         .beats,
-                                      //     0));
-
-                                      // context.router
-                                      //     .navigate(const PlayerRoute());
+                                      sl<PlayerBloc>().add(PlayCurrentBeatEvent(
+                                          di
+                                              .sl<AllBeatsOfBeatmakerBloc>()
+                                              .state
+                                              .beats,
+                                          0));
                                     },
                                     color: AppColors.primary,
                                     textColor: Colors.white,
@@ -317,8 +288,15 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                     const Text('Все биты', style: AppTextStyles.headline2),
                     TextButton(
                       onPressed: () {
-                        // context.router
-                        //     .push(PlaylistRoute(title: "fsef", beats: []));
+                        context.router.push(
+                          PlaylistRoute(
+                            title: "Все биты",
+                            beats: context
+                                .read<AllBeatsOfBeatmakerBloc>()
+                                .state
+                                .beats,
+                          ),
+                        );
                       },
                       child: Text(
                         "Посмотреть еще",
@@ -346,45 +324,44 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                             index: index,
                             isCurrentPlaying: false,
                             beat: placeholderBeat[index],
+                            buttonMore: false,
                           ),
                         );
                       },
                     );
                   }
                   if (state.beats.isNotEmpty) {
-                    return SliverList.builder(
-                      itemCount: 5,
-                      itemBuilder: (context, index) {
-                        return Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                              onTap: () {
-                                sl<PlayerBloc>().add(
-                                  PlayCurrentBeatEvent(
-                                    state.beats,
-                                    index,
-                                  ),
-                                );
+                    return BlocBuilder<PlayerBloc, PlayerStateApp>(
+                      buildWhen: (previous, current) =>
+                          previous.currentTrackBeatId !=
+                          current.currentTrackBeatId,
+                      builder: (context, statePlayer) {
+                        return SliverList.builder(
+                          itemCount: 5,
+                          itemBuilder: (context, index) {
+                            return Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                  onTap: () {
+                                    sl<PlayerBloc>().add(
+                                      PlayCurrentBeatEvent(
+                                        state.beats,
+                                        index,
+                                      ),
+                                    );
 
-                                // context.router.navigate(const PlayerRoute());
-                              },
-                              child: BlocSelector<
-                                  AllBeatsOfBeatmakerBloc,
-                                  AllBeatsOfBeatmakerState,
-                                  BeatEntity>(selector: (state) {
-                                return state.beats.firstWhere(
-                                  (track) => track.id == state.beats[index].id,
-                                  orElse: () =>
-                                      throw Exception('Track not found'),
-                                );
-                              }, builder: (context, track) {
-                                return BeatRowWidget(
-                                  index: index,
-                                  isCurrentPlaying:
-                                      state.beats[index].isCurrentPlaying,
-                                  beat: state.beats[index],
-                                );
-                              })),
+                                    // context.router.navigate(const PlayerRoute());
+                                  },
+                                  child: BeatRowWidget(
+                                    index: index,
+                                    isCurrentPlaying: state.beats[index].id ==
+                                        statePlayer.currentTrackBeatId,
+                                    beat: state.beats[index],
+                                    buttonMore: true,
+                                    funcMore: () {},
+                                  )),
+                            );
+                          },
                         );
                       },
                     );
@@ -418,7 +395,7 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Дата регистрация",
+                          "Дата регистрации",
                           style: AppTextStyles.bodyText1.copyWith(
                             fontSize: 16,
                           ),
@@ -662,22 +639,26 @@ class _InfoBeatmakerState extends State<InfoBeatmaker> {
 }
 
 class BeatRowWidget extends StatelessWidget {
-  const BeatRowWidget({
+  BeatRowWidget({
     super.key,
     required this.index,
     required this.isCurrentPlaying,
     required this.beat,
+    required this.buttonMore,
+    this.funcMore,
   });
 
   final int index;
   final bool isCurrentPlaying;
-  final BeatEntity beat;
+  final BeatModel beat;
+  bool buttonMore = false;
+  VoidCallback? funcMore;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: isCurrentPlaying
-          ? AppColors.primary.withOpacity(0.2)
+          ? Colors.white.withOpacity(0.08)
           : Colors.transparent,
       padding: const EdgeInsets.only(
         left: 18,
@@ -721,63 +702,62 @@ class BeatRowWidget extends StatelessWidget {
               },
             ),
           ),
-          // Image.network(
-          //   fit: BoxFit.cover,
-          //   width: 60,
-          //   beatsOfBeatmaker[index].picture,
-          // ),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(
-                "${beat.price} RUB",
-                style: AppTextStyles.bodyPrice2.copyWith(height: 1),
-              ),
-              const SizedBox(height: 6),
-              SizedBox(
-                width: 280,
-                child: Text(
-                  beat.name,
-                  style: AppTextStyles.headline1,
-                  overflow: TextOverflow.ellipsis,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text(
+                  "${beat.price} RUB",
+                  style: AppTextStyles.bodyPrice2.copyWith(height: 1),
                 ),
-              ),
-              const SizedBox(height: 6),
-              const Row(
-                children: [
-                  // const SizedBox(
-                  //   width: 12,
-                  //   height: 12,
-                  //   child: CircleAvatar(
-                  //     backgroundImage: NetworkImage(
-                  //       'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
-                  //     ),
-                  //   ),
-                  // ),
-                  // const SizedBox(width: 4),
-                  // Container(
-                  //   padding: const EdgeInsets.only(
-                  //     right: 5,
-                  //   ),
-                  //   child: Column(
-                  //     children: [
-                  //       const SizedBox(height: 2),
-                  //       Text(
-                  //         "smokeynagato",
-                  //         style: AppTextStyles.bodyText2,
-                  //         overflow: TextOverflow.ellipsis,
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                ],
-              ),
-            ],
-          )
+                const SizedBox(height: 6),
+                SizedBox(
+                  width: 280,
+                  child: Text(
+                    beat.name,
+                    style: AppTextStyles.headline1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 6),
+              ],
+            ),
+          ),
+          buttonMore
+              ? IconButton(
+                  onPressed: funcMore,
+                  icon: const Icon(Icons.more_vert),
+                )
+              : const SizedBox(),
         ],
       ),
     );
   }
 }
+
+
+// GestureDetector(
+//                                   onTap: () {},
+//                                   child: Container(
+//                                     width: 42,
+//                                     height: 42,
+//                                     decoration: BoxDecoration(
+//                                       color: Colors.white.withOpacity(0.1),
+//                                       shape: BoxShape.circle,
+//                                     ),
+//                                     alignment: AlignmentDirectional.center,
+//                                     child: const Icon(
+//                                       Icons.favorite_outline,
+//                                       size: 20,
+//                                     ),
+//                                   ),
+//                                 ),
+//                                 const SizedBox(height: 6),
+//                                 Text(
+//                                   "0",
+//                                   style: AppTextStyles.bodyAppbar.copyWith(
+//                                     fontSize: 10,
+//                                   ),
+//                                 ),

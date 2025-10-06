@@ -1,3 +1,4 @@
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,7 +42,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
   ) async {
     final statusCode = err.response?.statusCode;
 
-    if (statusCode != 401) {
+    if (statusCode != 401 || statusCode == null) {
       return handler.resolve(err.response!);
     }
 

@@ -13,8 +13,9 @@ import 'package:auto_route/auto_route.dart' as _i23;
 import 'package:flutter/material.dart' as _i24;
 import 'package:vibeat/app/bottom_nav_bar.dart' as _i3;
 import 'package:vibeat/cart.dart' as _i2;
-import 'package:vibeat/favorite.dart' as _i5;
 import 'package:vibeat/features/anketa/presentation/pages/anketa.dart' as _i1;
+import 'package:vibeat/features/favorite/data/models/beat_model.dart' as _i26;
+import 'package:vibeat/features/favorite/presentation/favorite.dart' as _i5;
 import 'package:vibeat/features/signIn/presentation/pages/debug_screen.dart'
     as _i4;
 import 'package:vibeat/features/signIn/presentation/pages/signIn.dart' as _i21;
@@ -24,13 +25,13 @@ import 'package:vibeat/filter/result.dart' as _i19;
 import 'package:vibeat/filter/screen/filter_bpm/filter_bpm.dart' as _i6;
 import 'package:vibeat/filter/screen/filter_genre/filter_genre.dart' as _i7;
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart'
-    as _i26;
+    as _i27;
 import 'package:vibeat/filter/screen/filter_key/filter_key.dart' as _i8;
-import 'package:vibeat/filter/screen/filter_key/model/key_model.dart' as _i28;
+import 'package:vibeat/filter/screen/filter_key/model/key_model.dart' as _i29;
 import 'package:vibeat/filter/screen/filter_mood/filter_mood.dart' as _i9;
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart' as _i25;
 import 'package:vibeat/filter/screen/filter_tag/filter_tag.dart' as _i11;
-import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart' as _i27;
+import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart' as _i28;
 import 'package:vibeat/head/head.dart' as _i12;
 import 'package:vibeat/info_beat.dart' as _i13;
 import 'package:vibeat/info_beatmaker/info_beatmaker.dart' as _i14;
@@ -233,31 +234,31 @@ class HeadRoute extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i13.InfoBeat]
-class InfoBeat extends _i23.PageRouteInfo<InfoBeatArgs> {
-  InfoBeat({
+/// [_i13.InfoBeatScreen]
+class InfoBeatRoute extends _i23.PageRouteInfo<InfoBeatRouteArgs> {
+  InfoBeatRoute({
     _i24.Key? key,
     required String beatId,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         InfoBeat.name,
-         args: InfoBeatArgs(key: key, beatId: beatId),
+         InfoBeatRoute.name,
+         args: InfoBeatRouteArgs(key: key, beatId: beatId),
          initialChildren: children,
        );
 
-  static const String name = 'InfoBeat';
+  static const String name = 'InfoBeatRoute';
 
   static _i23.PageInfo page = _i23.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<InfoBeatArgs>();
-      return _i13.InfoBeat(key: args.key, beatId: args.beatId);
+      final args = data.argsAs<InfoBeatRouteArgs>();
+      return _i13.InfoBeatScreen(key: args.key, beatId: args.beatId);
     },
   );
 }
 
-class InfoBeatArgs {
-  const InfoBeatArgs({this.key, required this.beatId});
+class InfoBeatRouteArgs {
+  const InfoBeatRouteArgs({this.key, required this.beatId});
 
   final _i24.Key? key;
 
@@ -265,36 +266,39 @@ class InfoBeatArgs {
 
   @override
   String toString() {
-    return 'InfoBeatArgs{key: $key, beatId: $beatId}';
+    return 'InfoBeatRouteArgs{key: $key, beatId: $beatId}';
   }
 }
 
 /// generated route for
-/// [_i14.InfoBeatmaker]
-class InfoBeatmaker extends _i23.PageRouteInfo<InfoBeatmakerArgs> {
-  InfoBeatmaker({
+/// [_i14.InfoBeatmakerScreen]
+class InfoBeatmakerRoute extends _i23.PageRouteInfo<InfoBeatmakerRouteArgs> {
+  InfoBeatmakerRoute({
     _i24.Key? key,
     required String beatmakerId,
     List<_i23.PageRouteInfo>? children,
   }) : super(
-         InfoBeatmaker.name,
-         args: InfoBeatmakerArgs(key: key, beatmakerId: beatmakerId),
+         InfoBeatmakerRoute.name,
+         args: InfoBeatmakerRouteArgs(key: key, beatmakerId: beatmakerId),
          initialChildren: children,
        );
 
-  static const String name = 'InfoBeatmaker';
+  static const String name = 'InfoBeatmakerRoute';
 
   static _i23.PageInfo page = _i23.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<InfoBeatmakerArgs>();
-      return _i14.InfoBeatmaker(key: args.key, beatmakerId: args.beatmakerId);
+      final args = data.argsAs<InfoBeatmakerRouteArgs>();
+      return _i14.InfoBeatmakerScreen(
+        key: args.key,
+        beatmakerId: args.beatmakerId,
+      );
     },
   );
 }
 
-class InfoBeatmakerArgs {
-  const InfoBeatmakerArgs({this.key, required this.beatmakerId});
+class InfoBeatmakerRouteArgs {
+  const InfoBeatmakerRouteArgs({this.key, required this.beatmakerId});
 
   final _i24.Key? key;
 
@@ -302,7 +306,7 @@ class InfoBeatmakerArgs {
 
   @override
   String toString() {
-    return 'InfoBeatmakerArgs{key: $key, beatmakerId: $beatmakerId}';
+    return 'InfoBeatmakerRouteArgs{key: $key, beatmakerId: $beatmakerId}';
   }
 }
 
@@ -365,7 +369,7 @@ class PlaylistRoute extends _i23.PageRouteInfo<PlaylistRouteArgs> {
   PlaylistRoute({
     _i24.Key? key,
     required String title,
-    required List<_i19.BeatEntity> beats,
+    required List<_i26.BeatModel> beats,
     List<_i23.PageRouteInfo>? children,
   }) : super(
          PlaylistRoute.name,
@@ -395,7 +399,7 @@ class PlaylistRouteArgs {
 
   final String title;
 
-  final List<_i19.BeatEntity> beats;
+  final List<_i26.BeatModel> beats;
 
   @override
   String toString() {
@@ -424,9 +428,9 @@ class ProfileRoute extends _i23.PageRouteInfo<void> {
 class ResultRoute extends _i23.PageRouteInfo<ResultRouteArgs> {
   ResultRoute({
     _i24.Key? key,
-    List<_i26.GenreModel>? genres,
-    List<_i27.TagModel>? tags,
-    List<_i28.KeyModel>? keys,
+    List<_i27.GenreModel>? genres,
+    List<_i28.TagModel>? tags,
+    List<_i29.KeyModel>? keys,
     List<_i25.MoodModel>? moods,
     int? bpmFrom,
     int? bpmTo,
@@ -483,11 +487,11 @@ class ResultRouteArgs {
 
   final _i24.Key? key;
 
-  final List<_i26.GenreModel>? genres;
+  final List<_i27.GenreModel>? genres;
 
-  final List<_i27.TagModel>? tags;
+  final List<_i28.TagModel>? tags;
 
-  final List<_i28.KeyModel>? keys;
+  final List<_i29.KeyModel>? keys;
 
   final List<_i25.MoodModel>? moods;
 

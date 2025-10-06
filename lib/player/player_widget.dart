@@ -7,9 +7,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/features/favorite/data/datasources/favorite_local_data_source.dart';
+import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/player/widgets/like_button.dart';
 import 'package:vibeat/player/widgets/player_control_widget.dart';
 
 import '../utils/theme.dart';
@@ -86,29 +90,28 @@ class _PlayerScreenState extends State<PlayerScreen>
       duration: const Duration(milliseconds: 300),
     );
 
-    final initialPage = sl<PlayerBloc>().state.currentTrackIndex;
-
+    // Убираем получение initialPage из состояния, так как оно может быть устаревшим
     controller.stopPlayer();
 
     screenWidth = 390.0;
     coverWidth = 390 - 60.0;
-
     percentWidthCover = (coverWidth! * 100.0) / screenWidth!;
 
+    final currentIndex = sl<PlayerBloc>().state.currentTrackIndex;
+
+    // Создаем PageController без initialPage, он будет установлен позже
     _pageController = PageController(
       viewportFraction: percentWidthCover! / 100,
-      initialPage: initialPage,
+      initialPage: currentIndex,
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Получаем размер экрана после построения виджета
       final mediaQuery = MediaQuery.of(context);
       _maxPosition = mediaQuery.size.height;
+
+      // Устанавливаем начальную страницу после построения виджета
+      _pageController.jumpToPage(currentIndex);
     });
-
-    // _pageController.addListener(_pageListener);
-
-    // _downloadAudioFile();
   }
 
   // void _pageListener() {
@@ -543,29 +546,57 @@ class _PlayerScreenState extends State<PlayerScreen>
               Stack(
                 children: [
                   Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(55),
-                        topLeft: Radius.circular(55),
-                      ),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [primaryColor, secondaryColor],
-                          ),
-                        ),
-                      ),
+                    child: Container(
+                      color: Colors.black,
                     ),
                   ),
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withOpacity(0.5),
-                    ),
+                  BlocBuilder<PlayerBloc, PlayerStateApp>(
+                    buildWhen: (previous, current) =>
+                        previous.colorsOfBackground !=
+                        current.colorsOfBackground,
+                    builder: (context, state) {
+                      if (state.colorsOfBackground != Colors.black) {
+                        final hsl =
+                            HSLColor.fromColor(state.colorsOfBackground);
+
+                        return Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(55),
+                              topLeft: Radius.circular(55),
+                            ),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    hsl
+                                        .withLightness((hsl.lightness + 0.2)
+                                            .clamp(0.5, 0.7))
+                                        .toColor(),
+                                    state.colorsOfBackground,
+                                    hsl
+                                        .withLightness((hsl.lightness * 0.7)
+                                            .clamp(0.3, 0.5))
+                                        .toColor(),
+                                    hsl
+                                        .withLightness((hsl.lightness * 0.4)
+                                            .clamp(0.15, 0.25))
+                                        .toColor(),
+                                  ],
+                                  stops: const [0.0, 0.4, 0.7, 1.0],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Container();
+                    },
                   ),
                 ],
               ),
@@ -599,10 +630,10 @@ class _PlayerScreenState extends State<PlayerScreen>
                               //   ),
                               // ),
 
-                              BlocBuilder<PlayerBloc, PlayerState>(
-                                buildWhen: (previous, current) =>
-                                    previous.currentTrackIndex !=
-                                    current.currentTrackIndex,
+                              BlocBuilder<PlayerBloc, PlayerStateApp>(
+                                // buildWhen: (previous, current) =>
+                                // previous.currentTrackIndex !=
+                                // current.currentTrackIndex,
                                 builder: (context, state) {
                                   if (state.trackList.isNotEmpty) {
                                     return AnimatedSwitcher(
@@ -634,7 +665,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 },
                               ),
 
-                              // BlocBuilder<PlayerBloc, PlayerState>(
+                              // BlocBuilder<PlayerBloc, PlayerStateApp>(
                               //     buildWhen: (previous, current) =>
                               //         previous.currentTrackIndex !=
                               //         current.currentTrackIndex,
@@ -671,7 +702,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                               const SizedBox(
                                 height: 2,
                               ),
-                              BlocBuilder<PlayerBloc, PlayerState>(
+                              BlocBuilder<PlayerBloc, PlayerStateApp>(
                                 // buildWhen: (previous, current) =>
                                 //     previous.currentTrackIndex !=
                                 //     current.currentTrackIndex,
@@ -706,18 +737,28 @@ class _PlayerScreenState extends State<PlayerScreen>
                           child: Row(
                             children: [
                               IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  sl<FavoriteLocalDataSource>().clearAllDB();
+                                },
                                 icon: const Icon(
                                   Icons.shopping_cart,
                                 ),
                                 color: AppColors.iconPrimary,
                               ),
-                              IconButton(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.favorite_border,
-                                ),
-                                color: AppColors.iconPrimary,
+                              BlocBuilder<PlayerBloc, PlayerStateApp>(
+                                buildWhen: (previous, current) =>
+                                    previous.currentTrackIndex !=
+                                    current.currentTrackIndex,
+                                builder: (context, state) {
+                                  return LikeButton(
+                                    isLiked: context
+                                        .read<FavoriteBloc>()
+                                        .isFavoriteBeat(
+                                            state.currentTrackBeatId)
+                                        .getOrElse(() => false),
+                                    beatId: state.currentTrackBeatId,
+                                  );
+                                },
                               ),
                               IconButton(
                                 onPressed: () {},
@@ -752,27 +793,28 @@ class _PlayerScreenState extends State<PlayerScreen>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Align(
-                            //   alignment: Alignment.centerLeft,
-                            //   child: Padding(
-                            //     padding: const EdgeInsets.only(top: 5, left: 12),
-                            //     child: BlocBuilder<PlayerBloc, PlayerState>(
-                            //       buildWhen: (previous, current) =>
-                            //           previous.indexFragment !=
-                            //           current.indexFragment,
-                            //       builder: (context, state) {
-                            //         return Text(
-                            //           state.fragmentsNames[state.indexFragment],
-                            //           style: AppTextStyles.bodyPrice1.copyWith(
-                            //             fontSize: 12,
-                            //             color: Colors.white,
-                            //             height: 1.375,
-                            //           ),
-                            //         );
-                            //       },
-                            //     ),
-                            //   ),
-                            // ),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 5, left: 12),
+                                child: BlocBuilder<PlayerBloc, PlayerStateApp>(
+                                  buildWhen: (previous, current) =>
+                                      previous.indexFragment !=
+                                      current.indexFragment,
+                                  builder: (context, state) {
+                                    return Text(
+                                      state.fragmentsNames[state.indexFragment],
+                                      style: AppTextStyles.bodyPrice1.copyWith(
+                                        fontSize: 12,
+                                        color: Colors.white,
+                                        height: 1.375,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
                             Container(
                               padding: const EdgeInsets.only(top: 5),
                               child: Container(
@@ -783,10 +825,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                                   onTapDown: (details) {
                                     final RenderBox box =
                                         context.findRenderObject() as RenderBox;
+
                                     final Offset localPosition = box
                                         .globalToLocal(details.globalPosition);
+
                                     final double percent =
                                         localPosition.dx / box.size.width;
+
                                     // final duration = context
                                     //     .read<PlayerBloc>()
                                     //     .player
@@ -815,58 +860,76 @@ class _PlayerScreenState extends State<PlayerScreen>
                                     );
                                   },
                                   onHorizontalDragEnd: (details) {
-                                    // final duration = context
-                                    //     .read<PlayerBloc>()
-                                    //     .player
-                                    //     .duration;
-                                    // final progress = context
-                                    //     .read<PlayerBloc>()
-                                    //     .state
-                                    //     .dragProgress;
+                                    final duration = context
+                                        .read<PlayerBloc>()
+                                        .player
+                                        .duration;
+                                    final progress = context
+                                        .read<PlayerBloc>()
+                                        .state
+                                        .dragProgress;
 
-                                    // if (duration != null && progress != null) {
-                                    //   final position =
-                                    //       duration.inMilliseconds * progress;
-                                    //   sl<PlayerBloc>().player.seek(
-                                    //         Duration(
-                                    //             milliseconds: position.round()),
-                                    //       );
-                                    // }
-                                    // sl<PlayerBloc>().add(
-                                    //   UpdateDragProgressEvent(null),
-                                    // );
+                                    if (duration != null && progress != null) {
+                                      final position =
+                                          duration.inMilliseconds * progress;
+
+                                      sl<PlayerBloc>().player.seek(
+                                            Duration(
+                                                milliseconds: position.round()),
+                                          );
+                                    }
+                                    sl<PlayerBloc>().add(
+                                      UpdateDragProgressEvent(null),
+                                    );
                                   },
-                                  // child: BlocBuilder<PlayerBloc, PlayerState>(
-                                  //     buildWhen: (previous, current) =>
-                                  //         previous.progress / 100 !=
-                                  //         current.progress / 100,
-                                  //     builder: (context, state) {
-                                  //       return CustomPaint(
-                                  //         painter: WaveformPainter(
-                                  //           waveformData: state.waveformData,
-                                  //           progress: state.dragProgress != null
-                                  //               ? state.dragProgress!
-                                  //               : state.progress,
-                                  //           fixedWaveColor:
-                                  //               Colors.white.withOpacity(0.4),
-                                  //           liveWaveColor: Colors.white,
-                                  //           spacing: 4,
-                                  //           scaleFactor: 54,
-                                  //           waveCap: StrokeCap.round,
-                                  //         ),
-                                  //         size: Size(
-                                  //             MediaQuery.of(context).size.width -
-                                  //                 32,
-                                  //             100),
-                                  //       );
-                                  //     }),
+                                  child:
+                                      BlocBuilder<PlayerBloc, PlayerStateApp>(
+                                    buildWhen: (previous, current) =>
+                                        previous.progress != current.progress ||
+                                        previous.waveformData !=
+                                            current.waveformData,
+                                    builder: (context, state) {
+                                      return AnimatedSwitcher(
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        transitionBuilder: (Widget child,
+                                            Animation<double> animation) {
+                                          return FadeTransition(
+                                            opacity: animation,
+                                            child: child,
+                                          );
+                                        },
+                                        child: CustomPaint(
+                                          key: ValueKey(
+                                              state.waveformData.hashCode),
+                                          painter: WaveformPainter(
+                                            waveformData: state.waveformData,
+                                            progress: state.dragProgress != null
+                                                ? state.dragProgress!
+                                                : state.progress,
+                                            fixedWaveColor:
+                                                Colors.white.withOpacity(0.4),
+                                            liveWaveColor: Colors.white,
+                                            spacing: 4,
+                                            scaleFactor: 54,
+                                            waveCap: StrokeCap.round,
+                                          ),
+                                          size: Size(
+                                            MediaQuery.of(context).size.width -
+                                                32,
+                                            100,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
                             // Padding(
                             //   padding: const EdgeInsets.only(
                             //       top: 5, left: 12, right: 12),
-                            //   child: BlocBuilder<PlayerBloc, PlayerState>(
+                            //   child: BlocBuilder<PlayerBloc, PlayerStateApp>(
                             //     builder: (context, state) {
                             //       final player =
                             //           di.sl<PlayerBloc>().player;
@@ -900,7 +963,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  BlocBuilder<PlayerBloc, PlayerState>(
+                                  BlocBuilder<PlayerBloc, PlayerStateApp>(
                                     buildWhen: (previous, current) =>
                                         previous.position.inSeconds !=
                                         current.position.inSeconds,
@@ -911,7 +974,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                       );
                                     },
                                   ),
-                                  BlocBuilder<PlayerBloc, PlayerState>(
+                                  BlocBuilder<PlayerBloc, PlayerStateApp>(
                                     buildWhen: (previous, current) =>
                                         previous.duration != current.duration,
                                     builder: (context, state) {
@@ -948,7 +1011,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                                       ToggleLoopFragmentEvent(),
                                     );
                                   },
-                                  child: BlocBuilder<PlayerBloc, PlayerState>(
+                                  child:
+                                      BlocBuilder<PlayerBloc, PlayerStateApp>(
                                     buildWhen: (previous, current) =>
                                         previous.loopCurrentFragment !=
                                         current.loopCurrentFragment,
@@ -1038,7 +1102,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                             ],
                           ),
                         ),
-                        BlocBuilder<PlayerBloc, PlayerState>(
+                        BlocBuilder<PlayerBloc, PlayerStateApp>(
                           builder: (context, state) {
                             return Positioned(
                               right: 4,
@@ -1054,7 +1118,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                             const Duration(milliseconds: 300))
                                         .then((_) {
                                       router.push(
-                                        InfoBeat(
+                                        InfoBeatRoute(
                                           beatId: beatId,
                                         ),
                                       );
@@ -1091,26 +1155,48 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 }
 
-class ImagesPageBuilder extends StatelessWidget {
-  ImagesPageBuilder({
+class ImagesPageBuilder extends StatefulWidget {
+  const ImagesPageBuilder({
     super.key,
     required this.coverWidth,
     required this.pageController,
-    this.currentPage = 0,
-    this.targetPage = 0,
-    this.isScrolling = false,
   });
 
   final double coverWidth;
   final PageController pageController;
-  int currentPage;
-  int targetPage;
-  bool isScrolling;
+
+  @override
+  State<ImagesPageBuilder> createState() => _ImagesPageBuilderState();
+}
+
+class _ImagesPageBuilderState extends State<ImagesPageBuilder> {
+  int currentPage = 0;
+  int targetPage = 0;
+  bool isScrollingByFinger = false;
+  bool _wasManualScroll = false;
+  int _lastExternalTrackIndex = 0;
+  bool _isUserInitiatedScroll = false;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Немедленно переходим к правильной странице после инициализации
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = sl<PlayerBloc>().state;
+
+      if (state.isInitialized && state.trackList.isNotEmpty) {
+        widget.pageController.jumpToPage(state.currentTrackIndex);
+
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Stack(
       children: [
         Positioned(
@@ -1119,70 +1205,102 @@ class ImagesPageBuilder extends StatelessWidget {
           left: 0,
           right: 0,
           child: Container(
-            width: coverWidth,
-            height: coverWidth,
+            width: widget.coverWidth,
+            height: widget.coverWidth,
             decoration: BoxDecoration(
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(6.0),
-              boxShadow: const [
-                // BoxShadow(
-                //   color: Colors.white24,
-                //   blurRadius: 50,
-                //   spreadRadius: 0,
-                // ),
-              ],
             ),
           ),
         ),
         Container(
           margin: const EdgeInsets.only(top: 90),
-          height: coverWidth,
-          child: BlocBuilder<PlayerBloc, PlayerState>(
-            buildWhen: (previous, current) =>
-                previous.currentTrackIndex != current.currentTrackIndex,
+          height: widget.coverWidth,
+          child: BlocConsumer<PlayerBloc, PlayerStateApp>(
+            listener: (context, state) async {
+              final bool isExternalChange =
+                  state.currentTrackIndex != _lastExternalTrackIndex &&
+                      !isScrollingByFinger &&
+                      !_wasManualScroll;
+
+              if (isExternalChange) {
+                _lastExternalTrackIndex = state.currentTrackIndex;
+
+                final int currentPageValue =
+                    widget.pageController.page?.round() ?? 0;
+
+                if (state.currentTrackIndex != currentPageValue) {
+                  // Используем jumpToPage для немедленного перехода
+                  widget.pageController.animateToPage(
+                    state.currentTrackIndex,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.linearToEaseOut,
+                  );
+                }
+              }
+            },
             builder: (context, state) {
+              if (_isInitialized && state.trackList.isEmpty) {
+                return Center(
+                  child: Skeletonizer(
+                    enabled: true,
+                    child: Container(
+                      width: widget.coverWidth,
+                      height: widget.coverWidth,
+                      color: Colors.grey,
+                    ),
+                  ),
+                );
+              }
               return NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification notification) {
                   if (notification is ScrollStartNotification) {
-                    isScrolling = true;
+                    // Запоминаем, был ли скролл инициирован пользователем
+                    _isUserInitiatedScroll = notification.dragDetails != null;
+                    isScrollingByFinger = _isUserInitiatedScroll;
+                    _wasManualScroll = _isUserInitiatedScroll;
                   } else if (notification is ScrollUpdateNotification) {
-                    final page = pageController.page ?? 0.0;
+                    final page = widget.pageController.page ?? 0.0;
                     targetPage = page.round();
                   } else if (notification is ScrollEndNotification) {
-                    isScrolling = false;
-                    if (targetPage != currentPage) {
+                    // Используем сохраненный флаг вместо проверки dragDetails
+                    if (_isUserInitiatedScroll && targetPage != currentPage) {
                       currentPage = targetPage;
-
-                      sl<PlayerBloc>()
+                      context
+                          .read<PlayerBloc>()
                           .add(UpdateCurrentTrackIndexEvent(currentPage));
                     }
+
+                    // Сбрасываем флаги после окончания скролла
+                    isScrollingByFinger = false;
+                    _wasManualScroll = false;
+                    _isUserInitiatedScroll = false;
                   }
                   return false;
                 },
                 child: PageView.custom(
-                  controller: pageController,
+                  controller: widget.pageController,
                   childrenDelegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      double scale =
-                          (index == pageController.initialPage) ? 1.0 : 0.9;
+                      double scale = 1.0;
                       return AnimatedBuilder(
-                        animation: pageController,
+                        animation: widget.pageController,
                         builder: (context, child) {
-                          if (pageController.position.haveDimensions) {
-                            double currentPage = pageController.page ??
-                                pageController.initialPage.toDouble();
-                            scale = (1 - (currentPage - index).abs() * 0.3)
-                                .clamp(0.9, 1.0);
-                          }
+                          // if (widget.pageController.position.haveDimensions) {
+                          double currentPageValue =
+                              widget.pageController.page ??
+                                  widget.pageController.initialPage.toDouble();
+                          scale = (1 - (currentPageValue - index).abs() * 0.3)
+                              .clamp(0.9, 1.0);
+                          // }
                           return Transform.scale(
                             scale: scale,
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12.0),
                               child: CachedNetworkImage(
-                                imageUrl:
-                                    state.trackList[index].photoUrl,
-                                width: coverWidth,
-                                height: coverWidth,
+                                imageUrl: state.trackList[index].photoUrl,
+                                width: widget.coverWidth,
+                                height: widget.coverWidth,
                                 fit: BoxFit.cover,
                                 errorWidget: (context, imageUrl, error) =>
                                     ClipRRect(
@@ -1203,48 +1321,9 @@ class ImagesPageBuilder extends StatelessWidget {
                       );
                     },
                     childCount: state.trackList.length,
-                    // Оптимизация производительности:
-                    addAutomaticKeepAlives: true, // Сохраняем состояние видимых
-                    addRepaintBoundaries: true, // Добавляем границы перерисовки
+                    addAutomaticKeepAlives: true,
+                    addRepaintBoundaries: true,
                   ),
-                  // itemCount: state.trackList.length,
-                  // onPageChanged: (value) async {
-                  // log(value);
-                  // if (value > state.currentTrackIndex) {
-                  //   // context
-                  //   //     .read<PlayerBloc>()
-                  //   //     .add(NextTrackEvent());
-
-                  //   context
-                  //       .read<PlayerBloc>()
-                  //       .add(NextBeatInPlaylistEvent());
-
-                  //   await loadImageAndColors(state
-                  //       .trackList[state.currentTrackIndex]
-                  //       .photoUrl);
-                  // } else {
-                  //   // context
-                  //   //     .read<PlayerBloc>()
-                  //   //     .add(PreviousTrackEvent());
-                  // }
-
-                  // context
-                  //     .read<PlayerBloc>()
-                  //     .add(UpdateCurrentTrackEvent(value));
-                  // },
-                  // itemBuilder: (context, index) {
-                  // final currentPage =
-                  //     _pageController.page?.round() ?? 0;
-
-                  // const renderRange =
-                  //     3; // Рендерим +-2 страницы от текущей
-
-                  // if ((index - currentPage).abs() > renderRange) {
-                  //   return const SizedBox
-                  //       .shrink(); // Не рендерим далекие элементы
-                  // }
-
-                  // },
                 ),
               );
             },

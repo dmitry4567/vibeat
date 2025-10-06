@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
-import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
@@ -23,11 +23,10 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   List<GenreModel> genresData = [];
-  List<BeatEntity> placeholderBeat = List.generate(
+  List<BeatModel> placeholderBeat = List.generate(
     5,
-    (index) => const BeatEntity(
+    (index) => const BeatModel(
       id: "",
-      isCurrentPlaying: false,
       name: "",
       description: "",
       picture: "",
@@ -59,7 +58,7 @@ class _SearchScreenState extends State<SearchScreen> {
         isSelected: false),
   );
 
-  List<BeatEntity> beatData = [];
+  List<BeatModel> beatData = [];
 
   final TextEditingController textController1 = TextEditingController();
 
@@ -96,8 +95,7 @@ class _SearchScreenState extends State<SearchScreen> {
       List<dynamic> data = json.decode(response.body)['data'];
 
       setState(() {
-        beatData =
-            data.map((json) => BeatEntity.fromJson(json, "false")).toList();
+        beatData = data.map((json) => BeatModel.fromJson(json)).toList();
       });
     }
     if (response.statusCode == 500) {
@@ -285,8 +283,15 @@ class _SearchScreenState extends State<SearchScreen> {
                                 },
                                 openInfoBeat: () {
                                   context.router.navigate(
-                                    InfoBeat(
+                                    InfoBeatRoute(
                                       beatId: beatData[index].id,
+                                    ),
+                                  );
+                                },
+                                openInfoBeatmaker: () {
+                                  context.router.navigate(
+                                    InfoBeatmakerRoute(
+                                      beatmakerId: beatData[index].beatmakerId,
                                     ),
                                   );
                                 },
@@ -305,30 +310,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               child: NewBeatWidget(
                                 openPlayer: () {},
                                 openInfoBeat: () {},
+                                openInfoBeatmaker: () {},
                                 isLoading: true,
                                 index: index,
-                                beat: const BeatEntity(
-                                  id: "",
-                                  isCurrentPlaying: false,
-                                  name: "sefsesfseff",
-                                  description: "sefsef",
-                                  picture: "",
-                                  beatmakerId: "",
-                                  beatmakerName: "sefsef",
-                                  url: "",
-                                  price: 0,
-                                  plays: 0,
-                                  genres: [],
-                                  moods: [],
-                                  tags: [],
-                                  key: KeyModel(
-                                    name: "",
-                                    key: "",
-                                    isSelected: false,
-                                  ),
-                                  bpm: 0,
-                                  createAt: 0,
-                                ),
+                                beat: BeatModel.placeholder(),
                                 width: width,
                                 marginRight: marginRight,
                                 gridItemWidth: gridItemWidth,
@@ -577,7 +562,7 @@ class GenreWidget extends StatelessWidget {
 }
 
 class NewBeatWidget extends StatelessWidget {
-  final BeatEntity beat;
+  final BeatModel beat;
   final int index;
   final double width;
   final double marginRight;
@@ -585,6 +570,7 @@ class NewBeatWidget extends StatelessWidget {
   final bool isLoading;
   final VoidCallback openPlayer;
   final VoidCallback openInfoBeat;
+  final VoidCallback openInfoBeatmaker;
 
   const NewBeatWidget({
     super.key,
@@ -596,6 +582,20 @@ class NewBeatWidget extends StatelessWidget {
     required this.isLoading,
     required this.openPlayer,
     required this.openInfoBeat,
+    required this.openInfoBeatmaker,
+  });
+
+  const NewBeatWidget.v2({
+    super.key,
+    required this.beat,
+    required this.index,
+    required this.width,
+    required this.marginRight,
+    required this.gridItemWidth,
+    required this.isLoading,
+    required this.openPlayer,
+    required this.openInfoBeat,
+    required this.openInfoBeatmaker,
   });
 
   @override
@@ -672,7 +672,7 @@ class NewBeatWidget extends StatelessWidget {
                 children: [
                   const SizedBox(height: 4),
                   Text(
-                    "${getRandomNumber(10, 20) * 100} RUB",
+                    "${beat.price} RUB",
                     style: AppTextStyles.bodyPrice2,
                   ),
                   Text(
@@ -685,10 +685,7 @@ class NewBeatWidget extends StatelessWidget {
             ),
 
             GestureDetector(
-              onTap: () {
-                context.router
-                    .navigate(InfoBeatmaker(beatmakerId: beat.beatmakerId));
-              },
+              onTap: openInfoBeatmaker,
               child: Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Row(
@@ -770,26 +767,28 @@ class NewBeatWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.volume_down_outlined,
-                          size: 12,
-                          color: AppColors.unselectedItemColor,
-                        ),
-                        Column(
-                          children: [
-                            const SizedBox(height: 1),
-                            Text(
-                              random.nextInt(1000).toString(),
-                              style: AppTextStyles.bodyText2
-                                  .copyWith(fontSize: 10),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    beat.plays != 0
+                        ? Row(
+                            children: [
+                              Icon(
+                                Icons.volume_down_outlined,
+                                size: 12,
+                                color: AppColors.unselectedItemColor,
+                              ),
+                              Column(
+                                children: [
+                                  const SizedBox(height: 1),
+                                  Text(
+                                    beat.plays.toString(),
+                                    style: AppTextStyles.bodyText2
+                                        .copyWith(fontSize: 10),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                        : const SizedBox(),
                   ],
                 ),
               ),

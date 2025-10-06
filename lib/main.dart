@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:vibeat/app/app_router.dart';
 import 'package:vibeat/app/router.dart';
+import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/features/anketa/presentation/bloc/anketa_bloc.dart';
 import 'package:vibeat/features/signIn/presentation/bloc/auth_bloc.dart';
 import 'package:vibeat/filter/bloc/filter_bloc.dart';
@@ -11,7 +12,7 @@ import 'package:vibeat/filter/screen/filter_genre/cubit/genre_cubit.dart';
 import 'package:vibeat/filter/screen/filter_key/cubit/key_cubit.dart';
 import 'package:vibeat/filter/screen/filter_mood/cubit/mood_cubit.dart';
 import 'package:vibeat/filter/screen/filter_tag/bloc/tag_bloc.dart';
-import 'package:vibeat/info_beatmaker/widgets/bloc/all_beats_of_beatmaker_bloc.dart';
+import 'package:vibeat/info_beatmaker/bloc/all_beats_of_beatmaker_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:vibeat/widgets/custom_error.dart';
@@ -19,9 +20,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:vibeat/app/injection_container.dart' as di;
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   await di.init();
 
   await Firebase.initializeApp(
@@ -47,6 +48,9 @@ Future<void> main() async {
           ),
           BlocProvider(
             create: (context) => di.sl<AllBeatsOfBeatmakerBloc>(),
+          ),
+          BlocProvider(
+            create: (context) => di.sl<FavoriteBloc>(),
           ),
           BlocProvider(create: (_) => FilterBloc()),
           BlocProvider(create: (_) => GenreCubit()),

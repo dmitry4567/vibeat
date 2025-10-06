@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
-import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
@@ -17,7 +17,7 @@ class PlaylistScreen extends StatefulWidget {
   });
 
   final String title;
-  final List<BeatEntity> beats;
+  final List<BeatModel> beats;
 
   @override
   State<PlaylistScreen> createState() => _PlaylistScreenState();
@@ -68,8 +68,15 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                           },
                           openInfoBeat: () {
                             context.router.navigate(
-                              InfoBeat(
+                              InfoBeatRoute(
                                 beatId: widget.beats[index].id,
+                              ),
+                            );
+                          },
+                          openInfoBeatmaker: () {
+                            context.router.navigate(
+                              InfoBeatmakerRoute(
+                                beatmakerId: widget.beats[index].beatmakerId,
                               ),
                             );
                           },

@@ -4,6 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:vibeat/core/api_client.dart';
 import 'package:vibeat/core/constants/strings.dart';
+import 'package:vibeat/core/errors/exceptions.dart';
+import 'package:vibeat/features/favorite/domain/repositories/favorite_repository.dart';
 import 'package:vibeat/features/signIn/domain/entities/user_entity.dart';
 import 'package:vibeat/features/signIn/domain/repositories/auth_repository.dart';
 import 'package:dio/dio.dart' as d;
@@ -13,14 +15,17 @@ class AuthRepositoryImpl implements AuthRepository {
   final GoogleSignIn _googleSignIn;
   final FlutterSecureStorage _secureStorage;
   final ApiClient _apiClient;
+  final FavoriteRepository _favoriteRepository;
 
   AuthRepositoryImpl({
     required GoogleSignIn googleSignIn,
     required FlutterSecureStorage secureStorage,
     required ApiClient apiClient,
+    required FavoriteRepository favoriteRepository,
   })  : _googleSignIn = googleSignIn,
         _secureStorage = secureStorage,
-        _apiClient = apiClient;
+        _apiClient = apiClient,
+        _favoriteRepository = favoriteRepository;
 
   @override
   Future<Tuple2<UserEntity?, String?>> signInWithEmailAndPassword(
@@ -41,6 +46,13 @@ class AuthRepositoryImpl implements AuthRepository {
         },
       );
 
+      if (response.statusCode != 200) {
+        throw APIException(
+          message: response.data['message'],
+          statusCode: response.statusCode!,
+        );
+      }
+
       final responseData = response.data;
 
       final user = UserEntity(
@@ -51,14 +63,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
       await cacheUser(user, AuthType.email);
 
-      return Tuple2(user, null);
-    } on d.DioException catch (e) {
-      final responseData = e.response!.data;
+      await _favoriteRepository.syncRemoteLocalFavoriteBeats();
 
-      return Tuple2(null, responseData['message']);
-    } catch (e) {
-      log('Error in signInWithEmailAndPassword: $e');
-      return const Tuple2(null, 'Server error');
+      return Tuple2(user, null);
+    } on APIException catch (e) {
+      final responseData = e.message;
+
+      return Tuple2(null, responseData);
     }
   }
 
@@ -69,7 +80,7 @@ class AuthRepositoryImpl implements AuthRepository {
   ) async {
     try {
       final response = await _apiClient.post(
-        '/register',
+        '/user/register',
         options: d.Options(
           headers: {
             'Content-Type': 'application/json',
@@ -128,8 +139,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final responseData = response.data;
 
       final user = UserEntity(
-        jwtToken: responseData['access_token'],
-        refreshToken: responseData['refresh_token'],
+        jwtToken: responseData['data']['access_token'],
+        refreshToken: responseData['data']['refresh_token'],
         authType: AuthType.google,
       );
 

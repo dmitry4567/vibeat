@@ -1,7 +1,7 @@
 part of 'all_beats_of_beatmaker_bloc.dart';
 
 class AllBeatsOfBeatmakerState extends Equatable {
-  final List<BeatEntity> beats;
+  final List<BeatModel> beats;
   final bool isLoading;
 
   const AllBeatsOfBeatmakerState({
@@ -10,7 +10,7 @@ class AllBeatsOfBeatmakerState extends Equatable {
   });
 
   AllBeatsOfBeatmakerState copyWith({
-    List<BeatEntity>? beats,
+    List<BeatModel>? beats,
     bool? isLoading,
   }) {
     return AllBeatsOfBeatmakerState(

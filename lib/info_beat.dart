@@ -1,22 +1,24 @@
 import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
-import 'package:vibeat/core/api_client.dart';
-import 'package:vibeat/filter/result.dart';
+import 'package:vibeat/features/favorite/data/models/beat_model.dart';
+import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:http/http.dart' as http;
 
 @RoutePage()
-class InfoBeat extends StatefulWidget {
-  const InfoBeat({
+class InfoBeatScreen extends StatefulWidget {
+  const InfoBeatScreen({
     super.key,
     required this.beatId,
   });
@@ -24,13 +26,12 @@ class InfoBeat extends StatefulWidget {
   final String beatId;
 
   @override
-  State<InfoBeat> createState() => _InfoBeatState();
+  State<InfoBeatScreen> createState() => _InfoBeatState();
 }
 
-class _InfoBeatState extends State<InfoBeat> {
-  BeatEntity beat = const BeatEntity(
+class _InfoBeatState extends State<InfoBeatScreen> {
+  BeatModel beat = const BeatModel(
     id: "",
-    isCurrentPlaying: false,
     name: "",
     description: "",
     picture: "",
@@ -52,7 +53,7 @@ class _InfoBeatState extends State<InfoBeat> {
   );
 
   int countLikes = 0;
-  bool isLike = false;
+  bool isLiked = false;
 
   final List<String> tags = [
     '#hardstyle',
@@ -69,6 +70,8 @@ class _InfoBeatState extends State<InfoBeat> {
     '#detroit',
   ];
 
+  List<BeatModel> beatData = [];
+
   @override
   void initState() {
     super.initState();
@@ -76,43 +79,99 @@ class _InfoBeatState extends State<InfoBeat> {
 
     getLikesCountByBeat();
     getBeatInfo();
+    getSimilarBeats();
+
+    isLiked = context
+        .read<FavoriteBloc>()
+        .isFavoriteBeat(widget.beatId)
+        .getOrElse(() => false);
   }
 
-  Future<void> postNewLike() async {
-    final apiClient = sl<ApiClient>().dio;
+  // Future<void> postNewLike() async {
+  //   final apiClient = sl<ApiClient>().dio;
 
+  //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  //   final ip = sharedPreferences.getString("ip");
+
+  //   final responseLike = await apiClient.post(
+  //     "http://$ip:8080/activityBeat/postNewLike",
+  //     data: {
+  //       'beatId': widget.beatId,
+  //     },
+  //   );
+
+  //   if (responseLike.statusCode == 205) {
+  //     final responseDelete = await apiClient
+  //         .delete("http://$ip:8080/activityBeat/${widget.beatId}");
+
+  //     if (responseDelete.statusCode == 200) {
+  //       setState(() {
+  //         // countLikes -= 1;
+  //         isLike = false;
+  //       });
+  //     }
+  //     return;
+  //   }
+
+  //   if (responseLike.statusCode == 201) {
+  //     setState(() {
+  //       isLike = true;
+  //     });
+  //     // setState(() {
+  //     //   isLike = !isLike;
+  //     //   countLikes += isLike ? 1 : -1;
+  //     // });
+  //   } else {}
+  // }
+
+  List<BeatModel> placeholderBeat = List.generate(
+    5,
+    (index) => const BeatModel(
+      id: "",
+      name: "",
+      description: "",
+      picture: "",
+      beatmakerId: "",
+      beatmakerName: "",
+      url: "",
+      price: 1000,
+      plays: 1000,
+      genres: [],
+      moods: [],
+      tags: [],
+      key: KeyModel(
+        name: "",
+        key: "",
+        isSelected: false,
+      ),
+      bpm: 0,
+      createAt: 0,
+    ),
+  );
+
+  void getSimilarBeats() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     final ip = sharedPreferences.getString("ip");
 
-    final responseLike = await apiClient.post(
-      "http://$ip:8080/activityBeat/postNewLike",
-      data: {
-        'beatId': widget.beatId,
+    final response = await http.post(
+      // Uri.parse("http://192.168.0.135:8003/similar_tracks"),
+      Uri.parse("http://$ip:8080/similar_tracks"),
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: json.encode({'track_id': widget.beatId}),
     );
 
-    if (responseLike.statusCode == 205) {
-      final responseDelete = await apiClient
-          .delete("http://$ip:8080/activityBeat/${widget.beatId}");
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
 
-      if (responseDelete.statusCode == 200) {
-        setState(() {
-          // countLikes -= 1;
-          isLike = false;
-        });
-      }
-      return;
-    }
-
-    if (responseLike.statusCode == 201) {
       setState(() {
-        isLike = true;
+        beatData = data.map((json) => BeatModel.fromJson(json)).toList();
       });
-      // setState(() {
-      //   isLike = !isLike;
-      //   countLikes += isLike ? 1 : -1;
-      // });
-    } else {}
+    }
+    if (response.statusCode == 500) {
+      beatData = [];
+    }
   }
 
   void getLikesCountByBeat() async {
@@ -151,17 +210,19 @@ class _InfoBeatState extends State<InfoBeat> {
       if (!mounted) return;
 
       setState(() {
-        beat = BeatEntity.fromJson(data, "false");
+        beat = BeatModel.fromJson(data);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    const double paddingWidth = 18.0;
     const double marginRight = 20.0;
 
     final size = MediaQuery.of(context).size;
     final width = size.width * 0.38;
+    final gridItemWidth = (size.width - paddingWidth * 2 - 20) / 2;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -247,13 +308,28 @@ class _InfoBeatState extends State<InfoBeat> {
                                   alignment: AlignmentDirectional.topCenter,
                                   child: MaterialButton(
                                     onPressed: () async {
-                                      await postNewLike();
+                                      if (isLiked) {
+                                        sl<FavoriteBloc>().add(
+                                            DeleteFavoriteEvent(
+                                                beatId: widget.beatId));
+
+                                        isLiked = false;
+                                        countLikes -= 1;
+                                        setState(() {});
+                                      } else {
+                                        sl<FavoriteBloc>().add(AddFavoriteEvent(
+                                            beatId: widget.beatId));
+
+                                        isLiked = true;
+                                        countLikes += 1;
+                                        setState(() {});
+                                      }
                                     },
                                     color: Colors.white.withOpacity(0.1),
                                     textColor: Colors.white,
                                     shape: const CircleBorder(),
                                     child: Icon(
-                                      isLike
+                                      isLiked
                                           ? Icons.favorite
                                           : Icons.favorite_outline,
                                       size: 18,
@@ -549,125 +625,76 @@ class _InfoBeatState extends State<InfoBeat> {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: List.generate(
-                        5,
-                        (index) {
-                          return Skeletonizer(
-                            enabled: false,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(6),
-                              ),
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Container(
+                      children: beatData.isNotEmpty
+                          ? List.generate(beatData.length, (index) {
+                              return Skeletonizer(
+                                enabled: false,
+                                child: NewBeatWidget(
+                                  openPlayer: () {
+                                    sl<PlayerBloc>().add(
+                                        PlayCurrentBeatEvent(beatData, index));
+
+                                    context.router
+                                        .navigate(const PlayerRoute());
+                                  },
+                                  openInfoBeat: () {
+                                    context.router.push(
+                                      InfoBeatRoute(beatId: beatData[index].id),
+                                    );
+                                  },
+                                  openInfoBeatmaker: () {
+                                    context.router.navigate(
+                                      InfoBeatmakerRoute(
+                                        beatmakerId:
+                                            beatData[index].beatmakerId,
+                                      ),
+                                    );
+                                  },
+                                  isLoading: false,
+                                  index: index,
+                                  beat: beatData[index],
                                   width: width,
-                                  margin:
-                                      const EdgeInsets.only(right: marginRight),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Image.asset(
-                                        fit: BoxFit.fitWidth,
-                                        width: width,
-                                        "assets/images/image1.png",
-                                      ),
-                                      const SizedBox(
-                                        height: 6,
-                                      ),
-                                      const Text(
-                                        "1000 RUB",
-                                        style: AppTextStyles.bodyPrice2,
-                                      ),
-                                      const Text(
-                                        "Detroit type beat sefsef sef",
-                                        style: AppTextStyles.headline1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(
-                                        height: 8,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              children: [
-                                                const SizedBox(
-                                                  width: 12,
-                                                  height: 12,
-                                                  child: CircleAvatar(
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                      'https://mimigram.ru/wp-content/uploads/2020/07/chto-takoe-foto.jpg',
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  width: 4,
-                                                ),
-                                                Expanded(
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                      right: 5,
-                                                    ),
-                                                    child: Column(
-                                                      children: [
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          "Rany sefsefsefsefsef se fs ef se fsefsefseefsefsef",
-                                                          style: AppTextStyles
-                                                              .bodyText2,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.volume_down_outlined,
-                                                size: 12,
-                                                color: AppColors
-                                                    .unselectedItemColor,
-                                              ),
-                                              Column(
-                                                children: [
-                                                  const SizedBox(
-                                                    height: 1,
-                                                  ),
-                                                  Text(
-                                                    "100k",
-                                                    style: AppTextStyles
-                                                        .bodyText2
-                                                        .copyWith(fontSize: 10),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                  marginRight: marginRight,
+                                  gridItemWidth: gridItemWidth,
                                 ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                              );
+                            })
+                          : List.generate(placeholderBeat.length, (index) {
+                              return Skeletonizer(
+                                enabled: true,
+                                child: NewBeatWidget(
+                                  openPlayer: () {},
+                                  openInfoBeat: () {},
+                                  openInfoBeatmaker: () {},
+                                  isLoading: true,
+                                  index: index,
+                                  beat: const BeatModel(
+                                    id: "",
+                                    name: "sefsesfseff",
+                                    description: "sefsef",
+                                    picture: "",
+                                    beatmakerId: "",
+                                    beatmakerName: "sefsef",
+                                    url: "",
+                                    price: 0,
+                                    plays: 0,
+                                    genres: [],
+                                    moods: [],
+                                    tags: [],
+                                    key: KeyModel(
+                                      name: "",
+                                      key: "",
+                                      isSelected: false,
+                                    ),
+                                    bpm: 0,
+                                    createAt: 0,
+                                  ),
+                                  width: width,
+                                  marginRight: marginRight,
+                                  gridItemWidth: gridItemWidth,
+                                ),
+                              );
+                            }),
                     ),
                   ),
                   const SizedBox(height: 80),

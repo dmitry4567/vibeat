@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/custom_functions.dart';
+import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/player/widgets/like_button.dart';
 import 'package:vibeat/utils/theme.dart';
 
 @RoutePage()
@@ -45,90 +48,102 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       body: Stack(
         children: [
-          AutoTabsScaffold(
-            backgroundColor: AppColors.background,
-            routes: const [
-              HeadRoute(),
-              SearchRoute(),
-              FavoriteRoute(),
-              CartRoute(),
-            ],
-            animationDuration: Duration.zero,
-            bottomNavigationBuilder: (_, tabsRouter) {
-              return Theme(
-                data: ThemeData(splashColor: Colors.transparent),
-                child: BottomNavigationBar(
-                  iconSize: 32,
-                  currentIndex: tabsRouter.activeIndex,
-                  onTap: (index) {
-                    if (tabsRouter.activeIndex == index) {
-                      tabsRouter.stackRouterOfIndex(index)?.popUntilRoot();
-                    } else {
-                      tabsRouter.setActiveIndex(index);
-                    }
-                  },
-                  type: BottomNavigationBarType.fixed,
-                  backgroundColor: Colors.black,
-                  elevation: 0,
-                  items: [
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        size: 30,
-                        tabsRouter.activeIndex == 0
-                            ? Icons.home
-                            : Icons.home_outlined,
-                        color: tabsRouter.activeIndex == 0
-                            ? Colors.white
-                            : const Color(0xff666666),
-                      ),
-                      label: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        size: 30,
-                        tabsRouter.activeIndex == 0
-                            ? Icons.search
-                            : Icons.search_outlined,
-                        color: tabsRouter.activeIndex == 1
-                            ? Colors.white
-                            : const Color(0xff666666),
-                      ),
-                      label: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        size: 30,
-                        tabsRouter.activeIndex == 2
-                            ? Icons.favorite
-                            : Icons.favorite_outline,
-                        color: tabsRouter.activeIndex == 2
-                            ? Colors.white
-                            : const Color(0xff666666),
-                      ),
-                      label: '',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        size: 30,
-                        tabsRouter.activeIndex == 3
-                            ? Icons.shopping_cart
-                            : Icons.shopping_cart_outlined,
-                        color: tabsRouter.activeIndex == 3
-                            ? Colors.white
-                            : const Color(0xff666666),
-                      ),
-                      label: '',
-                    ),
-                  ],
-                ),
-              );
+          BlocListener<FavoriteBloc, FavoriteState>(
+            listener: (context, state) {
+              if (state is FavoriteBeatsError) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(setupSnackBar(state.message));
+              }
             },
+            child: AutoTabsScaffold(
+              backgroundColor: AppColors.background,
+              routes: const [
+                HeadRoute(),
+                SearchRoute(),
+                FavoriteRoute(),
+                CartRoute(),
+              ],
+              animationDuration: Duration.zero,
+              bottomNavigationBuilder: (_, tabsRouter) {
+                return Theme(
+                  data: ThemeData(splashColor: Colors.transparent),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).padding.bottom + 64,
+                    child: BottomNavigationBar(
+                      iconSize: 32,
+                      currentIndex: tabsRouter.activeIndex,
+                      onTap: (index) {
+                        if (tabsRouter.activeIndex == index) {
+                          tabsRouter.stackRouterOfIndex(index)?.popUntilRoot();
+                        } else {
+                          tabsRouter.setActiveIndex(index);
+                        }
+                      },
+                      type: BottomNavigationBarType.fixed,
+                      backgroundColor: Colors.black,
+                      elevation: 0,
+                      items: [
+                        BottomNavigationBarItem(
+                          icon: Icon(
+                            size: 30,
+                            tabsRouter.activeIndex == 0
+                                ? Icons.home
+                                : Icons.home_outlined,
+                            color: tabsRouter.activeIndex == 0
+                                ? Colors.white
+                                : const Color(0xff666666),
+                          ),
+                          label: '',
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(
+                            size: 30,
+                            tabsRouter.activeIndex == 0
+                                ? Icons.search
+                                : Icons.search_outlined,
+                            color: tabsRouter.activeIndex == 1
+                                ? Colors.white
+                                : const Color(0xff666666),
+                          ),
+                          label: '',
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(
+                            size: 30,
+                            tabsRouter.activeIndex == 2
+                                ? Icons.favorite
+                                : Icons.favorite_outline,
+                            color: tabsRouter.activeIndex == 2
+                                ? Colors.white
+                                : const Color(0xff666666),
+                          ),
+                          label: '',
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(
+                            size: 30,
+                            tabsRouter.activeIndex == 3
+                                ? Icons.shopping_cart
+                                : Icons.shopping_cart_outlined,
+                            color: tabsRouter.activeIndex == 3
+                                ? Colors.white
+                                : const Color(0xff666666),
+                          ),
+                          label: '',
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
           Positioned(
             left: 0,
             right: 0,
-            bottom: 96,
-            child: BlocConsumer<PlayerBloc, PlayerState>(
+            // bottom: 96,
+            bottom: MediaQuery.of(context).padding.bottom + 64,
+            child: BlocConsumer<PlayerBloc, PlayerStateApp>(
               buildWhen: (previous, current) =>
                   previous.playerBottom != current.playerBottom ||
                   previous.trackList != current.trackList ||
@@ -140,13 +155,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   _isProgrammaticChange = true;
                   currentPage = state.currentTrackIndex;
 
-                  // if (state.currentTrackIndex != 0) {
-                  _carouselController.animateToPage(
-                    state.currentTrackIndex,
-                    // duration: const Duration(milliseconds: 300),
-                    // curve: Curves.easeInOut,
-                  );
-                  // }
+                  if (_carouselController.ready) {
+                    _carouselController.jumpToPage(state.currentTrackIndex);
+                  }
                 }
               },
               builder: (context, state) {
@@ -260,12 +271,22 @@ class _DashboardPageState extends State<DashboardPage> {
                                         ),
                                         Row(
                                           children: [
-                                            IconButton(
-                                              icon: const Icon(
-                                                Icons.favorite_outline,
-                                                size: 22,
-                                              ),
-                                              onPressed: () {},
+                                            BlocBuilder<PlayerBloc,
+                                                PlayerStateApp>(
+                                              buildWhen: (previous, current) =>
+                                                  previous.currentTrackIndex !=
+                                                  current.currentTrackIndex,
+                                              builder: (context, state) {
+                                                return LikeButton(
+                                                  isLiked: context
+                                                      .read<FavoriteBloc>()
+                                                      .isFavoriteBeat(state
+                                                          .currentTrackBeatId)
+                                                      .getOrElse(() => false),
+                                                  beatId:
+                                                      state.currentTrackBeatId,
+                                                );
+                                              },
                                             ),
                                             IconButton(
                                               icon: Icon(
