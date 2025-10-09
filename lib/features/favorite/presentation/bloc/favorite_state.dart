@@ -1,38 +1,33 @@
 part of 'favorite_bloc.dart';
 
-abstract class FavoriteState extends Equatable {
+@immutable
+sealed class FavoriteState extends Equatable {
   const FavoriteState();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
-class FavoriteStateInitial extends FavoriteState {
-  const FavoriteStateInitial();
-}
+class FavoriteStateInitial extends FavoriteState {}
 
-class GettingFavoritesBeats extends FavoriteState {
-  const GettingFavoritesBeats();
-}
+class GettingFavoritesBeats extends FavoriteState {}
 
 class FavoriteBeatsLoaded extends FavoriteState {
-  const FavoriteBeatsLoaded(this.favoriteBeats);
-
   final List<BeatModel> favoriteBeats;
 
+  const FavoriteBeatsLoaded(this.favoriteBeats);
+
   @override
-  List<Object?> get props => favoriteBeats.map((beat) => beat.id).toList();
+  List<Object> get props => [favoriteBeats];
 }
 
 class FavoriteBeatsError extends FavoriteState {
-  const FavoriteBeatsError(this.message);
-
   final String message;
 
+  const FavoriteBeatsError(this.message);
+
   @override
-  List<Object?> get props => [message];
+  List<Object> get props => [message];
 }
 
-class FavoriteBeatsNoInternetError extends FavoriteState {
-  const FavoriteBeatsNoInternetError();
-}
+class FavoriteBeatsNoInternetError extends FavoriteState {}

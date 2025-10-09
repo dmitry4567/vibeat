@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:vibeat/core/errors/failure.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/features/favorite/domain/usecases/add_to_favorite.dart';
@@ -21,9 +22,17 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
         _isFavorite = isFavorite,
         _addToFavorite = addToFavorite,
         _removeFromFavorite = removeFromFavorite,
-        super(const FavoriteStateInitial()) {
+        super( FavoriteStateInitial()) {
     on<GetFavoriteBeatsEvent>((event, emit) async {
-      emit(const GettingFavoritesBeats());
+      // Сохраняем текущие данные если они есть
+      final currentBeats = state is FavoriteBeatsLoaded 
+          ? (state as FavoriteBeatsLoaded).favoriteBeats 
+          : [];
+
+      // Показываем loading только если данных еще нет
+      if (currentBeats.isEmpty) {
+        emit( GettingFavoritesBeats());
+      }
 
       final result = await _getFavoriteBeats();
 
@@ -31,7 +40,7 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
         (failure) {
           switch (failure.runtimeType) {
             case NoInternetFailure:
-              emit(const FavoriteBeatsNoInternetError());
+              emit( FavoriteBeatsNoInternetError());
             case ApiFailure:
               emit(FavoriteBeatsError(failure.message));
           }
@@ -41,26 +50,57 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     });
 
     on<AddFavoriteEvent>((event, emit) async {
-      final result =
-          await _addToFavorite(AddToFavoriteParam(beatId: event.beatId));
+      // Оптимистичное обновление - сразу удаляем из списка
+      if (state is FavoriteBeatsLoaded) {
+        final currentState = state as FavoriteBeatsLoaded;
+        // Создаем копию списка без удаленного элемента
+        final updatedBeats = List<BeatModel>.from(currentState.favoriteBeats);
+        emit(FavoriteBeatsLoaded(updatedBeats));
+      }
+
+      final result = await _addToFavorite(AddToFavoriteParam(beatId: event.beatId));
 
       result.fold(
-        (failure) => emit(FavoriteBeatsError(failure.message)),
+        (failure) {
+          // Если ошибка - возвращаем предыдущее состояние
+          if (state is FavoriteBeatsLoaded) {
+            final currentState = state as FavoriteBeatsLoaded;
+            emit(FavoriteBeatsLoaded(currentState.favoriteBeats));
+          }
+          // Можно показать ошибку, но не сбрасывать состояние
+        },
         (_) {
+          // Обновляем данные с сервера
           add(GetFavoriteBeatsEvent());
         },
       );
     });
 
     on<DeleteFavoriteEvent>((event, emit) async {
-      emit(const GettingFavoritesBeats());
+      // Оптимистичное обновление - сразу удаляем из списка
+      if (state is FavoriteBeatsLoaded) {
+        final currentState = state as FavoriteBeatsLoaded;
+        // Создаем копию списка без удаленного элемента
+        final updatedBeats = currentState.favoriteBeats
+            .where((beat) => beat.id != event.beatId)
+            .toList();
+        emit(FavoriteBeatsLoaded(updatedBeats));
+      }
 
       final result = await _removeFromFavorite(
           RemoveFromFavoriteParam(beatId: event.beatId));
 
       result.fold(
-        (failure) => emit(FavoriteBeatsError(failure.message)),
+        (failure) {
+          // Если ошибка - возвращаем предыдущее состояние
+          if (state is FavoriteBeatsLoaded) {
+            final currentState = state as FavoriteBeatsLoaded;
+            emit(FavoriteBeatsLoaded(currentState.favoriteBeats));
+          }
+          // Можно показать ошибку, но не сбрасывать состояние
+        },
         (_) {
+          // Обновляем данные с сервера для синхронизации
           add(GetFavoriteBeatsEvent());
         },
       );
