@@ -93,8 +93,6 @@ class BeatModel extends Beat {
       description:
           json['description'] != null ? json['description'].toString() : '',
       picture: 'http://${json['picture'].toString()}',
-      // "http://storage.yandexcloud.net/imagesall/${json['picture'].toString()}",
-      // picture: "http://i.ytimg.com/vi_webp/kGcnGpRterE/maxresdefault.webp",
       beatmakerId: json['beatmakerId'].toString(),
       beatmakerName: json['beatmakerName'].toString(),
       url: json['url'].toString(),

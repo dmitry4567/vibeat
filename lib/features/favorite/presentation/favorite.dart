@@ -26,7 +26,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   @override
   void initState() {
     super.initState();
-
     context.read<FavoriteBloc>().add(GetFavoriteBeatsEvent());
   }
 
@@ -57,9 +56,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             ),
             actions: [
               IconButton(
-                onPressed: () {
-                  toggleGridType();
-                },
+                onPressed: toggleGridType,
                 icon: Icon(
                   grid ? Icons.grid_view : Icons.format_list_bulleted,
                 ),
@@ -70,188 +67,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             slivers: [
               SliverPadding(
                 padding: const EdgeInsets.only(top: 8, bottom: 80),
-                sliver: BlocBuilder<FavoriteBloc, FavoriteState>(
-                  builder: (context, state) {
-                    if (state is FavoriteBeatsLoaded) {
-                      if (state.favoriteBeats.isEmpty) {
-                        return const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: Text(
-                              "Нет данных",
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        );
-                      } else {
-                        return grid
-                            ? SliverPadding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: paddingWidth),
-                                sliver: SliverGrid(
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    mainAxisExtent: gridItemWidth + 71,
-                                    crossAxisSpacing: 20,
-                                    mainAxisSpacing: 20,
-                                  ),
-                                  delegate: SliverChildBuilderDelegate(
-                                    childCount: state.favoriteBeats.length,
-                                    (context, index) {
-                                      return Skeletonizer(
-                                        enabled: false,
-                                        child: NewBeatWidget(
-                                          openPlayer: () {
-                                            sl<PlayerBloc>().add(
-                                                PlayCurrentBeatEvent(
-                                                    state.favoriteBeats,
-                                                    index));
-
-                                            context.router
-                                                .navigate(const PlayerRoute());
-                                          },
-                                          openInfoBeat: () {
-                                            context.router.navigate(
-                                              InfoBeatRoute(
-                                                beatId: state
-                                                    .favoriteBeats[index].id,
-                                              ),
-                                            );
-                                          },
-                                          openInfoBeatmaker: () {
-                                            context.router.navigate(
-                                              InfoBeatmakerRoute(
-                                                beatmakerId: state
-                                                    .favoriteBeats[index]
-                                                    .beatmakerId,
-                                              ),
-                                            );
-                                          },
-                                          index: index,
-                                          width: width,
-                                          marginRight: 0,
-                                          gridItemWidth: gridItemWidth,
-                                          isLoading: false,
-                                          beat: state.favoriteBeats[index],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              )
-                            : SliverList.builder(
-                                itemCount: state.favoriteBeats.length,
-                                itemBuilder: (context, index) {
-                                  return Skeletonizer(
-                                    enabled: false,
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () {
-                                          sl<PlayerBloc>().add(
-                                            PlayCurrentBeatEvent(
-                                              state.favoriteBeats,
-                                              index,
-                                            ),
-                                          );
-
-                                          // context.router.navigate(const PlayerRoute());
-                                        },
-                                        child: BeatRowWidget(
-                                          index: index,
-                                          isCurrentPlaying: false,
-                                          beat: state.favoriteBeats[index],
-                                          buttonMore: true,
-                                          funcMore: () {},
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                      }
-                    } else if (state is GettingFavoritesBeats) {
-                      return grid
-                          ? SliverPadding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: paddingWidth),
-                              sliver: SliverGrid(
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisExtent: gridItemWidth + 71,
-                                  crossAxisSpacing: 20,
-                                  mainAxisSpacing: 20,
-                                ),
-                                delegate: SliverChildBuilderDelegate(
-                                  childCount: 4,
-                                  (context, index) {
-                                    return Skeletonizer(
-                                      enabled: true,
-                                      child: NewBeatWidget(
-                                        openPlayer: () {},
-                                        openInfoBeat: () {},
-                                        openInfoBeatmaker: () {},
-                                        index: index,
-                                        width: width,
-                                        marginRight: 0,
-                                        gridItemWidth: gridItemWidth,
-                                        isLoading: true,
-                                        beat: BeatModel.placeholder(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            )
-                          : SliverList.builder(
-                              itemCount: 4,
-                              itemBuilder: (context, index) {
-                                return Skeletonizer(
-                                  enabled: true,
-                                  child: InkWell(
-                                    onTap: () {},
-                                    child: BeatRowWidget(
-                                      index: index,
-                                      isCurrentPlaying: false,
-                                      beat: BeatModel.placeholder(),
-                                      buttonMore: true,
-                                      funcMore: () {},
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                    } else if (state is FavoriteBeatsNoInternetError) {
-                      return const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.signal_wifi_connected_no_internet_4,
-                                size: 60,
-                              ),
-                              SizedBox(
-                                height: 4,
-                              ),
-                              Text(
-                                "Нет подключения к интернету",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    return const SliverToBoxAdapter();
-                  },
+                sliver: _FavoriteContent(
+                  grid: grid,
+                  paddingWidth: paddingWidth,
+                  gridItemWidth: gridItemWidth,
+                  width: width,
                 ),
               ),
             ],
@@ -262,8 +82,136 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   }
 }
 
-// Scrollbar(
-//         thumbVisibility: false,
-//         trackVisibility: true,
-//         interactive: true,
-//         child:
+class _FavoriteContent extends StatelessWidget {
+  final bool grid;
+  final double paddingWidth;
+  final double gridItemWidth;
+  final double width;
+
+  const _FavoriteContent({
+    required this.grid,
+    required this.paddingWidth,
+    required this.gridItemWidth,
+    required this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<FavoriteBloc, FavoriteState, List<BeatModel>>(
+      selector: (state) {
+        // Выбираем только список битов, игнорируем другие изменения состояния
+        if (state is FavoriteBeatsLoaded) {
+          return state.favoriteBeats;
+        }
+        return [];
+      },
+      builder: (context, favoriteBeats) {
+        if (favoriteBeats.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return grid
+            ? _buildGridView(favoriteBeats)
+            : _buildListView(favoriteBeats);
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const SliverFillRemaining(
+      hasScrollBody: false,
+      child: Center(
+        child: Text(
+          "Нет данных",
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridView(List<BeatModel> favoriteBeats) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 18.0),
+      sliver: SliverGrid(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisExtent: gridItemWidth + 71,
+          crossAxisSpacing: 20,
+          mainAxisSpacing: 20,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          childCount: favoriteBeats.length,
+          (context, index) {
+            return Skeletonizer(
+              enabled: false,
+              child: NewBeatWidget(
+                openPlayer: () {
+                  sl<PlayerBloc>().add(
+                    PlayCurrentBeatEvent(favoriteBeats, index),
+                  );
+                  context.router.navigate(const PlayerRoute());
+                },
+                openInfoBeat: () {
+                  context.router.navigate(
+                    InfoBeatRoute(beatId: favoriteBeats[index].id),
+                  );
+                },
+                openInfoBeatmaker: () {
+                  context.router.navigate(
+                    InfoBeatmakerRoute(
+                      beatmakerId: favoriteBeats[index].beatmakerId,
+                    ),
+                  );
+                },
+                index: index,
+                width: width,
+                marginRight: 0,
+                gridItemWidth: gridItemWidth,
+                isLoading: false,
+                beat: favoriteBeats[index],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListView(List<BeatModel> favoriteBeats) {
+    return BlocSelector<PlayerBloc, PlayerStateApp, String?>(
+      selector: (state) => state.currentTrackBeatId,
+      builder: (context, currentTrackBeatId) {
+        return SliverList.builder(
+          addAutomaticKeepAlives: false,
+          addRepaintBoundaries: false,
+          itemCount: favoriteBeats.length,
+          itemBuilder: (context, index) {
+            final playerBloc = sl<PlayerBloc>();
+
+            return Skeletonizer(
+              enabled: false,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    playerBloc.add(
+                      PlayCurrentBeatEvent(favoriteBeats, index),
+                    );
+                  },
+                  child: BeatRowWidget(
+                    key: ValueKey(favoriteBeats[index].id),
+                    index: index,
+                    isCurrentPlaying: favoriteBeats[index].id == currentTrackBeatId,
+                    beat: favoriteBeats[index],
+                    buttonMore: true,
+                    funcMore: () {},
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}

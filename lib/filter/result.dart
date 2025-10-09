@@ -2,15 +2,19 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
+import 'package:vibeat/core/constants/strings.dart';
+import 'package:vibeat/core/hooks/grid_type.dart';
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
 import 'package:vibeat/filter/screen/filter_genre/model/genre_model.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
 import 'package:vibeat/filter/screen/filter_mood/model/mood_model.dart';
 import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart';
+import 'package:vibeat/info_beatmaker/info_beatmaker.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
 import 'package:vibeat/search.dart';
 import 'package:vibeat/utils/theme.dart';
@@ -161,98 +165,156 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   Widget build(BuildContext context) {
     const double paddingWidth = 18.0;
-    const double marginRight = 20.0;
 
     final size = MediaQuery.of(context).size;
     final width = size.width * 0.38;
     final gridItemWidth = (size.width - paddingWidth * 2 - 20) / 2;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: AppColors.appbar,
-        forceMaterialTransparency: true,
-        title: const Text(
-          'Биты',
-          style: AppTextStyles.bodyAppbar,
-        ),
-      ),
-      body: Scrollbar(
-        thumbVisibility: false,
-        trackVisibility: true,
-        interactive: true,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: paddingWidth),
-          child: CustomScrollView(
-            slivers: [
-              data.isNotEmpty && beatData.isNotEmpty
-                  ? SliverPersistentHeader(
-                      pinned: false,
-                      delegate: _ResultHeaderDelegate(
-                        data: data,
-                        countBeats: beatData.length,
-                      ),
-                    )
-                  : const SliverToBoxAdapter(),
-              beatData.isNotEmpty
-                  ? SliverPadding(
-                      padding: const EdgeInsets.only(top: 8, bottom: 80),
-                      sliver: SliverGrid(
-                        delegate: SliverChildBuilderDelegate(
-                          childCount: beatData.length,
-                          (context, index) {
-                            return Skeletonizer(
-                              enabled: false,
-                              child: NewBeatWidget(
-                                gridItemWidth: gridItemWidth,
-                                beat: beatData[index],
-                                index: index,
-                                width: width,
-                                marginRight: 0,
-                                isLoading: false,
-                                openPlayer: () {
-                                  sl<PlayerBloc>().add(
-                                      PlayCurrentBeatEvent(beatData, index));
+    return HookBuilder(builder: (context) {
+      final (grid, toggleGridType, setGridType) = useSharedPrefBool(
+        AppStrings.gridType,
+        defaultValue: false,
+      );
 
-                                  context.router.navigate(const PlayerRoute());
-                                },
-                                openInfoBeat: () {
-                                  context.router.navigate(
-                                    InfoBeatRoute(
-                                      beatId: beatData[index].id,
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          centerTitle: true,
+          backgroundColor: AppColors.appbar,
+          forceMaterialTransparency: true,
+          title: const Text(
+            'Биты',
+            style: AppTextStyles.bodyAppbar,
+          ),
+          actions: [
+            IconButton(
+              onPressed: () {
+                toggleGridType();
+              },
+              icon: Icon(
+                grid ? Icons.grid_view : Icons.format_list_bulleted,
+              ),
+            ),
+          ],
+        ),
+        body: Scrollbar(
+          thumbVisibility: false,
+          trackVisibility: true,
+          interactive: true,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: CustomScrollView(
+              slivers: [
+                data.isNotEmpty && beatData.isNotEmpty
+                    ? SliverPersistentHeader(
+                        pinned: false,
+                        delegate: _ResultHeaderDelegate(
+                          data: data,
+                          countBeats: beatData.length,
+                        ),
+                      )
+                    : const SliverToBoxAdapter(),
+                beatData.isNotEmpty
+                    ? grid
+                        ? SliverPadding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: paddingWidth),
+                            sliver: SliverGrid(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisExtent: gridItemWidth + 71,
+                                crossAxisSpacing: 20,
+                                mainAxisSpacing: 20,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                childCount: beatData.length,
+                                (context, index) {
+                                  return Skeletonizer(
+                                    enabled: false,
+                                    child: NewBeatWidget(
+                                      openPlayer: () {
+                                        sl<PlayerBloc>().add(
+                                            PlayCurrentBeatEvent(
+                                                beatData, index));
+
+                                        context.router
+                                            .navigate(const PlayerRoute());
+                                      },
+                                      openInfoBeat: () {
+                                        context.router.navigate(
+                                          InfoBeatRoute(
+                                            beatId: beatData[index].id,
+                                          ),
+                                        );
+                                      },
+                                      openInfoBeatmaker: () {
+                                        context.router.navigate(
+                                          InfoBeatmakerRoute(
+                                            beatmakerId:
+                                                beatData[index].beatmakerId,
+                                          ),
+                                        );
+                                      },
+                                      index: index,
+                                      width: width,
+                                      marginRight: 0,
+                                      gridItemWidth: gridItemWidth,
+                                      isLoading: false,
+                                      beat: beatData[index],
                                     ),
                                   );
                                 },
-                                openInfoBeatmaker: () {},
                               ),
-                            );
-                          },
-                        ),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisExtent: gridItemWidth + 71,
-                          crossAxisSpacing: 20,
-                          mainAxisSpacing: 20,
-                        ),
-                      ),
-                    )
-                  : const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: Text(
-                          "Нет данных",
-                          style: TextStyle(
-                            color: Colors.white,
+                            ),
+                          )
+                        : SliverList.builder(
+                            itemCount: beatData.length,
+                            itemBuilder: (context, index) {
+                              return Skeletonizer(
+                                enabled: false,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      sl<PlayerBloc>().add(
+                                        PlayCurrentBeatEvent(
+                                          beatData,
+                                          index,
+                                        ),
+                                      );
+
+                                      // context.router.navigate(const PlayerRoute());
+                                    },
+                                    child: BeatRowWidget(
+                                      index: index,
+                                      isCurrentPlaying: false,
+                                      beat: beatData[index],
+                                      buttonMore: true,
+                                      funcMore: () {},
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                    : const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Text(
+                            "Нет данных",
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -269,7 +331,12 @@ class _ResultHeaderDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      padding: const EdgeInsets.only(top: 20, bottom: 20),
+      padding: const EdgeInsets.only(
+        top: 20,
+        bottom: 20,
+        left: 18,
+        right: 18,
+      ),
       color: AppColors.background,
       height: maxExtent,
       child: Column(

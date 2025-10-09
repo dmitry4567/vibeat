@@ -15,6 +15,8 @@ class PlayerControlWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerBloc, PlayerStateApp>(
+      buildWhen: (previous, current) =>
+          previous.isPlaying != current.isPlaying,
       builder: (context, state) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -57,8 +59,6 @@ class PlayerControlWidget extends StatelessWidget {
                   );
 
                   sl<PlayerBloc>().add(NextBeatInPlaylistEvent());
-                  // sl<PlayerBloc>().add(UpdateCurrentTrackIndexEvent(
-                  // state.currentTrackIndex + 1));
                 }
               },
               icon: const Icon(

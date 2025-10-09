@@ -271,12 +271,12 @@ class _DashboardPageState extends State<DashboardPage> {
                                         ),
                                         Row(
                                           children: [
-                                            BlocBuilder<PlayerBloc,
-                                                PlayerStateApp>(
-                                              buildWhen: (previous, current) =>
-                                                  previous.currentTrackIndex !=
-                                                  current.currentTrackIndex,
-                                              builder: (context, state) {
+                                            BlocBuilder<FavoriteBloc,
+                                                FavoriteState>(
+                                              // buildWhen: (previous, current) =>
+                                                  // previous.currentTrackIndex !=
+                                                  // current.currentTrackIndex,
+                                              builder: (context, statef) {
                                                 return LikeButton(
                                                   isLiked: context
                                                       .read<FavoriteBloc>()

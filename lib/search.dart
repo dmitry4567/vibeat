@@ -289,7 +289,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ),
                                   );
                                 },
-                                openInfoBeatmaker: () {},
+                                openInfoBeatmaker: () {
+                                  context.router.navigate(InfoBeatmakerRoute(
+                                    beatmakerId: beatData[index].beatmakerId,
+                                  ));
+                                },
                                 isLoading: false,
                                 index: index,
                                 beat: beatData[index],

@@ -10,10 +10,14 @@ import 'package:vibeat/app/app_router.gr.dart';
 import 'package:vibeat/app/injection_container.dart';
 import 'package:vibeat/app/injection_container.dart' as di;
 import 'package:vibeat/features/favorite/data/models/beat_model.dart';
+import 'package:vibeat/features/favorite/presentation/bloc/favorite_bloc.dart';
 import 'package:vibeat/filter/screen/filter_key/model/key_model.dart';
+import 'package:vibeat/filter/screen/filter_tag/model/tag_model.dart';
+import 'package:vibeat/filter/screen/filter_tag/widgets/tag_card.dart';
 import 'package:vibeat/info_beatmaker/beatmaker.dart';
 import 'package:vibeat/info_beatmaker/bloc/all_beats_of_beatmaker_bloc.dart';
 import 'package:vibeat/player/bloc/player_bloc.dart';
+import 'package:vibeat/player/widgets/like_button.dart';
 import 'package:vibeat/utils/theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -346,7 +350,7 @@ class _InfoBeatmakerState extends State<InfoBeatmakerScreen> {
                                   onTap: () {
                                     sl<PlayerBloc>().add(
                                       PlayCurrentBeatEvent(
-                                        state.beats,
+                                        state.beats.sublist(0, 5),
                                         index,
                                       ),
                                     );
@@ -667,71 +671,97 @@ class BeatRowWidget extends StatelessWidget {
         top: 10,
         bottom: 10,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(6)),
-            child: Image.network(
-              fit: BoxFit.fitHeight,
-              width: 60,
-              height: 60,
-              beat.picture,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) {
-                  return child;
-                }
-                return const Skeletonizer(
-                  enabled: true,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(6)),
-                    child: SizedBox(
-                      width: 60,
-                      height: 60,
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(6)),
+                child: Image.network(
+                  fit: BoxFit.fitHeight,
+                  width: 60,
+                  height: 60,
+                  beat.picture,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child;
+                    }
+                    return const Skeletonizer(
+                      enabled: true,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(6)),
+                        child: SizedBox(
+                          width: 60,
+                          height: 60,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        color: Colors.grey,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    const SizedBox(height: 4),
+                    Text(
+                      "${beat.price} RUB",
+                      style: AppTextStyles.bodyPrice2.copyWith(height: 1),
                     ),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(6)),
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text(
-                  "${beat.price} RUB",
-                  style: AppTextStyles.bodyPrice2.copyWith(height: 1),
+                    const SizedBox(height: 2),
+                    SizedBox(
+                      width: 280,
+                      child: Text(
+                        beat.name,
+                        style: AppTextStyles.headline1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: 280,
+                      child: Text(
+                        beat.beatmakerName,
+                        style: AppTextStyles.bodyText2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  width: 280,
-                  child: Text(
-                    beat.name,
-                    style: AppTextStyles.headline1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 6),
-              ],
-            ),
+              ),
+              BlocBuilder<FavoriteBloc, FavoriteState>(
+                builder: (context, sf) {
+                  return LikeButton(
+                    isLiked: context
+                        .read<FavoriteBloc>()
+                        .isFavoriteBeat(beat.id)
+                        .getOrElse(() => false),
+                    beatId: beat.id,
+                  );
+                },
+              ),
+              buttonMore
+                  ? IconButton(
+                      onPressed: funcMore,
+                      icon: const Icon(Icons.more_vert),
+                    )
+                  : const SizedBox(),
+            ],
           ),
-          buttonMore
-              ? IconButton(
-                  onPressed: funcMore,
-                  icon: const Icon(Icons.more_vert),
-                )
-              : const SizedBox(),
         ],
       ),
     );
